@@ -78,7 +78,7 @@ function isActive($path)
         <!-- Cards -->
         <li class="menu-item <?= isActive('/produksi') ?>">
             <a href="<?= $base_url ?>/admin/produksi/index.php" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-collection"></i>
+                <i class="menu-icon tf-icons bx bx-cog"></i>
                 <div data-i18n="Basic">Produksi</div>
             </a>
         </li>
@@ -90,7 +90,7 @@ function isActive($path)
         </li>
         <li class="menu-item <?= isActive('/penjualan') ?>">
             <a href="<?= $base_url ?>/admin/penjualan/list.php" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-collection"></i>
+                <i class="menu-icon tf-icons bx bx-money"></i>
                 <div data-i18n="Basic">Penjualan</div>
             </a>
         </li>
