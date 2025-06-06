@@ -25,5 +25,6 @@ if (ini_get("session.use_cookies")) {
 session_destroy();
 
 // Redirect ke halaman login dengan pesan sukses
-header("Location: login.php?logout=success");
+// header("Location: login.php?logout=success");
+header("Location: {$base_url}/auth/login.php");
 exit();
