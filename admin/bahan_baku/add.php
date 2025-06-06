@@ -1,5 +1,10 @@
 <?php
 require_once '../includes/header.php';
+// Cek apakah user sudah login
+if (!isLoggedIn()) {
+    header("Location: {$base_url}auth/login.php");
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nama = $conn->real_escape_string($_POST['nama_bahan']);

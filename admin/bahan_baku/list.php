@@ -1,6 +1,12 @@
 <?php
 require_once '../includes/header.php';
 
+// Cek apakah user sudah login
+if (!isLoggedIn()) {
+    header("Location: {$base_url}auth/login.php");
+    exit;
+}
+
 // Query data bahan baku
 $sql = "SELECT * FROM bahan_baku ORDER BY nama_bahan";
 $bahan_baku = query($sql);
