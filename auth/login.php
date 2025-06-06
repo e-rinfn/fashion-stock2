@@ -1,7 +1,7 @@
 <?php
 session_start();
-require_once '<?= $base_url ?>/config/database.php';
-require_once '<?= $base_url ?>/config/functions.php';
+require_once '../config/database.php';
+require_once '../config/functions.php';
 
 if (isset($_POST['login'])) {
   $username = $conn->real_escape_string($_POST['username']);
@@ -19,9 +19,9 @@ if (isset($_POST['login'])) {
       $_SESSION['nama'] = $user['nama_lengkap'];
 
       if ($user['role'] == 'admin') {
-        header("Location: <?= $base_url ?>/admin/index.php");
+        header("Location: ../admin/index.php");
       } else {
-        header("Location: <?= $base_url ?>/owner/index.php");
+        header("Location: ../owner/index.php");
       }
       exit();
     }
