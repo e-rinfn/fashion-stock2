@@ -2,6 +2,8 @@
 session_start();
 require_once '../config/database.php';
 require_once '../config/functions.php';
+include_once '../config/config.php';
+
 
 if (isset($_POST['login'])) {
   $username = $conn->real_escape_string($_POST['username']);
