@@ -35,7 +35,7 @@ require_once __DIR__ . '../../includes/header.php';
                                     <div class="card-body">
                                         <div class="card-title d-flex align-items-start justify-content-between">
                                             <div class="avatar flex-shrink-0">
-                                                <i class="bx bx-cut fs-2 text-danger"></i>
+                                                <i class="bx bxs-truck fs-2 text-danger"></i>
                                             </div>
                                         </div>
                                         <span class="fw-semibold d-block mb-1">Pengiriman Pemotong</span>
