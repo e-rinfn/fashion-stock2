@@ -2,11 +2,7 @@
 require_once '../config/functions.php';
 require_once './includes/header.php';
 
-// Cek apakah user sudah login
-if (!isLoggedIn()) {
-    header("Location: {$base_url}auth/login.php");
-    exit;
-}
+
 ?>
 
 

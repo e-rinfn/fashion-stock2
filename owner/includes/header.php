@@ -8,7 +8,8 @@ if (!isLoggedIn()) {
     exit;
 }
 
-if ($_SESSION['role'] !== 'admin') {
+
+if ($_SESSION['role'] !== 'owner') {
     header("Location: {$base_url}/auth/role_tidak_cocok.php");
     exit();
 }
