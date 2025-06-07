@@ -44,7 +44,13 @@ if (isset($_FILES['bukti_pembayaran']) && $_FILES['bukti_pembayaran']['error'] =
     if (in_array($fileExtension, $allowedfileExtensions)) {
         if ($fileSize <= 2 * 1024 * 1024) { // max 2MB
             $newFileName = md5(time() . $fileName) . '.' . $fileExtension;
-            $uploadFileDir = 'bukti/';
+
+
+            // $uploadFileDir = './bukti/';
+
+            $uploadFileDir = $_SERVER['DOCUMENT_ROOT'] . '/admin/penjualan/bukti/';
+
+
             if (!is_dir($uploadFileDir)) {
                 mkdir($uploadFileDir, 0755, true);
             }
