@@ -59,8 +59,13 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, pm.nama_pemotong
 
                     <div class="container-xxl flex-grow-1 container-p-y">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h2>Tambah Data Pengimiman Pemotong</h2>
+                            <h2>1. Tambah Data Pengiriman Pemotong</h2>
+                            <div class="btn-group ms-auto" role="group" aria-label="Navigasi Form">
+                                <!-- <a href="#" class="btn btn-outline-warning">Kembali</a> -->
+                                <a href="hasil_pemotongan.php" class="btn btn-outline-primary">Next</a>
+                            </div>
                         </div>
+
 
                         <div class="card p-4 shadow-sm">
                             <?php if (isset($error)): ?>
@@ -115,25 +120,25 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, pm.nama_pemotong
                                 <table class="table table-bordered table-striped align-middle">
                                     <thead class="table-light">
                                         <tr>
-                                            <th>No</th>
+                                            <th class="text-center">No</th>
                                             <th>Tanggal</th>
                                             <th>Bahan Baku</th>
                                             <th>Pemotong</th>
                                             <th>Jumlah</th>
-                                            <th>Status</th>
+                                            <th class="text-center">Status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php $no = 1;
                                         foreach ($pengiriman as $p): ?>
                                             <tr>
-                                                <td><?= $no++ ?></td>
+                                                <td class="text-center"><?= $no++ ?></td>
                                                 <td><?= date('d/m/Y', strtotime($p['tanggal_kirim'])) ?></td>
                                                 <td><?= $p['nama_bahan'] ?></td>
                                                 <td><?= $p['nama_pemotong'] ?></td>
                                                 <td><?= $p['jumlah_bahan'] ?></td>
                                                 <!-- <td><?= ucfirst($p['status']) ?></td> -->
-                                                <td>
+                                                <td class="text-center">
                                                     <span class="badge <?= $p['status'] == 'dikirim' ? 'bg-warning text-dark' : 'bg-success' ?>">
                                                         <?= $p['status'] == 'dikirim' ? 'Dalam Proses' : 'Selesai' ?>
                                                     </span>
@@ -150,7 +155,6 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, pm.nama_pemotong
                             </div>
                         </div>
                     </div>
-
 
 
                     <!-- / Content -->

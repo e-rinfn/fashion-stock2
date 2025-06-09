@@ -47,8 +47,20 @@ $pemotong = query($sql);
                         </div>
 
                         <div class="card p-3">
+
+                            <!-- Tampilkan pesan error atau success -->
+                            <?php if (isset($error)): ?>
+                                <div class="alert alert-danger"><?= $error ?></div>
+                            <?php endif; ?>
+
+                            <?php if (isset($_SESSION['success'])): ?>
+                                <div class="alert alert-success"><?= $_SESSION['success'] ?></div>
+                                <?php unset($_SESSION['success']); ?>
+                            <?php endif; ?>
+                            <!-- /Tampilkan pesan error atau success -->
+
                             <div class="table-responsive">
-                                <table class="table table-bordered table-striped align-middle">
+                                <table class="table table-striped table-bordered table-hover">
                                     <thead class="table-light text-center">
                                         <tr>
                                             <th scope="col">No</th>

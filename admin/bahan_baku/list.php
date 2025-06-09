@@ -31,6 +31,68 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['tambah_stok'])) {
         $error = "Jumlah tidak valid!";
     }
 }
+
+// Query data bahan baku
+$sql = "SELECT * FROM bahan_baku ORDER BY nama_bahan";
+$bahan_baku = query($sql);
+
+// Proses tambah stok jika form disubmit
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (isset($_POST['tambah_stok'])) {
+        $id_bahan = intval($_POST['id_bahan']);
+        $jumlah = floatval($_POST['jumlah']);
+
+        // Validasi input
+        if ($id_bahan > 0 && $jumlah > 0) {
+            // Update stok di database
+            $sql_update = "UPDATE bahan_baku SET jumlah_stok = jumlah_stok + $jumlah WHERE id_bahan = $id_bahan";
+            if ($conn->query($sql_update)) {
+                $_SESSION['success'] = "Stok berhasil ditambahkan";
+                header("Location: list.php");
+                exit();
+            } else {
+                $error = "Gagal menambahkan stok: " . $conn->error;
+            }
+        } else {
+            $error = "Jumlah tidak valid!";
+        }
+    }
+
+    // Proses adjust stok (tambah/kurang)
+    if (isset($_POST['adjust_stok'])) {
+        $id_bahan = intval($_POST['id_bahan']);
+        $jumlah = floatval($_POST['adjust_jumlah']);
+        $tipe = $_POST['adjust_tipe']; // 'tambah' atau 'kurang'
+
+        // Validasi input
+        if ($id_bahan > 0 && $jumlah > 0) {
+            // Update stok berdasarkan tipe
+            if ($tipe == 'kurang') {
+                // Cek stok cukup
+                $current_stock = query("SELECT jumlah_stok FROM bahan_baku WHERE id_bahan = $id_bahan")[0]['jumlah_stok'];
+                if ($current_stock < $jumlah) {
+                    $error = "Stok tidak cukup! Stok tersedia: $current_stock";
+                } else {
+                    $sql_update = "UPDATE bahan_baku SET jumlah_stok = jumlah_stok - $jumlah WHERE id_bahan = $id_bahan";
+                }
+            } else {
+                $sql_update = "UPDATE bahan_baku SET jumlah_stok = jumlah_stok + $jumlah WHERE id_bahan = $id_bahan";
+            }
+
+            if (isset($sql_update) && $conn->query($sql_update)) {
+                $_SESSION['success'] = "Stok berhasil disesuaikan";
+                header("Location: list.php");
+                exit();
+            } elseif (!isset($sql_update)) {
+                $error = $error ?? "Gagal menyesuaikan stok";
+            } else {
+                $error = "Gagal menyesuaikan stok: " . $conn->error;
+            }
+        } else {
+            $error = "Jumlah tidak valid!";
+        }
+    }
+}
 ?>
 
 <style>
@@ -72,8 +134,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['tambah_stok'])) {
                             </div>
                         </div>
                         <div class="card p-3">
+
+                            <!-- Tampilkan pesan error atau success -->
+                            <?php if (isset($error)): ?>
+                                <div class="alert alert-danger"><?= $error ?></div>
+                            <?php endif; ?>
+
+                            <?php if (isset($_SESSION['success'])): ?>
+                                <div class="alert alert-success"><?= $_SESSION['success'] ?></div>
+                                <?php unset($_SESSION['success']); ?>
+                            <?php endif; ?>
+                            <!-- /Tampilkan pesan error atau success -->
+
                             <div class="table-responsive">
-                                <table class="table table-bordered table-hover align-middle">
+                                <table class="table table-striped table-bordered table-hover">
                                     <thead class="table-light text-center">
                                         <tr>
                                             <th>No</th>
@@ -111,10 +185,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['tambah_stok'])) {
                                                             <i class="bx bx-trash"></i> Hapus
                                                         </a>
 
-                                                        <button type="button"
+                                                        <!-- <button type="button"
                                                             class="btn btn-info btn-sm mb-1"
                                                             onclick="showStokForm(<?= $bahan['id_bahan']; ?>)">
                                                             <i class="bx bx-plus"></i> Stok
+                                                        </button> -->
+
+                                                        <button type="button"
+                                                            class="btn btn-warning btn-sm mb-1"
+                                                            onclick="showAdjustForm(<?= $bahan['id_bahan']; ?>)">
+                                                            <i class="bx bx-adjust"></i> Adjust
                                                         </button>
                                                     </td>
 
@@ -132,6 +212,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['tambah_stok'])) {
                                                             <button type="submit" name="tambah_stok" class="btn btn-success btn-sm">Simpan</button>
                                                             <button type="button" class="btn btn-secondary btn-sm"
                                                                 onclick="hideStokForm(<?= $bahan['id_bahan']; ?>)">Batal</button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+
+                                                <!-- Form adjust stok (hidden) -->
+                                                <tr id="adjust-form-<?= $bahan['id_bahan']; ?>" class="adjust-form" style="display:none;">
+                                                    <td colspan="7">
+                                                        <form method="post" class="d-flex flex-wrap align-items-center gap-2">
+                                                            <input type="hidden" name="id_bahan" value="<?= $bahan['id_bahan']; ?>">
+                                                            <div class="d-flex align-items-center gap-2">
+                                                                <select name="adjust_tipe" class="form-select w-auto">
+                                                                    <option value="tambah">Tambah</option>
+                                                                    <option value="kurang">Kurangi</option>
+                                                                </select>
+                                                                <input type="number" name="adjust_jumlah" step="0.01" min="0.01" required
+                                                                    class="form-control w-auto" placeholder="Jumlah">
+                                                                <span><?= $bahan['satuan']; ?></span>
+                                                            </div>
+                                                            <button type="submit" name="adjust_stok" class="btn btn-warning btn-sm">Simpan</button>
+                                                            <button type="button" class="btn btn-secondary btn-sm"
+                                                                onclick="hideAdjustForm(<?= $bahan['id_bahan']; ?>)">Batal</button>
                                                         </form>
                                                     </td>
                                                 </tr>
@@ -189,6 +290,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['tambah_stok'])) {
     </script>
 
 
+    <script>
+        // Fungsi untuk menampilkan/sembunyikan form adjust stok
+        function showAdjustForm(id) {
+            // Sembunyikan semua form yang mungkin terbuka
+            document.querySelectorAll('.stok-form, .adjust-form').forEach(form => {
+                form.style.display = 'none';
+            });
+
+            // Tampilkan form adjust untuk bahan yang dipilih
+            document.getElementById('adjust-form-' + id).style.display = '';
+        }
+
+        function hideAdjustForm(id) {
+            document.getElementById('adjust-form-' + id).style.display = 'none';
+        }
+
+        // Pertahankan fungsi sebelumnya
+        function showStokForm(id) {
+            document.querySelectorAll('.stok-form, .adjust-form').forEach(form => {
+                form.style.display = 'none';
+            });
+            document.getElementById('stok-form-' + id).style.display = '';
+        }
+
+        function hideStokForm(id) {
+            document.getElementById('stok-form-' + id).style.display = 'none';
+        }
+    </script>
 
     <script>
         function showStokForm(id) {

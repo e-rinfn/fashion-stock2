@@ -45,10 +45,11 @@ if (isset($_FILES['bukti_pembayaran']) && $_FILES['bukti_pembayaran']['error'] =
         if ($fileSize <= 2 * 1024 * 1024) { // max 2MB
             $newFileName = md5(time() . $fileName) . '.' . $fileExtension;
 
+            // UNTUK LOKAL
+            $uploadFileDir = './bukti/';
 
-            // $uploadFileDir = './bukti/';
-
-            $uploadFileDir = $_SERVER['DOCUMENT_ROOT'] . '/admin/penjualan/bukti/';
+            // UNTUK SERVER
+            // $uploadFileDir = $_SERVER['DOCUMENT_ROOT'] . '/admin/penjualan/bukti/';
 
 
             if (!is_dir($uploadFileDir)) {

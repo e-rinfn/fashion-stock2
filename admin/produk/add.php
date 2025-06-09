@@ -45,9 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </div>
 
                         <div class="card p-4 shadow-sm">
-                            <?php if (isset($error)): ?>
-                                <div class="alert alert-danger"><?= $error; ?></div>
-                            <?php endif; ?>
 
                             <form method="post">
                                 <div class="mb-3">

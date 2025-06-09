@@ -1,21 +1,44 @@
 <?php
 require_once '../includes/header.php';
 
+// Cek apakah parameter ID ada
+if (!isset($_GET['id'])) {
+    header("Location: list.php");
+    exit;
+}
+
+$id_produk = intval($_GET['id']);
+
+// Ambil data produk yang akan diedit
+$sql = "SELECT * FROM produk WHERE id_produk = $id_produk";
+$result = $conn->query($sql);
+$produk = $result->fetch_assoc();
+
+if (!$produk) {
+    header("Location: list.php");
+    exit;
+}
+
+// Proses update data
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nama = $conn->real_escape_string($_POST['nama']);
     $harga = $conn->real_escape_string($_POST['harga']);
     $stok = $conn->real_escape_string($_POST['stok']);
     $deskripsi = $conn->real_escape_string($_POST['deskripsi']);
 
-    $sql = "INSERT INTO produk (nama_produk, harga_jual, stok, deskripsi) 
-            VALUES ('$nama', '$harga', '$stok', '$deskripsi')";
+    $sql = "UPDATE produk SET 
+            nama_produk = '$nama',
+            harga_jual = '$harga',
+            stok = '$stok',
+            deskripsi = '$deskripsi'
+            WHERE id_produk = $id_produk";
 
     if ($conn->query($sql)) {
-        $_SESSION['success'] = "Produk berhasil ditambahkan";
+        $_SESSION['success'] = "Produk berhasil diperbarui";
         header("Location: list.php");
         exit();
     } else {
-        $error = "Gagal menambahkan produk: " . $conn->error;
+        $error = "Gagal memperbarui produk: " . $conn->error;
     }
 }
 ?>
@@ -45,34 +68,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </div>
 
                         <div class="card p-4 shadow-sm">
-                            <?php if (isset($error)): ?>
-                                <div class="alert alert-danger"><?= $error ?></div>
-                            <?php endif; ?>
 
                             <form method="post">
                                 <div class="mb-3">
                                     <label for="nama" class="form-label">Nama Produk</label>
-                                    <input type="text" id="nama" name="nama" class="form-control" required>
+                                    <input type="text" id="nama" name="nama" class="form-control"
+                                        value="<?= htmlspecialchars($produk['nama_produk']) ?>" required>
                                 </div>
 
                                 <div class="mb-3">
                                     <label for="harga" class="form-label">Harga Jual</label>
-                                    <input type="number" id="harga" name="harga" class="form-control" min="0" required>
+                                    <input type="number" id="harga" name="harga" class="form-control"
+                                        value="<?= htmlspecialchars($produk['harga_jual']) ?>" min="0" required>
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="stok" class="form-label">Stok Awal</label>
-                                    <input type="number" id="stok" name="stok" class="form-control" min="0" required>
+                                    <label for="stok" class="form-label">Stok</label>
+                                    <input type="number" id="stok" name="stok" class="form-control"
+                                        value="<?= htmlspecialchars($produk['stok']) ?>" min="0" required>
                                 </div>
 
                                 <div class="mb-3">
                                     <label for="deskripsi" class="form-label">Deskripsi</label>
-                                    <textarea id="deskripsi" name="deskripsi" rows="5" class="form-control" required></textarea>
+                                    <textarea id="deskripsi" name="deskripsi" rows="5" class="form-control" required><?=
+                                                                                                                        htmlspecialchars($produk['deskripsi']) ?></textarea>
                                 </div>
 
                                 <div class="d-flex justify-content-between">
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="bx bx-save"></i> Simpan
+                                        <i class="bx bx-save"></i> Simpan Perubahan
                                     </button>
                                     <a href="list.php" class="btn btn-secondary">
                                         <i class="bx bx-x"></i> Batal
@@ -81,9 +105,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </form>
                         </div>
                     </div>
-
-
-
 
                     <!-- / Content -->
 
@@ -102,7 +123,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <!-- Core JS footer -->
     <?php include '../includes/footer.php'; ?>
     <!-- /Core JS footer -->
-
 
 </body>
 

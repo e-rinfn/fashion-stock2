@@ -79,7 +79,11 @@ $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
                 <div class="content-wrapper">
                     <div class="container-xxl flex-grow-1 container-p-y">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h2>Tambah Data Pengiriman Penjahit</h2>
+                            <h2>3. Tambah Data Pengiriman Penjahit</h2>
+                            <div class="btn-group ms-auto" role="group" aria-label="Navigasi Form">
+                                <a href="hasil_pemotongan.php" class="btn btn-outline-warning">Kembali</a>
+                                <a href="hasil_penjahitan.php" class="btn btn-outline-primary">Next</a>
+                            </div>
                         </div>
 
                         <div class="card p-4 shadow-sm">
@@ -138,11 +142,11 @@ $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
                                 <table class="table table-striped table-bordered mt-3">
                                     <thead class="table-light">
                                         <tr>
-                                            <th>No</th>
+                                            <th class="text-center">No</th>
                                             <th>Tanggal</th>
                                             <th>Penjahit</th>
                                             <th>Jumlah</th>
-                                            <th>Status</th>
+                                            <th class="text-center">Status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -159,11 +163,11 @@ $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
                                         foreach ($history as $h):
                                         ?>
                                             <tr>
-                                                <td><?= $no++ ?></td>
+                                                <td class="text-center"><?= $no++ ?></td>
                                                 <td><?= $h['tgl_kirim'] ?></td>
                                                 <td><?= $h['nama_penjahit'] ?></td>
                                                 <td><?= $h['jumlah_bahan_mentah'] ?> pcs</td>
-                                                <td>
+                                                <td class="text-center">
                                                     <span class="badge <?= $h['status'] == 'dikirim' ? 'bg-warning text-dark' : 'bg-success' ?>">
                                                         <?= $h['status'] == 'dikirim' ? 'Dalam Proses' : 'Selesai' ?>
                                                     </span>

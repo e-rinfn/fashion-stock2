@@ -38,7 +38,7 @@ require_once __DIR__ . '../../includes/header.php';
                                                 <i class="bx bxs-truck fs-2 text-danger"></i>
                                             </div>
                                         </div>
-                                        <span class="fw-semibold d-block mb-1">Pengiriman Pemotong</span>
+                                        <span class="fw-semibold d-block mb-1">1. Pengiriman Pemotong</span>
                                         <div class="d-flex justify-content-end">
                                             <a href="pengiriman_pemotong.php" class="btn btn-sm btn-outline-danger">
                                                 <i class="bx bx-show-alt me-1"></i> Lihat
@@ -55,7 +55,7 @@ require_once __DIR__ . '../../includes/header.php';
                                                 <i class="bx bx-cut fs-2 text-warning"></i>
                                             </div>
                                         </div>
-                                        <span class="fw-semibold d-block mb-1">Hasil Potong</span>
+                                        <span class="fw-semibold d-block mb-1">2. Hasil Potong</span>
                                         <div class="d-flex justify-content-end">
                                             <a href="hasil_pemotongan.php" class="btn btn-sm btn-outline-warning">
                                                 <i class="bx bx-show-alt me-1"></i> Lihat
@@ -72,7 +72,7 @@ require_once __DIR__ . '../../includes/header.php';
                                                 <i class="bx bx-box fs-2 text-primary"></i>
                                             </div>
                                         </div>
-                                        <span class="fw-semibold d-block mb-1">Pengiriman Penjahit</span>
+                                        <span class="fw-semibold d-block mb-1">3. Pengiriman Penjahit</span>
                                         <div class="d-flex justify-content-end">
                                             <a href="pengiriman_penjahit.php" class="btn btn-sm btn-outline-primary">
                                                 <i class="bx bx-show-alt me-1"></i> Lihat
@@ -89,7 +89,7 @@ require_once __DIR__ . '../../includes/header.php';
                                                 <i class="bx bx-package fs-2 text-success"></i>
                                             </div>
                                         </div>
-                                        <span class="fw-semibold d-block mb-1">Hasil Penjahitan</span>
+                                        <span class="fw-semibold d-block mb-1">4. Hasil Penjahitan</span>
                                         <div class="d-flex justify-content-end">
                                             <a href="hasil_penjahitan.php" class="btn btn-sm btn-outline-success">
                                                 <i class="bx bx-show-alt me-1"></i> Lihat

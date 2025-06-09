@@ -39,16 +39,28 @@ $produk = query($sql);
                                     <i class="bx bx-plus-circle"></i> Tambah Produk
                                 </a>
                                 <!--
-            <a href="../laporan/stok.php" class="btn btn-warning btn-sm m-1">
-                <i class="bx bx-file"></i> Laporan
-            </a>
-            -->
+                                <a href="../laporan/stok.php" class="btn btn-warning btn-sm m-1">
+                                    <i class="bx bx-file"></i> Laporan
+                                </a>
+                                -->
                             </div>
                         </div>
 
                         <div class="card p-3">
+
+                            <!-- Tampilkan pesan error atau success -->
+                            <?php if (isset($error)): ?>
+                                <div class="alert alert-danger"><?= $error ?></div>
+                            <?php endif; ?>
+
+                            <?php if (isset($_SESSION['success'])): ?>
+                                <div class="alert alert-success"><?= $_SESSION['success'] ?></div>
+                                <?php unset($_SESSION['success']); ?>
+                            <?php endif; ?>
+                            <!-- /Tampilkan pesan error atau success -->
+
                             <div class="table-responsive">
-                                <table class="table table-bordered table-hover align-middle">
+                                <table class="table table-striped table-bordered table-hover">
                                     <thead class="table-light text-center">
                                         <tr>
                                             <th scope="col">No</th>
@@ -63,12 +75,12 @@ $produk = query($sql);
                                         <?php $no = 1;
                                         foreach ($produk as $p) : ?>
                                             <tr>
-                                                <td><?= $no++ ?></td>
+                                                <td class="text-center"><?= $no++ ?></td>
                                                 <td><?= htmlspecialchars($p['nama_produk']) ?></td>
                                                 <td><?= formatRupiah($p['harga_jual']) ?></td>
                                                 <td><?= $p['stok'] ?></td>
                                                 <td><?= htmlspecialchars(substr($p['deskripsi'], 0, 50)) ?>...</td>
-                                                <td>
+                                                <td class="text-center">
                                                     <div class="d-flex gap-2">
                                                         <a href="edit.php?id=<?= $p['id_produk'] ?>" class="btn btn-sm btn-primary">
                                                             <i class="bx bx-edit"></i> Edit

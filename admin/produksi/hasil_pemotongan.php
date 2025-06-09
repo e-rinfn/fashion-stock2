@@ -54,7 +54,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                     <div class="container-xxl flex-grow-1 container-p-y">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h2>Tambah Data Hasil Pemotongan</h2>
+                            <h2>2. Tambah Data Hasil Pemotongan</h2>
+                            <div class="btn-group ms-auto" role="group" aria-label="Navigasi Form">
+                                <a href="pengiriman_pemotong.php" class="btn btn-outline-warning">Kembali</a>
+                                <a href="pengiriman_penjahit.php" class="btn btn-outline-primary">Next</a>
+                            </div>
                         </div>
 
                         <div class="card p-4 shadow-sm">
@@ -107,22 +111,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <table class="table table-striped table-bordered align-middle">
                                     <thead class="table-light">
                                         <tr>
-                                            <th>No</th>
+                                            <th class="text-center">No</th>
                                             <th>Tanggal</th>
                                             <th>Bahan Baku</th>
                                             <th>Pemotong</th>
-                                            <th>Jumlah Hasil (pcs)</th>
+                                            <th class="text-center">Jumlah Hasil (pcs)</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php $no = 1;
                                         foreach ($riwayat as $r): ?>
                                             <tr>
-                                                <td><?= $no++ ?></td>
+                                                <td class="text-center"><?= $no++ ?></td>
                                                 <td><?= date('d/m/Y', strtotime($r['tanggal_selesai'])) ?></td>
                                                 <td><?= $r['nama_bahan'] ?></td>
                                                 <td><?= $r['nama_pemotong'] ?></td>
-                                                <td><?= $r['jumlah_hasil'] ?></td>
+                                                <td class="text-center"><?= $r['jumlah_hasil'] ?></td>
                                             </tr>
                                         <?php endforeach; ?>
                                     </tbody>

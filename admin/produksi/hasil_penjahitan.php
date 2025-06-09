@@ -89,7 +89,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                     <div class="container-xxl flex-grow-1 container-p-y">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h2>Tambah Data Hasil Penjahitan</h2>
+                            <h2>4. Tambah Data Hasil Penjahitan</h2>
+                            <div class="btn-group ms-auto" role="group" aria-label="Navigasi Form">
+                                <a href="pengiriman_penjahit.php" class="btn btn-outline-warning">Kembali</a>
+                                <!-- <a href="hasil_pemotongan.php" class="btn btn-outline-primary">Next</a> -->
+                            </div>
                         </div>
 
                         <div class="card p-4 shadow-sm">

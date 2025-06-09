@@ -45,6 +45,18 @@ $penjahit = query($sql);
                         </div>
 
                         <div class="card p-3">
+
+                            <!-- Tampilkan pesan error atau success -->
+                            <?php if (isset($error)): ?>
+                                <div class="alert alert-danger"><?= $error ?></div>
+                            <?php endif; ?>
+
+                            <?php if (isset($_SESSION['success'])): ?>
+                                <div class="alert alert-success"><?= $_SESSION['success'] ?></div>
+                                <?php unset($_SESSION['success']); ?>
+                            <?php endif; ?>
+                            <!-- /Tampilkan pesan error atau success -->
+
                             <div class="table-responsive">
                                 <table class="table table-striped table-bordered table-hover">
                                     <thead class="table-light text-center">
@@ -60,7 +72,7 @@ $penjahit = query($sql);
                                         <?php $no = 1;
                                         foreach ($penjahit as $pj) : ?>
                                             <tr>
-                                                <td><?= $no++ ?></td>
+                                                <td class="text-center"><?= $no++ ?></td>
                                                 <td><?= htmlspecialchars($pj['nama_penjahit']) ?></td>
                                                 <td><?= htmlspecialchars($pj['kontak']) ?></td>
                                                 <td><?= htmlspecialchars($pj['alamat']) ?></td>
