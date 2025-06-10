@@ -2,36 +2,44 @@
 $pageTitle = "Laporan Keuangan";
 require_once '../includes/header.php';
 
-
 // Filter bulan
 $bulan = $_GET['bulan'] ?? date('Y-m');
 $startDate = date('Y-m-01', strtotime($bulan));
 $endDate = date('Y-m-t', strtotime($bulan));
 
 // Query data keuangan
-$pemasukan = query("SELECT SUM(total_harga) as total FROM penjualan 
-                   WHERE status_pembayaran = 'lunas'
-                   AND tanggal_penjualan BETWEEN '$startDate' AND '$endDate'")[0]['total'] ?? 0;
+$pemasukan_lunas = query("SELECT SUM(total_harga) as total FROM penjualan 
+                         WHERE status_pembayaran = 'lunas'
+                         AND tanggal_penjualan BETWEEN '$startDate' AND '$endDate'")[0]['total'] ?? 0;
+
+$pemasukan_belum_lunas = query("SELECT SUM(total_harga) as total FROM penjualan 
+                               WHERE status_pembayaran = 'cicilan'
+                               AND tanggal_penjualan BETWEEN '$startDate' AND '$endDate'")[0]['total'] ?? 0;
 
 $pengeluaran = query("SELECT SUM(total_harga) as total FROM pembelian_bahan
                      WHERE tanggal_pembelian BETWEEN '$startDate' AND '$endDate'")[0]['total'] ?? 0;
 
-$laba = $pemasukan - $pengeluaran;
+$laba = $pemasukan_lunas - $pengeluaran;
 
 // Detail transaksi
 $transaksi = query("
     (SELECT 'Penjualan' as jenis, tanggal_penjualan as tanggal, 
             CONCAT('Invoice #', id_penjualan) as keterangan, 
-            total_harga as jumlah, 'pemasukan' as tipe
+            total_harga as jumlah, 
+            CASE 
+                WHEN status_pembayaran = 'lunas' THEN 'pemasukan-lunas'
+                ELSE 'pemasukan-belum-lunas'
+            END as tipe,
+            status_pembayaran
      FROM penjualan
-     WHERE status_pembayaran = 'lunas'
-     AND tanggal_penjualan BETWEEN '$startDate' AND '$endDate')
+     WHERE tanggal_penjualan BETWEEN '$startDate' AND '$endDate')
     
     UNION ALL
     
     (SELECT 'Pembelian Bahan' as jenis, tanggal_pembelian as tanggal, 
             CONCAT('Pembelian ', nama_bahan) as keterangan, 
-            total_harga as jumlah, 'pengeluaran' as tipe
+            total_harga as jumlah, 'pengeluaran' as tipe,
+            NULL as status_pembayaran
      FROM pembelian_bahan pb
      JOIN bahan_baku bb ON pb.id_bahan = bb.id_bahan
      WHERE tanggal_pembelian BETWEEN '$startDate' AND '$endDate')
@@ -64,6 +72,7 @@ $transaksi = query("
                 <!-- / Navbar -->
 
                 <!-- Content wrapper -->
+                <!-- Content wrapper -->
                 <div class="content-wrapper">
                     <!-- Content -->
 
@@ -73,28 +82,32 @@ $transaksi = query("
                         </div>
 
                         <div class="row">
+                            <!-- Card Pemasukan Lunas -->
                             <div class="col-md-4">
-                                <div class="card text-white bg-success mb-3">
+                                <div class="card border-start-success mb-3">
                                     <div class="card-body">
-                                        <h5 class="card-title">Pemasukan</h5>
-                                        <h2 class="card-text"><?= formatRupiah($pemasukan) ?></h2>
+                                        <h5 class="card-title text-success">Pemasukan Lunas</h5>
+                                        <h2 class="card-text"><?= formatRupiah($pemasukan_lunas) ?></h2>
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Card Pemasukan Belum Lunas -->
                             <div class="col-md-4">
-                                <div class="card text-white bg-danger mb-3">
+                                <div class="card border-start-warning mb-3">
                                     <div class="card-body">
-                                        <h5 class="card-title">Pengeluaran</h5>
-                                        <h2 class="card-text"><?= formatRupiah($pengeluaran) ?></h2>
+                                        <h5 class="card-title text-warning">Pemasukan Belum Lunas</h5>
+                                        <h2 class="card-text"><?= formatRupiah($pemasukan_belum_lunas) ?></h2>
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Card Pengeluaran -->
                             <div class="col-md-4">
-                                <div class="card text-white bg-info mb-3">
+                                <div class="card border-start-primary mb-3">
                                     <div class="card-body">
-                                        <h5 class="card-title">Laba/Rugi</h5>
-                                        <h2 class="card-text"><?= formatRupiah($laba) ?></h2>
-                                        <small class="text-white">Periode: <?= date('F Y', strtotime($bulan)) ?></small>
+                                        <h5 class="card-title text-primary">Total Setelah Lunas</h5>
+                                        <h2 class="card-text"><?= formatRupiah($pemasukan_lunas + $pemasukan_belum_lunas) ?></h2>
                                     </div>
                                 </div>
                             </div>
@@ -124,7 +137,7 @@ $transaksi = query("
                                                 <th>Jenis</th>
                                                 <th>Keterangan</th>
                                                 <th>Jumlah</th>
-                                                <th>Tipe</th>
+                                                <th>Status</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -138,20 +151,26 @@ $transaksi = query("
                                                         <td><?= date('d/m/Y', strtotime($trx['tanggal'])) ?></td>
                                                         <td><?= htmlspecialchars($trx['jenis']) ?></td>
                                                         <td><?= htmlspecialchars($trx['keterangan']) ?></td>
-                                                        <td class="text-end <?= $trx['tipe'] === 'pemasukan' ? 'text-success' : 'text-danger' ?>">
-                                                            <?= $trx['tipe'] === 'pemasukan' ? '+' : '-' ?>
+                                                        <td class="text-end <?= str_contains($trx['tipe'], 'pemasukan') ? 'text-success' : 'text-danger' ?>">
+                                                            <?= str_contains($trx['tipe'], 'pemasukan') ? '+' : '-' ?>
                                                             <?= formatRupiah($trx['jumlah']) ?>
                                                         </td>
-                                                        <td>
-                                                            <span class="badge bg-<?= $trx['tipe'] === 'pemasukan' ? 'success' : 'danger' ?>">
-                                                                <?= ucfirst($trx['tipe']) ?>
-                                                            </span>
+                                                        <td class="text-center">
+                                                            <?php if ($trx['jenis'] === 'Penjualan') : ?>
+                                                                <span class="badge bg-<?= $trx['status_pembayaran'] === 'lunas' ? 'success' : 'warning' ?>">
+                                                                    <?= $trx['status_pembayaran'] === 'lunas' ? 'Lunas' : 'Belum Lunas' ?>
+                                                                </span>
+                                                            <?php else : ?>
+                                                                <span class="badge bg-secondary">Pengeluaran</span>
+                                                            <?php endif; ?>
                                                         </td>
                                                     </tr>
                                                 <?php endforeach; ?>
                                                 <tr class="table-active">
-                                                    <th colspan="3" class="text-end">TOTAL</th>
-                                                    <th class="text-end"><?= formatRupiah($pemasukan - $pengeluaran) ?></th>
+                                                    <th colspan="3" class="text-end">TOTAL LABA/RUGI</th>
+                                                    <th class="text-center fs-6 <?= $laba >= 0 ? 'text-success' : 'text-danger' ?>">
+                                                        <?= formatRupiah($laba) ?>
+                                                    </th>
                                                     <th></th>
                                                 </tr>
                                             <?php endif; ?>
@@ -161,22 +180,20 @@ $transaksi = query("
                             </div>
                         </div>
                         <div class="row mt-4">
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <div class="card">
                                     <div class="card-header">
                                         <h5 class="mb-0">Pemasukan per Reseller</h5>
                                     </div>
-                                    <div class="card-body">
-                                        <canvas id="pemasukanChart" height="200"></canvas>
+                                    <hr>
+                                    <div class="card-body text-center">
+                                        <canvas id="pemasukanChart" style="max-width: 100%; max-height: 400px; width: 100%;" height="200"></canvas>
                                     </div>
                                 </div>
                             </div>
                         </div>
+
                     </div>
-
-                    <!-- / Content -->
-
-                    <div class="content-backdrop fade"></div>
                 </div>
                 <!-- Content wrapper -->
             </div>

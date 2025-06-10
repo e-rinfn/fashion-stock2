@@ -43,62 +43,61 @@ $stok_bahan = query("SELECT nama_bahan, jumlah_stok FROM bahan_baku ORDER BY jum
                     <!-- Content -->
 
                     <div class="container-xxl flex-grow-1 container-p-y">
+
                         <div class="row">
-                            <!-- Statistik Ringkas -->
-                            <div class="row mb-4">
-                                <div class="col-md-3">
-                                    <div class="card bg-primary text-white">
-                                        <div class="card-body">
-                                            <h5 class="card-title">Total Produk</h5>
-                                            <h2 class="card-text"><?= $total_produk ?></h2>
-                                        </div>
+                            <div class="col-md-2">
+                                <div class="card text-dark bg-white border">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-danger">Total Produk</h5>
+                                        <h2 class="card-text"><?= $total_produk ?></h2>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="card bg-success text-white">
-                                        <div class="card-body">
-                                            <h5 class="card-title">Total Reseller</h5>
-                                            <h2 class="card-text"><?= $total_reseller ?></h2>
-                                        </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="card text-dark bg-white border">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-warning">Total Reseller</h5>
+                                        <h2 class="card-text"><?= $total_reseller ?></h2>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="card bg-info text-white">
-                                        <div class="card-body">
-                                            <h5 class="card-title">Penjualan Hari Ini</h5>
-                                            <h2 class="card-text"><?= formatRupiah($penjualan_hari_ini) ?></h2>
-                                        </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card text-dark bg-white border">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-primary">Penjualan Hari Ini</h5>
+                                        <h2 class="card-text"><?= formatRupiah($penjualan_hari_ini) ?></h2>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="card bg-warning text-dark">
-                                        <div class="card-body">
-                                            <h5 class="card-title">Penjualan Bulan Ini</h5>
-                                            <h2 class="card-text"><?= formatRupiah($penjualan_bulan_ini) ?></h2>
-                                        </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card text-dark bg-white border">
+                                    <div class="card-body">
+                                        <h5 class="card-title text-success">Penjualan Bulan Ini</h5>
+                                        <h2 class="card-text"><?= formatRupiah($penjualan_bulan_ini) ?></h2>
                                     </div>
                                 </div>
                             </div>
 
 
-
-
                             <!-- Stok Bahan Baku -->
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="card">
 
-                                        <!-- Grafik Penjualan -->
+                        </div>
 
-                                        <div class="card-header">
-                                            <h5>Penjualan 7 Hari Terakhir</h5>
-                                        </div>
-                                        <div class="card-body">
-                                            <canvas id="salesChart" width="auto"></canvas>
-                                        </div>
+                        <div class="row">
+                            <div class="col-md-8 mt-3">
+                                <div class="card">
+
+                                    <!-- Grafik Penjualan -->
+
+                                    <div class="card-header">
+                                        <h5>Penjualan 7 Hari Terakhir</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="salesChart" width="auto"></canvas>
+                                    </div>
 
 
-                                        <!-- <div class="card-header">
+                                    <!-- <div class="card-header">
                                             <h5>Stok Bahan Baku Terendah</h5>
                                         </div>
                                         <div class="card-body">
@@ -121,25 +120,23 @@ $stok_bahan = query("SELECT nama_bahan, jumlah_stok FROM bahan_baku ORDER BY jum
                                                 </table>
                                             </div>
                                         </div> -->
-                                    </div>
                                 </div>
+                            </div>
 
-                                <div class="col-md-6">
-                                    <div class="card">
-                                        <div class="card-header">
-                                            <h5>Aksi Cepat</h5>
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="d-grid gap-2">
-                                                <a href="laporan/penjualan.php" class="btn btn-primary">Laporan Penjualan</a>
-                                                <a href="laporan/produksi.php" class="btn btn-secondary">Laporan Produksi</a>
-                                                <a href="laporan/keuangan.php" class="btn btn-success">Laporan Keuangan</a>
-                                            </div>
+                            <div class="col-md-4 mt-3">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Aksi Cepat</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="d-grid gap-2">
+                                            <a href="laporan/penjualan.php" class="btn btn-primary">Laporan Penjualan</a>
+                                            <a href="laporan/produksi.php" class="btn btn-secondary">Laporan Produksi</a>
+                                            <a href="laporan/keuangan.php" class="btn btn-success">Laporan Keuangan</a>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-
                         </div>
                     </div>
                     <!-- / Content -->
