@@ -51,7 +51,7 @@ $pdf->Ln(4);
 
 // Tabel Produk
 $pdf->SetFont('helvetica', 'B', 10);
-$pdf->Cell(10, 7, 'No', 1);
+$pdf->Cell(10, 7, 'No', 1, 0, 'C');
 $pdf->Cell(50, 7, 'Produk', 1);
 $pdf->Cell(25, 7, 'Harga', 1, 0, 'R');
 $pdf->Cell(15, 7, 'Qty', 1, 0, 'C');
@@ -59,7 +59,7 @@ $pdf->Cell(30, 7, 'Subtotal', 1, 1, 'R');
 
 $pdf->SetFont('helvetica', '', 10);
 foreach ($detail as $i => $d) {
-    $pdf->Cell(10, 7, $i + 1, 1);
+    $pdf->Cell(10, 7, $i + 1, 1, 0, 'C');
     $pdf->Cell(50, 7, $d['nama_produk'], 1);
     $pdf->Cell(25, 7, formatRupiah($d['harga_satuan']), 1, 0, 'R');
     $pdf->Cell(15, 7, $d['jumlah'], 1, 0, 'C');
@@ -73,13 +73,13 @@ $pdf->Ln(4);
 
 // Footer
 $pdf->SetFont('helvetica', '', 9);
-$pdf->Cell(0, 6, 'Metode Pembayaran: ' . ucfirst($penjualan['metode_pembayaran']), 0, 1);
-$pdf->Cell(0, 6, 'Terima kasih telah berbelanja!', 0, 1);
+// $pdf->Cell(0, 6, 'Metode Pembayaran: ' . ucfirst($penjualan['metode_pembayaran']), 0, 1);
+$pdf->Cell(0, 6, 'Terima kasih telah berbelanja!', 0, 1, 'C');
 
-$pdf->Ln(10);
-$pdf->Cell(0, 6, 'Hormat Kami,', 0, 1, 'R');
-$pdf->Ln(15);
-$pdf->Cell(0, 6, '(____________________)', 0, 0, 'R');
+// $pdf->Ln(10);
+// $pdf->Cell(0, 6, 'Hormat Kami,', 0, 1, 'R');
+// $pdf->Ln(15);
+// $pdf->Cell(0, 6, '(____________________)', 0, 0, 'R');
 
 // Output PDF ke browser
 $pdf->Output('nota_penjualan_' . $id_penjualan . '.pdf', 'I');

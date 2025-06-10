@@ -1,6 +1,19 @@
 <?php
 require_once '../../config/functions.php';
 require_once __DIR__ . '../../includes/header.php';
+
+// Query data produksi
+$produksi = query("SELECT pp.tanggal_kirim, p.nama_pemotong, h.jumlah_hasil, 
+                  t.nama_penjahit, hp.jumlah_produk_jadi, pr.nama_produk
+                  FROM pengiriman_pemotong pp
+                  JOIN pemotong p ON pp.id_pemotong = p.id_pemotong
+                  JOIN hasil_pemotongan h ON pp.id_pengiriman_potong = h.id_pengiriman_potong
+                  JOIN pengiriman_penjahit pj ON h.id_hasil_potong = pj.id_hasil_potong
+                  JOIN penjahit t ON pj.id_penjahit = t.id_penjahit
+                  JOIN hasil_penjahitan hp ON pj.id_pengiriman_jahit = hp.id_pengiriman_jahit
+                  JOIN produk pr ON hp.id_produk = pr.id_produk
+                  ORDER BY pp.tanggal_kirim DESC");
+
 ?>
 
 
@@ -132,8 +145,39 @@ require_once __DIR__ . '../../includes/header.php';
 
 
                         </div>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>Tanggal</th>
+                                                <th>Pemotong</th>
+                                                <th>Hasil Potong</th>
+                                                <th>Penjahit</th>
+                                                <th>Produk Jadi</th>
+                                                <th>Jenis Produk</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($produksi as $prod) : ?>
+                                                <tr>
+                                                    <td><?= date('d/m/Y', strtotime($prod['tanggal_kirim'])) ?></td>
+                                                    <td><?= htmlspecialchars($prod['nama_pemotong']) ?></td>
+                                                    <td><?= $prod['jumlah_hasil'] ?> pcs</td>
+                                                    <td><?= htmlspecialchars($prod['nama_penjahit']) ?></td>
+                                                    <td><?= $prod['jumlah_produk_jadi'] ?> pcs</td>
+                                                    <td><?= htmlspecialchars($prod['nama_produk']) ?></td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <!-- / Content -->
+
 
                     <div class="content-backdrop fade"></div>
                 </div>

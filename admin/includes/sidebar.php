@@ -90,8 +90,15 @@ function isActive($path)
         </li>
         <li class="menu-item <?= isActive('/penjualan') ?>">
             <a href="<?= $base_url ?>/admin/penjualan/list.php" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-money"></i>
+                <i class="menu-icon tf-icons bx bx-cart"></i>
                 <div data-i18n="Basic">Penjualan</div>
+            </a>
+        </li>
+
+        <li class="menu-item <?= isActive('/laporan') ?>">
+            <a href="<?= $base_url ?>/admin/laporan/keuangan.php" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-money"></i>
+                <div data-i18n="Basic">Keuangan</div>
             </a>
         </li>
     </ul>

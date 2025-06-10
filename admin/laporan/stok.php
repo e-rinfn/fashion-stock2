@@ -1,8 +1,10 @@
 <?php
+$pageTitle = "Laporan Stok";
 require_once '../includes/header.php';
 
-$sql = "SELECT * FROM produk ORDER BY nama_produk";
-$produk = query($sql);
+// Query data stok
+$bahanBaku = query("SELECT * FROM bahan_baku ORDER BY nama_bahan");
+$produk = query("SELECT * FROM produk ORDER BY nama_produk");
 ?>
 
 <style>
@@ -36,47 +38,41 @@ $produk = query($sql);
                             <h2>Data Produk</h2>
                         </div>
 
-                        <div class="card p-3">
+                        <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-bordered table-hover align-middle">
-                                    <thead class="table-light text-center">
+                                <table class="table table-bordered table-hover">
+                                    <thead class="table-light">
                                         <tr>
-                                            <th scope="col">No</th>
-                                            <th scope="col">Nama Produk</th>
-                                            <th scope="col">Harga</th>
-                                            <th scope="col">Stok</th>
-                                            <th scope="col">Deskripsi</th>
-                                            <!-- <th scope="col">Aksi</th> -->
+                                            <th>No</th>
+                                            <th>Nama Bahan</th>
+                                            <th>Stok</th>
+                                            <th>Satuan</th>
+                                            <th>Harga/Satuan</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php $no = 1;
-                                        foreach ($produk as $p) : ?>
+                                        <?php if (empty($bahanBaku)) : ?>
                                             <tr>
-                                                <td class="text-center"><?= $no++ ?></td>
-                                                <td><?= htmlspecialchars($p['nama_produk']) ?></td>
-                                                <td><?= formatRupiah($p['harga_jual']) ?></td>
-                                                <td class="text-center"><?= $p['stok'] ?></td>
-                                                <td><?= htmlspecialchars(substr($p['deskripsi'], 0, 50)) ?>...</td>
-                                                <!-- <td>
-                                                    <div class="d-flex gap-2">
-                                                        <a href="edit.php?id=<?= $p['id_produk'] ?>" class="btn btn-sm btn-primary">
-                                                            <i class="bx bx-edit"></i> Edit
-                                                        </a>
-                                                        <a href="#"
-                                                            class="btn btn-sm btn-danger btn-hapus"
-                                                            data-id="<?= $p['id_produk'] ?>">
-                                                            <i class="bx bx-trash"></i> Hapus
-                                                        </a>
-
-                                                    </div>
-                                                </td> -->
+                                                <td colspan="5" class="text-center">Tidak ada data bahan baku</td>
                                             </tr>
-                                        <?php endforeach; ?>
+                                        <?php else : ?>
+                                            <?php $no = 1; ?>
+                                            <?php foreach ($bahanBaku as $bahan) : ?>
+                                                <tr>
+                                                    <td><?= $no++; ?></td>
+                                                    <td><?= htmlspecialchars($bahan['nama_bahan']); ?></td>
+                                                    <td><?= $bahan['jumlah_stok']; ?></td>
+                                                    <td><?= htmlspecialchars($bahan['satuan']); ?></td>
+                                                    <td><?= formatRupiah($bahan['harga_per_satuan']); ?></td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
+
+
                     </div>
 
 

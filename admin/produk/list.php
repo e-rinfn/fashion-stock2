@@ -90,7 +90,6 @@ $produk = query($sql);
                                                             data-id="<?= $p['id_produk'] ?>">
                                                             <i class="bx bx-trash"></i> Hapus
                                                         </a>
-
                                                     </div>
                                                 </td>
                                             </tr>

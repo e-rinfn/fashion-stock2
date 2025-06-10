@@ -4,21 +4,27 @@ require_once '../includes/header.php';
 // Ambil semua reseller untuk dropdown
 $resellers = query("SELECT * FROM reseller");
 
-// Cek apakah filter reseller diterapkan
+// Cek filter yang diterapkan
 $id_reseller = isset($_GET['id_reseller']) ? (int)$_GET['id_reseller'] : 0;
+$status = isset($_GET['status']) ? $_GET['status'] : 'all';
 
+// Bangun query berdasarkan filter
+$sql = "SELECT p.*, r.nama_reseller 
+        FROM penjualan p 
+        JOIN reseller r ON p.id_reseller = r.id_reseller 
+        WHERE 1=1";
+
+// Filter reseller
 if ($id_reseller > 0) {
-    $sql = "SELECT p.*, r.nama_reseller 
-            FROM penjualan p 
-            JOIN reseller r ON p.id_reseller = r.id_reseller 
-            WHERE p.id_reseller = $id_reseller
-            ORDER BY p.tanggal_penjualan DESC";
-} else {
-    $sql = "SELECT p.*, r.nama_reseller 
-            FROM penjualan p 
-            JOIN reseller r ON p.id_reseller = r.id_reseller 
-            ORDER BY p.tanggal_penjualan DESC";
+    $sql .= " AND p.id_reseller = $id_reseller";
 }
+
+// Filter status
+if ($status != 'all') {
+    $sql .= " AND p.status_pembayaran = '$status'";
+}
+
+$sql .= " ORDER BY p.tanggal_penjualan DESC";
 
 $penjualan = query($sql);
 ?>
@@ -44,10 +50,10 @@ $penjualan = query($sql);
                             </a>
                         </div>
 
-                        <!-- Filter Reseller -->
+                        <!-- Filter Form -->
                         <form method="GET" class="row g-3 mb-3">
                             <div class="col-md-4">
-                                <select name="id_reseller" class="form-select" onchange="this.form.submit()">
+                                <select name="id_reseller" class="form-select">
                                     <option value="0">Semua Reseller</option>
                                     <?php foreach ($resellers as $res): ?>
                                         <option value="<?= $res['id_reseller'] ?>" <?= ($id_reseller == $res['id_reseller']) ? 'selected' : '' ?>>
@@ -55,6 +61,23 @@ $penjualan = query($sql);
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select name="status" class="form-select">
+                                    <option value="all" <?= ($status == 'all') ? 'selected' : '' ?>>Semua Status</option>
+                                    <option value="lunas" <?= ($status == 'lunas') ? 'selected' : '' ?>>Lunas</option>
+                                    <option value="cicilan" <?= ($status == 'cicilan') ? 'selected' : '' ?>>Cicilan</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bx bx-filter"></i> Filter
+                                </button>
+                                <?php if ($id_reseller > 0 || $status != 'all'): ?>
+                                    <a href="list.php" class="btn btn-secondary ms-2">
+                                        <i class="bx bx-reset"></i> Reset
+                                    </a>
+                                <?php endif; ?>
                             </div>
                         </form>
 

@@ -146,7 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['tambah_cicilan'])) {
                         <?php endif; ?>
 
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-5">
                                 <div class="card mb-4">
                                     <div class="card-header">
                                         <h3>Detail Cicilan</h3>
@@ -224,7 +224,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['tambah_cicilan'])) {
                                 </div>
                             </div>
 
-                            <div class="col-md-6">
+                            <div class="col-md-7">
                                 <div class="card">
                                     <div class="card-header">
                                         <h3>Riwayat Pembayaran</h3>
@@ -237,21 +237,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['tambah_cicilan'])) {
                                                 <table class="table table-bordered">
                                                     <thead>
                                                         <tr>
-                                                            <th>No</th>
+                                                            <th class="text-center">No</th>
                                                             <th>Tanggal</th>
                                                             <th>Jumlah</th>
                                                             <th>Metode</th>
-                                                            <th>Bukti</th>
+                                                            <th class="text-center">Bukti</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
                                                         <?php foreach ($cicilan as $i => $c): ?>
                                                             <tr>
-                                                                <td><?= $i + 1 ?></td>
+                                                                <td class="text-center"><?= $i + 1 ?></td>
                                                                 <td><?= date('d/m/Y', strtotime($c['tanggal_bayar'])) ?></td>
                                                                 <td><?= formatRupiah($c['jumlah_cicilan']) ?></td>
                                                                 <td><?= ucfirst($c['metode_pembayaran']) ?></td>
-                                                                <td>
+                                                                <td class="text-center">
                                                                     <?php if ($c['bukti_pembayaran']): ?>
                                                                         <?php
                                                                         $ext = pathinfo($c['bukti_pembayaran'], PATHINFO_EXTENSION);
