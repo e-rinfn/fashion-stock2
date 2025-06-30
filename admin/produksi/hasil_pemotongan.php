@@ -1,13 +1,35 @@
 <?php
 require_once __DIR__ . '../../includes/header.php';
 
+function dateIndo($tanggal)
+{
+    $bulanIndo = [
+        1 => 'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember'
+    ];
+    $tanggal = date('Y-m-d', strtotime($tanggal));
+    $pecah = explode('-', $tanggal);
+    return $pecah[2] . ' ' . $bulanIndo[(int)$pecah[1]] . ' ' . $pecah[0];
+}
+
 // Ambil data pengiriman yang belum selesai
-$pengiriman = query("SELECT p.*, b.nama_bahan, pm.nama_pemotong 
-                    FROM pengiriman_pemotong p
-                    JOIN bahan_baku b ON p.id_bahan = b.id_bahan
-                    JOIN pemotong pm ON p.id_pemotong = pm.id_pemotong
-                    WHERE p.status = 'dikirim'
-                    ORDER BY p.tanggal_kirim");
+$pengiriman = query("SELECT pp.id_pengiriman_potong, pp.tanggal_kirim, pp.jumlah_bahan, 
+                    b.nama_bahan, b.satuan, p.nama_pemotong
+                    FROM pengiriman_pemotong pp
+                    JOIN bahan_baku b ON pp.id_bahan = b.id_bahan
+                    JOIN pemotong p ON pp.id_pemotong = p.id_pemotong
+                    WHERE pp.status = 'dikirim' OR pp.status = 'selesai'
+                    ORDER BY pp.tanggal_kirim DESC");
 
 // Proses hasil pemotongan
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -78,11 +100,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <option value="">- Pilih Pengiriman -</option>
                                         <?php foreach ($pengiriman as $p): ?>
                                             <option value="<?= $p['id_pengiriman_potong'] ?>">
-                                                <?= $p['nama_bahan'] ?> ke <?= $p['nama_pemotong'] ?>
-                                                (<?= $p['jumlah_bahan'] ?>, <?= date('d/m/Y', strtotime($p['tanggal_kirim'])) ?>)
+                                                <?= dateIndo($p['tanggal_kirim']) ?> -
+                                                <?= htmlspecialchars($p['nama_bahan']) ?> ke
+                                                <?= htmlspecialchars($p['nama_pemotong']) ?>
+                                                (<?= number_format($p['jumlah_bahan']) ?> <?= htmlspecialchars($p['satuan']) ?>)
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
+
                                 </div>
 
                                 <div class="mb-3">
@@ -95,7 +120,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <input type="date" name="tanggal" id="tanggal" class="form-control" required value="<?= date('Y-m-d') ?>">
                                 </div>
 
-                                <button type="submit" class="btn btn-primary">Catat Hasil</button>
+                                <div class="d-flex justify-content-between">
+                                    <button type="submit" class="btn btn-primary">Catat Hasil</button>
+                                    <a href="riwayat_hasil_pemotongan.php" class="btn btn-secondary">Riwayat Hasil</a>
+                                </div>
                             </form>
 
                             <h3 class="mb-3">Riwayat Hasil Pemotongan</h3>
@@ -123,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         foreach ($riwayat as $r): ?>
                                             <tr>
                                                 <td class="text-center"><?= $no++ ?></td>
-                                                <td><?= date('d/m/Y', strtotime($r['tanggal_selesai'])) ?></td>
+                                                <td><?= dateIndo($p['tanggal_kirim']) ?></td>
                                                 <td><?= $r['nama_bahan'] ?></td>
                                                 <td><?= $r['nama_pemotong'] ?></td>
                                                 <td class="text-center"><?= $r['jumlah_hasil'] ?></td>

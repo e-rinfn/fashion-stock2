@@ -169,7 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_penjualan'])) {
                                                         <label class="form-label">Status Pembayaran</label>
                                                         <select name="status_pembayaran" class="form-control" required>
                                                             <option value="cicilan">Cicilan</option>
-                                                            <option value="lunas" hidden>Lunas</option>
+                                                            <option value="lunas">Lunas</option>
                                                         </select>
                                                     </div>
                                                 </div>

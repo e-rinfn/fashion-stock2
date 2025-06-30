@@ -120,7 +120,7 @@ $totalPenjualan = query("SELECT SUM(total_harga) as total FROM penjualan
                                                 <?php endforeach; ?>
                                                 <tr class="table-active">
                                                     <th colspan="3" class="text-end">TOTAL</th>
-                                                    <th class="text-end"><?= formatRupiah($totalPenjualan) ?></th>
+                                                    <th class="text-end fs-6"><?= formatRupiah($totalPenjualan) ?></th>
                                                     <th colspan="4"></th>
                                                 </tr>
                                             <?php endif; ?>

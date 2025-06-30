@@ -1,6 +1,27 @@
 <?php
 require_once __DIR__ . '../../includes/header.php';
 
+function dateIndo($tanggal)
+{
+    $bulanIndo = [
+        1 => 'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember'
+    ];
+    $tanggal = date('Y-m-d', strtotime($tanggal));
+    $pecah = explode('-', $tanggal);
+    return $pecah[2] . ' ' . $bulanIndo[(int)$pecah[1]] . ' ' . $pecah[0];
+}
+
 // Proses form
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $id_bahan = $conn->real_escape_string($_POST['id_bahan']);
@@ -31,11 +52,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 // Ambil data untuk dropdown
 $bahan = query("SELECT * FROM bahan_baku WHERE jumlah_stok > 0");
 $pemotong = query("SELECT * FROM pemotong");
-$pengiriman = query("SELECT p.*, b.nama_bahan, pm.nama_pemotong 
+$pengiriman = query("SELECT p.*, b.nama_bahan, b.satuan, pm.nama_pemotong 
                     FROM pengiriman_pemotong p
                     JOIN bahan_baku b ON p.id_bahan = b.id_bahan
                     JOIN pemotong pm ON p.id_pemotong = pm.id_pemotong
-                    ORDER BY p.tanggal_kirim DESC");
+                    ORDER BY p.tanggal_kirim DESC LIMIT 5");
 ?>
 
 <body>
@@ -78,39 +99,45 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, pm.nama_pemotong
                             <?php endif; ?>
 
                             <form method="post">
-                                <div class="mb-3">
-                                    <label class="form-label">Bahan Baku</label>
-                                    <select name="id_bahan" class="form-select" required>
-                                        <option value="">- Pilih Bahan -</option>
-                                        <?php foreach ($bahan as $b): ?>
-                                            <option value="<?= $b['id_bahan'] ?>">
-                                                <?= $b['nama_bahan'] ?> (Stok: <?= $b['jumlah_stok'] ?> <?= $b['satuan'] ?>)
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
+                                <div class="row">
+                                    <div class="col-6 mb-3">
+                                        <label class="form-label">Bahan Baku</label>
+                                        <select name="id_bahan" class="form-select" required>
+                                            <option value="">- Pilih Bahan -</option>
+                                            <?php foreach ($bahan as $b): ?>
+                                                <option value="<?= $b['id_bahan'] ?>">
+                                                    <?= $b['nama_bahan'] ?> (Stok: <?= number_format($b['jumlah_stok'], 0, '', '') ?> <?= $b['satuan'] ?>)
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-6 mb-3">
+                                        <label class="form-label">Pemotong</label>
+                                        <select name="id_pemotong" class="form-select" required>
+                                            <option value="">- Pilih Pemotong -</option>
+                                            <?php foreach ($pemotong as $p): ?>
+                                                <option value="<?= $p['id_pemotong'] ?>"><?= $p['nama_pemotong'] ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
                                 </div>
 
-                                <div class="mb-3">
-                                    <label class="form-label">Pemotong</label>
-                                    <select name="id_pemotong" class="form-select" required>
-                                        <option value="">- Pilih Pemotong -</option>
-                                        <?php foreach ($pemotong as $p): ?>
-                                            <option value="<?= $p['id_pemotong'] ?>"><?= $p['nama_pemotong'] ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
+                                <div class="row">
+                                    <div class="col-4 mb-3">
+                                        <label class="form-label">Jumlah</label>
+                                        <input type="number" name="jumlah" step="0.01" class="form-control" required>
+                                    </div>
 
-                                <div class="mb-3">
-                                    <label class="form-label">Jumlah</label>
-                                    <input type="number" name="jumlah" step="0.01" class="form-control" required>
+                                    <div class="col-8 mb-3">
+                                        <label class="form-label">Tanggal Pengiriman</label>
+                                        <input type="date" name="tanggal" class="form-control" required value="<?= date('Y-m-d') ?>">
+                                    </div>
                                 </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">Tanggal Pengiriman</label>
-                                    <input type="date" name="tanggal" class="form-control" required value="<?= date('Y-m-d') ?>">
+                                <div class="d-flex justify-content-between">
+                                    <button type="submit" class="btn btn-primary">Simpan Pengiriman</button>
+                                    <a href="riwayat_pengiriman_pemotong.php" class="btn btn-secondary">Riwayat Pengiriman</a>
                                 </div>
-
-                                <button type="submit" class="btn btn-primary">Simpan Pengiriman</button>
                             </form>
 
                             <hr class="my-4">
@@ -133,10 +160,10 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, pm.nama_pemotong
                                         foreach ($pengiriman as $p): ?>
                                             <tr>
                                                 <td class="text-center"><?= $no++ ?></td>
-                                                <td><?= date('d/m/Y', strtotime($p['tanggal_kirim'])) ?></td>
+                                                <td><?= dateIndo($p['tanggal_kirim']) ?></td>
                                                 <td><?= $p['nama_bahan'] ?></td>
                                                 <td><?= $p['nama_pemotong'] ?></td>
-                                                <td><?= $p['jumlah_bahan'] ?></td>
+                                                <td class="text-center"><?= number_format($p['jumlah_bahan'], 0, "", "") . " " . htmlspecialchars($p['satuan']) ?></td>
                                                 <!-- <td><?= ucfirst($p['status']) ?></td> -->
                                                 <td class="text-center">
                                                     <span class="badge <?= $p['status'] == 'dikirim' ? 'bg-warning text-dark' : 'bg-success' ?>">

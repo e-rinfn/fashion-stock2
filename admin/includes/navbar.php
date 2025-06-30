@@ -42,7 +42,7 @@
                                             </div>
                                             <div class="flex-grow-1">
                                                 <span class="fw-semibold d-block">
-                                                    <?= htmlspecialchars($_SESSION['nama'] ?? 'Pengguna') ?>
+                                                    <?= htmlspecialchars($_SESSION['username'] ?? 'Pengguna') ?>
                                                 </span>
                                                 <small class="text-muted">
                                                     <?= htmlspecialchars($_SESSION['role'] ?? '-') ?>

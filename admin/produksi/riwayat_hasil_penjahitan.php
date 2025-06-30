@@ -12,7 +12,7 @@ $sql_pengiriman = "SELECT pj.id_pengiriman_jahit, pj.jumlah_bahan_mentah,
                    FROM pengiriman_penjahit pj
                    JOIN penjahit p ON pj.id_penjahit = p.id_penjahit
                    JOIN hasil_pemotongan hp ON pj.id_hasil_potong = hp.id_hasil_potong
-                   WHERE pj.status = 'dikirim'";
+                   WHERE pj.status = 'dikirim' LIMIT 5";
 $pengiriman = query($sql_pengiriman);
 
 // Ambil data produk
@@ -90,10 +90,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                     <div class="container-xxl flex-grow-1 container-p-y">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h2>4. Tambah Data Hasil Penjahitan</h2>
+                            <h2>Riwayat Data Hasil Penjahitan</h2>
                             <div class="btn-group ms-auto" role="group" aria-label="Navigasi Form">
-                                <a href="pengiriman_penjahit.php" class="btn btn-outline-warning">Kembali</a>
-                                <!-- <a href="hasil_pemotongan.php" class="btn btn-outline-primary">Next</a> -->
+                                <!-- <a href="#" class="btn btn-outline-warning">Kembali</a> -->
+                                <a href="hasil_penjahitan.php" class="btn btn-secondary">Kembali</a>
                             </div>
                         </div>
 
@@ -106,53 +106,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <div class="alert alert-success"><?= $_SESSION['success'] ?></div>
                                 <?php unset($_SESSION['success']); ?>
                             <?php endif; ?>
-
-                            <form method="post">
-                                <div class="mb-3">
-                                    <label for="pengiriman-select" class="form-label">Pilih Pengiriman</label>
-                                    <select name="id_pengiriman" id="pengiriman-select" class="form-select" required>
-                                        <option value="">-- Pilih Pengiriman --</option>
-                                        <?php foreach ($pengiriman as $p): ?>
-                                            <option value="<?= $p['id_pengiriman_jahit'] ?>"
-                                                data-jumlah="<?= $p['jumlah_bahan_mentah'] ?>">
-                                                <?= "ID: {$p['id_pengiriman_jahit']} - {$p['nama_penjahit']} - {$p['jumlah_bahan_mentah']} pcs (Kirim: {$p['tgl_kirim']})" ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="produk-select" class="form-label">Produk Jadi</label>
-                                    <select name="id_produk" id="produk-select" class="form-select" required>
-                                        <option value="">-- Pilih Produk --</option>
-                                        <?php foreach ($produk as $p): ?>
-                                            <option value="<?= $p['id_produk'] ?>"><?= $p['nama_produk'] ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">Jumlah Produk Jadi (pcs)</label>
-                                    <input type="number" name="jumlah" min="1" class="form-control" required>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">Tanggal Selesai</label>
-                                    <input type="date" name="tanggal" class="form-control" value="<?= date('Y-m-d') ?>" required>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">Keterangan</label>
-                                    <textarea name="keterangan" class="form-control"></textarea>
-                                </div>
-
-                                <div class="d-flex justify-content-between">
-                                    <button type="submit" class="btn btn-primary">Catat Hasil</button>
-                                    <a href="riwayat_hasil_penjahitan.php" class="btn btn-secondary">Riwayat Hasil</a>
-                                </div>
-                            </form>
-
-                            <hr class="my-4">
 
                             <h3>Riwayat Hasil Penjahitan</h3>
                             <div class="table-responsive">

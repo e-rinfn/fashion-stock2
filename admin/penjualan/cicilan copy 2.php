@@ -102,57 +102,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['tambah_cicilan'])) {
         $error = "Jumlah cicilan tidak valid!";
     }
 }
-
-// Proses edit cicilan
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
-    $id_cicilan = intval($_POST['id_cicilan']);
-    $jumlah = floatval(str_replace('.', '', $_POST['jumlah']));
-    $tanggal = $_POST['tanggal'];
-    $metode = $conn->real_escape_string($_POST['metode']);
-
-    // Handle file upload jika ada
-    $bukti_update = "";
-    if (isset($_FILES['bukti_pembayaran']) && $_FILES['bukti_pembayaran']['error'] === UPLOAD_ERR_OK) {
-        // Proses upload file sama seperti sebelumnya
-        // ...
-        if ($bukti_pembayaran) {
-            $bukti_update = ", bukti_pembayaran = '$bukti_pembayaran'";
-
-            // Hapus file lama jika ada
-            $old_file = query("SELECT bukti_pembayaran FROM cicilan WHERE id_cicilan = $id_cicilan")[0]['bukti_pembayaran'];
-            if ($old_file && file_exists("bukti/$old_file")) {
-                unlink("bukti/$old_file");
-            }
-        }
-    }
-
-    $sql = "UPDATE cicilan SET 
-            jumlah_cicilan = $jumlah,
-            tanggal_bayar = '$tanggal',
-            tanggal_jatuh_tempo = '$tanggal',
-            metode_pembayaran = '$metode'
-            $bukti_update
-            WHERE id_cicilan = $id_cicilan";
-
-    if ($conn->query($sql)) {
-        // Update total dibayar di penjualan jika perlu
-        $total_dibayar = query("SELECT SUM(jumlah_cicilan) as total FROM cicilan WHERE id_penjualan = $id_penjualan")[0]['total'];
-
-        if ($total_dibayar >= $penjualan['total_harga']) {
-            $conn->query("UPDATE penjualan SET status_pembayaran = 'lunas' WHERE id_penjualan = $id_penjualan");
-        } else {
-            $conn->query("UPDATE penjualan SET status_pembayaran = 'cicilan' WHERE id_penjualan = $id_penjualan");
-        }
-
-        $_SESSION['success'] = "Pembayaran cicilan berhasil diperbarui!";
-        header("Location: cicilan.php?id=$id_penjualan");
-        exit();
-    } else {
-        $error = "Gagal memperbarui cicilan: " . $conn->error;
-    }
-}
-
-
 ?>
 
 <?php include '../includes/header.php'; ?>
@@ -332,76 +281,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
                                                                     <?php else: ?>
                                                                         -
                                                                     <?php endif; ?>
-                                                                    <br>
-                                                                    <div class="btn-group mt-1">
-                                                                        <button class="btn btn-sm btn-warning" onclick="showEditForm(<?= $c['id_cicilan'] ?>)">
-                                                                            <i class="bx bx-edit"></i>
-                                                                        </button>
-                                                                        <a href="nota_cicilan.php?id=<?= $c['id_cicilan'] ?>" target="_blank" class="btn btn-sm btn-info">
-                                                                            <i class="bx bx-printer"></i>
-                                                                        </a>
-                                                                    </div>
                                                                 </td>
                                                             </tr>
                                                         <?php endforeach; ?>
                                                     </tbody>
 
                                                 </table>
-
-                                                <!-- Form Edit Cicilan (hidden) -->
-                                                <div id="editFormContainer" style="display:none;" class="mt-3">
-                                                    <div class="card">
-                                                        <div class="card-header">
-                                                            <h4>Edit Pembayaran Cicilan</h4>
-                                                        </div>
-                                                        <div class="card-body">
-                                                            <form id="editCicilanForm" method="post" enctype="multipart/form-data">
-                                                                <input type="hidden" name="id_cicilan" id="edit_id_cicilan">
-                                                                <input type="hidden" name="edit_cicilan" value="1">
-
-                                                                <div class="row">
-                                                                    <div class="col-md-6">
-                                                                        <div class="form-group">
-                                                                            <label>Jumlah Cicilan</label>
-                                                                            <input type="text" name="jumlah" id="edit_jumlah" class="form-control money" required>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-md-6">
-                                                                        <div class="form-group">
-                                                                            <label>Tanggal Pembayaran</label>
-                                                                            <input type="date" name="tanggal" id="edit_tanggal" class="form-control" required>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="row mt-2">
-                                                                    <div class="col-md-6">
-                                                                        <div class="form-group">
-                                                                            <label>Metode Pembayaran</label>
-                                                                            <select name="metode" id="edit_metode" class="form-control" required>
-                                                                                <option value="transfer">Transfer Bank</option>
-                                                                                <option value="tunai">Tunai</option>
-                                                                                <option value="e-wallet">E-Wallet</option>
-                                                                            </select>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-md-6">
-                                                                        <div class="form-group">
-                                                                            <label>Bukti Pembayaran (kosongkan jika tidak diubah)</label>
-                                                                            <input type="file" name="bukti_pembayaran" class="form-control" accept=".jpg,.jpeg,.png,.pdf">
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="mt-3">
-                                                                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                                                                    <button type="button" class="btn btn-secondary" onclick="hideEditForm()">Batal</button>
-                                                                </div>
-                                                            </form>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
                                             </div>
                                         <?php endif; ?>
                                     </div>
@@ -437,34 +322,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
 
         function formatRupiahInput(angka) {
             return angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-        }
-
-        // Fungsi untuk menampilkan form edit
-        function showEditForm(id_cicilan) {
-            // Ambil data cicilan via AJAX
-            fetch(`get_cicilan.php?id=${id_cicilan}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data) {
-                        document.getElementById('edit_id_cicilan').value = data.id_cicilan;
-                        document.getElementById('edit_jumlah').value = data.jumlah_cicilan;
-                        document.getElementById('edit_tanggal').value = data.tanggal_bayar;
-                        document.getElementById('edit_metode').value = data.metode_pembayaran;
-
-                        // Tampilkan form
-                        document.getElementById('editFormContainer').style.display = 'block';
-
-                        // Scroll ke form edit
-                        document.getElementById('editFormContainer').scrollIntoView({
-                            behavior: 'smooth'
-                        });
-                    }
-                });
-        }
-
-        // Fungsi untuk menyembunyikan form edit
-        function hideEditForm() {
-            document.getElementById('editFormContainer').style.display = 'none';
         }
     </script>
 

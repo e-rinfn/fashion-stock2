@@ -5,27 +5,6 @@ require_once '../../config/functions.php';
 // redirectIfNotLoggedIn();
 // checkRole('admin');
 
-function dateIndo($tanggal)
-{
-    $bulanIndo = [
-        1 => 'Januari',
-        'Februari',
-        'Maret',
-        'April',
-        'Mei',
-        'Juni',
-        'Juli',
-        'Agustus',
-        'September',
-        'Oktober',
-        'November',
-        'Desember'
-    ];
-    $tanggal = date('Y-m-d', strtotime($tanggal));
-    $pecah = explode('-', $tanggal);
-    return $pecah[2] . ' ' . $bulanIndo[(int)$pecah[1]] . ' ' . $pecah[0];
-}
-
 // Handle POST request
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $id_hasil = intval($_POST['id_hasil_potong']);
@@ -100,10 +79,10 @@ $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
                 <div class="content-wrapper">
                     <div class="container-xxl flex-grow-1 container-p-y">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h2>3. Tambah Data Pengiriman Penjahit</h2>
+                            <h2>Riwayat Data Pengiriman Penjahit</h2>
                             <div class="btn-group ms-auto" role="group" aria-label="Navigasi Form">
-                                <a href="hasil_pemotongan.php" class="btn btn-outline-warning">Kembali</a>
-                                <a href="hasil_penjahitan.php" class="btn btn-outline-primary">Next</a>
+                                <!-- <a href="#" class="btn btn-outline-warning">Kembali</a> -->
+                                <a href="pengiriman_penjahit.php" class="btn btn-secondary">Kembali</a>
                             </div>
                         </div>
 
@@ -117,50 +96,6 @@ $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
                                 <?php unset($_SESSION['success']); ?>
                             <?php endif; ?>
 
-                            <form method="post">
-                                <div class="mb-3">
-                                    <label class="form-label">Pilih Hasil Potongan</label>
-                                    <select name="id_hasil_potong" class="form-select" required>
-                                        <option value="">-- Pilih --</option>
-                                        <?php foreach ($hasil_potong as $hp): ?>
-                                            <?php
-                                            $sisa_stok = $hp['jumlah_hasil'] - $hp['jumlah_dikirim'];
-                                            if ($sisa_stok <= 0) continue;
-                                            ?>
-                                            <option value="<?= $hp['id_hasil_potong'] ?>">
-                                                <?= "Selesai: " . dateIndo($hp['tgl_selesai']) . " ({$hp['nama_pemotong']}) - {$sisa_stok} pcs" ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">Penjahit</label>
-                                    <select name="id_penjahit" class="form-select" required>
-                                        <option value="">-- Pilih Penjahit --</option>
-                                        <?php foreach ($penjahit as $p): ?>
-                                            <option value="<?= $p['id_penjahit'] ?>"><?= $p['nama_penjahit'] ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">Jumlah Bahan Mentah (pcs)</label>
-                                    <input type="number" name="jumlah" min="1" class="form-control" required>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">Tanggal Pengiriman</label>
-                                    <input type="date" name="tanggal" class="form-control" value="<?= date('Y-m-d') ?>" required>
-                                </div>
-
-                                <div class="d-flex justify-content-between">
-                                    <button type="submit" class="btn btn-primary">Simpan Pengiriman</button>
-                                    <a href="riwayat_pengiriman_penjahit.php" class="btn btn-secondary">Riwayat Pengiriman</a>
-                                </div>
-                            </form>
-
-                            <hr>
                             <h3 class="mt-4">Riwayat Pengiriman</h3>
                             <div class="table-responsive">
                                 <table class="table table-striped table-bordered mt-3">
@@ -176,19 +111,19 @@ $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
                                     <tbody>
                                         <?php
                                         $sql_history = "
-                                            SELECT pj.*, p.nama_penjahit, pj.tanggal_kirim
+                                            SELECT pj.*, p.nama_penjahit, 
+                                            DATE_FORMAT(pj.tanggal_kirim, '%d-%m-%Y') as tgl_kirim
                                             FROM pengiriman_penjahit pj
                                             JOIN penjahit p ON pj.id_penjahit = p.id_penjahit
                                             ORDER BY pj.tanggal_kirim DESC
                                         ";
-
                                         $history = query($sql_history);
                                         $no = 1;
                                         foreach ($history as $h):
                                         ?>
                                             <tr>
                                                 <td class="text-center"><?= $no++ ?></td>
-                                                <td><?= dateIndo($h['tanggal_kirim']) ?></td>
+                                                <td><?= $h['tgl_kirim'] ?></td>
                                                 <td><?= $h['nama_penjahit'] ?></td>
                                                 <td><?= $h['jumlah_bahan_mentah'] ?> pcs</td>
                                                 <td class="text-center">
