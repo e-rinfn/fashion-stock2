@@ -202,7 +202,7 @@ $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
-                                        <?php if (empty($riwayat)): ?>
+                                        <?php if (empty($history)): ?>
                                             <tr>
                                                 <td colspan="5" class="text-center">Belum ada data pengiriman penjahit.</td>
                                             </tr>

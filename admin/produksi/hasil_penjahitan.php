@@ -172,10 +172,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <tbody>
                                         <?php
                                         $sql_history = "SELECT hp.*, p.nama_produk, 
-                        DATE_FORMAT(hp.tanggal_selesai, '%d-%m-%Y') as tgl_selesai
-                        FROM hasil_penjahitan hp
-                        JOIN produk p ON hp.id_produk = p.id_produk
-                        ORDER BY hp.tanggal_selesai DESC";
+                                            DATE_FORMAT(hp.tanggal_selesai, '%d-%m-%Y') as tgl_selesai
+                                            FROM hasil_penjahitan hp
+                                            JOIN produk p ON hp.id_produk = p.id_produk
+                                            ORDER BY hp.tanggal_selesai DESC";
                                         $history = query($sql_history);
                                         $no = 1;
                                         foreach ($history as $h):
@@ -188,6 +188,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                 <td><?= $h['keterangan'] ?></td>
                                             </tr>
                                         <?php endforeach; ?>
+                                        <?php if (empty($history)): ?>
+                                            <tr>
+                                                <td colspan="5" class="text-center">Belum ada data hasil penjahitan.</td>
+                                            </tr>
+                                        <?php endif; ?>
                                     </tbody>
                                 </table>
                             </div>
