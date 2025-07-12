@@ -69,26 +69,32 @@ $penjahit = query($sql);
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php $no = 1;
-                                        foreach ($penjahit as $pj) : ?>
+                                        <?php if (empty($penjahit)): ?>
                                             <tr>
-                                                <td class="text-center"><?= $no++ ?></td>
-                                                <td><?= htmlspecialchars($pj['nama_penjahit']) ?></td>
-                                                <td><?= htmlspecialchars($pj['kontak']) ?></td>
-                                                <td><?= htmlspecialchars($pj['alamat']) ?></td>
-                                                <td class="text-center">
-                                                    <a href="edit.php?id=<?= $pj['id_penjahit'] ?>" class="btn btn-sm btn-primary me-1">
-                                                        <i class="bx bx-edit"></i> Edit
-                                                    </a>
-                                                    <a href="javascript:void(0);"
-                                                        class="btn btn-sm btn-danger btn-hapus"
-                                                        data-id="<?= $pj['id_penjahit'] ?>">
-                                                        <i class="bx bx-trash"></i> Hapus
-                                                    </a>
-
-                                                </td>
+                                                <td colspan="7" class="text-center">Tidak ada data produk</td>
                                             </tr>
-                                        <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <?php $no = 1;
+                                            foreach ($penjahit as $pj) : ?>
+                                                <tr>
+                                                    <td class="text-center"><?= $no++ ?></td>
+                                                    <td><?= htmlspecialchars($pj['nama_penjahit']) ?></td>
+                                                    <td><?= htmlspecialchars($pj['kontak']) ?></td>
+                                                    <td><?= htmlspecialchars($pj['alamat']) ?></td>
+                                                    <td class="text-center">
+                                                        <a href="edit.php?id=<?= $pj['id_penjahit'] ?>" class="btn btn-sm btn-primary me-1">
+                                                            <i class="bx bx-edit"></i> Edit
+                                                        </a>
+                                                        <a href="javascript:void(0);"
+                                                            class="btn btn-sm btn-danger btn-hapus"
+                                                            data-id="<?= $pj['id_penjahit'] ?>">
+                                                            <i class="bx bx-trash"></i> Hapus
+                                                        </a>
+
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
                                     </tbody>
                                 </table>
                             </div>
