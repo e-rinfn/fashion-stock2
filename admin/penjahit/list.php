@@ -71,7 +71,7 @@ $penjahit = query($sql);
                                     <tbody>
                                         <?php if (empty($penjahit)): ?>
                                             <tr>
-                                                <td colspan="7" class="text-center">Tidak ada data produk</td>
+                                                <td colspan="7" class="text-center">Tidak ada data penjahit</td>
                                             </tr>
                                         <?php else: ?>
                                             <?php $no = 1;
