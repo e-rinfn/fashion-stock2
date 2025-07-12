@@ -91,7 +91,7 @@ function dateIndo($tanggal)
                                     <tbody>
                                         <?php if (empty($reseller)): ?>
                                             <tr>
-                                                <td colspan="7" class="text-center">Tidak ada data reseller.</td>
+                                                <td colspan="7" class="text-center">Tidak ada data reseller</td>
                                             </tr>
                                         <?php endif; ?>
                                         <?php
