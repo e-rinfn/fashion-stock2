@@ -188,7 +188,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_password'])) {
 
 
         <!-- Core JS footer -->
-        <?php include __DIR__ . '../../includes/footer.php'; ?>
+        <?php include '../includes/footer.php'; ?>
         <!-- /Core JS footer -->
 
 
