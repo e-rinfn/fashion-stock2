@@ -89,6 +89,11 @@ function dateIndo($tanggal)
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        <?php if (empty($reseller)): ?>
+                                            <tr>
+                                                <td colspan="7" class="text-center">Tidak ada data reseller.</td>
+                                            </tr>
+                                        <?php endif; ?>
                                         <?php
                                         $sql = "SELECT * FROM reseller ORDER BY nama_reseller";
                                         $reseller = query($sql);
@@ -112,11 +117,7 @@ function dateIndo($tanggal)
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
-                                        <?php if (empty($reseller)): ?>
-                                            <tr>
-                                                <td colspan="5" class="text-center text-muted">Belum ada data reseller.</td>
-                                            </tr>
-                                        <?php endif; ?>
+
                                     </tbody>
                                 </table>
                             </div>
