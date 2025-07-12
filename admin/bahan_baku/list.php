@@ -133,6 +133,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 </a> -->
                             </div>
                         </div>
+                        <?php if (isset($_SESSION['error'])): ?>
+                            <div class="alert alert-danger"><?= $_SESSION['error'] ?></div>
+                            <?php unset($_SESSION['error']); ?>
+                        <?php endif; ?>
                         <div class="card p-3">
 
                             <!-- Tampilkan pesan error atau success -->
@@ -154,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             <th>Nama Bahan</th>
                                             <th>Stok</th>
                                             <th>Satuan</th>
-                                            <th>Harga/Satuan</th>
+                                            <!-- <th>Harga/Satuan</th> -->
                                             <th>Supplier</th>
                                             <th>Aksi</th>
                                         </tr>
@@ -170,9 +174,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                 <tr>
                                                     <td class="text-center"><?= $no++; ?></td>
                                                     <td><?= htmlspecialchars($bahan['nama_bahan']); ?></td>
-                                                    <td class="text-end"><?= $bahan['jumlah_stok']; ?></td>
+                                                    <td class="text-end"><?= number_format($bahan['jumlah_stok']); ?></td>
                                                     <td class="text-center"><?= htmlspecialchars($bahan['satuan']); ?></td>
-                                                    <td class="text-end"><?= formatRupiah($bahan['harga_per_satuan']); ?></td>
+                                                    <!-- <td class="text-end"><?= formatRupiah($bahan['harga_per_satuan']); ?></td> -->
                                                     <td><?= htmlspecialchars($bahan['supplier']); ?></td>
                                                     <td class="text-center">
                                                         <a href="edit.php?id=<?= $bahan['id_bahan']; ?>" class="btn btn-primary btn-sm me-1 mb-1">
@@ -197,7 +201,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                             <i class="bx bx-adjust"></i> Adjust
                                                         </button>
                                                     </td>
-
 
                                                 </tr>
                                                 <!-- Form tambah stok (hidden) -->
@@ -226,7 +229,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                                     <option value="tambah">Tambah</option>
                                                                     <option value="kurang">Kurangi</option>
                                                                 </select>
-                                                                <input type="number" name="adjust_jumlah" step="0.01" min="0.01" required
+                                                                <input type="number" name="adjust_jumlah" step="1" min="0" required
                                                                     class="form-control w-auto" placeholder="Jumlah">
                                                                 <span><?= $bahan['satuan']; ?></span>
                                                             </div>
@@ -270,20 +273,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     const id = this.getAttribute('data-id');
                     const url = this.getAttribute('href');
 
-                    Swal.fire({
-                        title: 'Yakin hapus data bahan baku?',
-                        text: "Data yang dihapus tidak bisa dikembalikan!",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#d33',
-                        cancelButtonColor: '#6c757d',
-                        confirmButtonText: 'Ya, hapus!',
-                        cancelButtonText: 'Batal'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.location.href = url;
-                        }
-                    });
+                    // Cek terlebih dahulu via AJAX apakah bisa dihapus
+                    fetch(`check_delete.php?id=${id}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.can_delete) {
+                                Swal.fire({
+                                    title: 'Yakin hapus data bahan baku?',
+                                    text: "Data yang dihapus tidak bisa dikembalikan!",
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#d33',
+                                    cancelButtonColor: '#6c757d',
+                                    confirmButtonText: 'Ya, hapus!',
+                                    cancelButtonText: 'Batal'
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        window.location.href = url;
+                                    }
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Tidak Dapat Dihapus',
+                                    text: data.message,
+                                    icon: 'error',
+                                    confirmButtonColor: '#3085d6',
+                                    confirmButtonText: 'OK'
+                                });
+                            }
+                        });
                 });
             });
         });

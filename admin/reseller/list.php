@@ -1,5 +1,26 @@
 <?php
 require_once '../includes/header.php';
+
+function dateIndo($tanggal)
+{
+    $bulanIndo = [
+        1 => 'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember'
+    ];
+    $tanggal = date('Y-m-d', strtotime($tanggal));
+    $pecah = explode('-', $tanggal);
+    return $pecah[2] . ' ' . $bulanIndo[(int)$pecah[1]] . ' ' . $pecah[0];
+}
 ?>
 
 <style>
@@ -78,7 +99,7 @@ require_once '../includes/header.php';
                                                 <td class="text-center"><?= $no++ ?></td>
                                                 <td><?= htmlspecialchars($row['nama_reseller']) ?></td>
                                                 <td><?= htmlspecialchars($row['kontak']) ?></td>
-                                                <td class="text-center"><?= date('d/m/Y', strtotime($row['tanggal_bergabung'])) ?></td>
+                                                <td class="text-end"><?= dateIndo($row['tanggal_bergabung']) ?></td>
                                                 <td class="text-center">
                                                     <a href="edit.php?id=<?= $row['id_reseller'] ?>" class="btn btn-sm btn-primary me-1">
                                                         <i class="bx bx-edit"></i> Edit
@@ -88,7 +109,6 @@ require_once '../includes/header.php';
                                                         data-id="<?= $row['id_reseller'] ?>">
                                                         <i class="bx bx-trash"></i> Hapus
                                                     </a>
-
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>

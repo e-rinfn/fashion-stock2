@@ -47,10 +47,10 @@ $produk = query($sql);
                         </div>
 
                         <div class="card p-3">
-
                             <!-- Tampilkan pesan error atau success -->
-                            <?php if (isset($error)): ?>
-                                <div class="alert alert-danger"><?= $error ?></div>
+                            <?php if (isset($_SESSION['error'])): ?>
+                                <div class="alert alert-danger"><?= $_SESSION['error'] ?></div>
+                                <?php unset($_SESSION['error']); ?>
                             <?php endif; ?>
 
                             <?php if (isset($_SESSION['success'])): ?>
@@ -78,7 +78,7 @@ $produk = query($sql);
                                                 <td class="text-center"><?= $no++ ?></td>
                                                 <td><?= htmlspecialchars($p['nama_produk']) ?></td>
                                                 <td><?= formatRupiah($p['harga_jual']) ?></td>
-                                                <td><?= $p['stok'] ?></td>
+                                                <td class="text-center"><?= $p['stok'] ?></td>
                                                 <td><?= htmlspecialchars(substr($p['deskripsi'], 0, 50)) ?>...</td>
                                                 <td class="text-center">
                                                     <div class="d-flex gap-2">
@@ -126,35 +126,43 @@ $produk = query($sql);
                     e.preventDefault();
                     const id = this.getAttribute('data-id');
 
-                    Swal.fire({
-                        title: 'Yakin hapus data produk?',
-                        text: "Data yang dihapus tidak bisa dikembalikan!",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#d33',
-                        cancelButtonColor: '#6c757d',
-                        confirmButtonText: 'Ya, hapus!',
-                        cancelButtonText: 'Batal'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.location.href = 'delete.php?id=' + id;
-                        }
-                    });
+                    // Cek relasi produk via AJAX
+                    fetch(`check_produk.php?id=${id}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.can_delete) {
+                                Swal.fire({
+                                    title: 'Yakin hapus data produk?',
+                                    text: "Data yang dihapus tidak bisa dikembalikan!",
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#d33',
+                                    cancelButtonColor: '#6c757d',
+                                    confirmButtonText: 'Ya, hapus!',
+                                    cancelButtonText: 'Batal'
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        window.location.href = 'delete.php?id=' + id;
+                                    }
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Tidak Dapat Dihapus',
+                                    html: data.message,
+                                    icon: 'error',
+                                    confirmButtonColor: '#3085d6',
+                                    confirmButtonText: 'OK'
+                                });
+                            }
+                        });
                 });
             });
         });
     </script>
 
-
-
-
-
-
-
     <!-- Core JS footer -->
     <?php include '../includes/footer.php'; ?>
     <!-- /Core JS footer -->
-
 
 </body>
 

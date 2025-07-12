@@ -108,39 +108,42 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <?php endif; ?>
 
                             <form method="post">
-                                <div class="mb-3">
-                                    <label for="pengiriman-select" class="form-label">Pilih Pengiriman</label>
-                                    <select name="id_pengiriman" id="pengiriman-select" class="form-select" required>
-                                        <option value="">-- Pilih Pengiriman --</option>
-                                        <?php foreach ($pengiriman as $p): ?>
-                                            <option value="<?= $p['id_pengiriman_jahit'] ?>"
-                                                data-jumlah="<?= $p['jumlah_bahan_mentah'] ?>">
-                                                <?= "ID: {$p['id_pengiriman_jahit']} - {$p['nama_penjahit']} - {$p['jumlah_bahan_mentah']} pcs (Kirim: {$p['tgl_kirim']})" ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
 
-                                <div class="mb-3">
-                                    <label for="produk-select" class="form-label">Produk Jadi</label>
-                                    <select name="id_produk" id="produk-select" class="form-select" required>
-                                        <option value="">-- Pilih Produk --</option>
-                                        <?php foreach ($produk as $p): ?>
-                                            <option value="<?= $p['id_produk'] ?>"><?= $p['nama_produk'] ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="pengiriman-select" class="form-label">Pilih Pengiriman</label>
+                                        <select name="id_pengiriman" id="pengiriman-select" class="form-select" required>
+                                            <option value="">-- Pilih Pengiriman --</option>
+                                            <?php foreach ($pengiriman as $p): ?>
+                                                <option value="<?= $p['id_pengiriman_jahit'] ?>"
+                                                    data-jumlah="<?= $p['jumlah_bahan_mentah'] ?>">
+                                                    <?= "ID: {$p['id_pengiriman_jahit']} - {$p['nama_penjahit']} - {$p['jumlah_bahan_mentah']} pcs (Kirim: {$p['tgl_kirim']})" ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
 
-                                <div class="mb-3">
-                                    <label class="form-label">Jumlah Produk Jadi (pcs)</label>
-                                    <input type="number" name="jumlah" min="1" class="form-control" required>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="produk-select" class="form-label">Produk Jadi</label>
+                                        <select name="id_produk" id="produk-select" class="form-select" required>
+                                            <option value="">-- Pilih Produk --</option>
+                                            <?php foreach ($produk as $p): ?>
+                                                <option value="<?= $p['id_produk'] ?>"><?= $p['nama_produk'] ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
                                 </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Jumlah Produk Jadi (pcs)</label>
+                                        <input type="number" name="jumlah" min="1" class="form-control" required>
+                                    </div>
 
-                                <div class="mb-3">
-                                    <label class="form-label">Tanggal Selesai</label>
-                                    <input type="date" name="tanggal" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                                    <div class="col-md-8 mb-3">
+                                        <label class="form-label">Tanggal Selesai</label>
+                                        <input type="date" name="tanggal" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                                    </div>
                                 </div>
-
                                 <div class="mb-3">
                                     <label class="form-label">Keterangan</label>
                                     <textarea name="keterangan" class="form-control"></textarea>

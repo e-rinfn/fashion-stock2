@@ -76,18 +76,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         value="<?= htmlspecialchars($produk['nama_produk']) ?>" required>
                                 </div>
 
-                                <div class="mb-3">
-                                    <label for="harga" class="form-label">Harga Jual</label>
-                                    <input type="number" id="harga" name="harga" class="form-control"
-                                        value="<?= htmlspecialchars($produk['harga_jual']) ?>" min="0" required>
-                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="harga" class="form-label">Harga Jual</label>
+                                        <input type="number" id="harga" name="harga" class="form-control"
+                                            value="<?= rtrim(rtrim($produk['harga_jual'], '0'), '.') ?>" min="0" required>
+                                    </div>
 
-                                <div class="mb-3">
-                                    <label for="stok" class="form-label">Stok</label>
-                                    <input type="number" id="stok" name="stok" class="form-control"
-                                        value="<?= htmlspecialchars($produk['stok']) ?>" min="0" required>
-                                </div>
+                                    <div class="col-md-8 mb-3">
+                                        <label for="stok" class="form-label">Stok</label>
+                                        <div class="input-group">
+                                            <input type="number" id="stok" name="stok" class="form-control"
+                                                value="<?= htmlspecialchars($produk['stok']) ?>" min="0" required>
+                                            <span class="input-group-text">Pcs</span>
+                                        </div>
+                                    </div>
 
+                                </div>
                                 <div class="mb-3">
                                     <label for="deskripsi" class="form-label">Deskripsi</label>
                                     <textarea id="deskripsi" name="deskripsi" rows="5" class="form-control" required><?=

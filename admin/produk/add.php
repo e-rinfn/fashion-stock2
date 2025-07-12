@@ -52,16 +52,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <input type="text" name="nama" id="nama" class="form-control" required>
                                 </div>
 
-                                <div class="mb-3">
-                                    <label for="harga" class="form-label">Harga Jual</label>
-                                    <input type="number" name="harga" id="harga" class="form-control" min="0" required>
-                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="harga" class="form-label">Harga Jual</label>
+                                        <input type="number" name="harga" id="harga" class="form-control" min="0" required>
+                                    </div>
 
-                                <div class="mb-3">
-                                    <label for="stok" class="form-label">Stok Awal</label>
-                                    <input type="number" name="stok" id="stok" class="form-control" min="0" required>
-                                </div>
+                                    <div class="col-md-8 mb-3">
+                                        <label for="stok" class="form-label">Stok Awal</label>
+                                        <div class="input-group">
+                                            <input type="number" name="stok" id="stok" class="form-control" min="0" required>
+                                            <span class="input-group-text">Pcs</span>
+                                        </div>
+                                    </div>
 
+                                </div>
                                 <div class="mb-3">
                                     <label for="deskripsi" class="form-label">Deskripsi</label>
                                     <textarea name="deskripsi" id="deskripsi" rows="5" class="form-control" required></textarea>

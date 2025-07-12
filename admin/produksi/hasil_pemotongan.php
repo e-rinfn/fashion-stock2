@@ -94,6 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <?php endif; ?>
 
                             <form method="post" class="mb-4">
+
                                 <div class="mb-3">
                                     <label for="id_pengiriman" class="form-label">Pengiriman Bahan</label>
                                     <select name="id_pengiriman" id="id_pengiriman" class="form-select" required>
@@ -107,17 +108,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
-
                                 </div>
 
-                                <div class="mb-3">
-                                    <label for="jumlah_hasil" class="form-label">Jumlah Hasil (pcs bahan mentah)</label>
-                                    <input type="number" name="jumlah_hasil" id="jumlah_hasil" class="form-control" required>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="tanggal" class="form-label">Tanggal Selesai</label>
-                                    <input type="date" name="tanggal" id="tanggal" class="form-control" required value="<?= date('Y-m-d') ?>">
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="jumlah_hasil" class="form-label">Jumlah Hasil (pcs bahan mentah)</label>
+                                        <input type="number" name="jumlah_hasil" id="jumlah_hasil" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-8 mb-3">
+                                        <label for="tanggal" class="form-label">Tanggal Selesai</label>
+                                        <input type="date" name="tanggal" id="tanggal" class="form-control" required value="<?= date('Y-m-d') ?>">
+                                    </div>
                                 </div>
 
                                 <div class="d-flex justify-content-between">
@@ -162,9 +163,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </div>
                         </div>
                     </div>
-
-
-
 
                     <!-- / Content -->
 

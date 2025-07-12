@@ -118,42 +118,45 @@ $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
                             <?php endif; ?>
 
                             <form method="post">
-                                <div class="mb-3">
-                                    <label class="form-label">Pilih Hasil Potongan</label>
-                                    <select name="id_hasil_potong" class="form-select" required>
-                                        <option value="">-- Pilih --</option>
-                                        <?php foreach ($hasil_potong as $hp): ?>
-                                            <?php
-                                            $sisa_stok = $hp['jumlah_hasil'] - $hp['jumlah_dikirim'];
-                                            if ($sisa_stok <= 0) continue;
-                                            ?>
-                                            <option value="<?= $hp['id_hasil_potong'] ?>">
-                                                <?= "Selesai: " . dateIndo($hp['tgl_selesai']) . " ({$hp['nama_pemotong']}) - {$sisa_stok} pcs" ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Pilih Hasil Potongan</label>
+                                        <select name="id_hasil_potong" class="form-select" required>
+                                            <option value="">-- Pilih --</option>
+                                            <?php foreach ($hasil_potong as $hp): ?>
+                                                <?php
+                                                $sisa_stok = $hp['jumlah_hasil'] - $hp['jumlah_dikirim'];
+                                                if ($sisa_stok <= 0) continue;
+                                                ?>
+                                                <option value="<?= $hp['id_hasil_potong'] ?>">
+                                                    <?= "Selesai: " . dateIndo($hp['tgl_selesai']) . " ({$hp['nama_pemotong']}) - {$sisa_stok} pcs" ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Penjahit</label>
+                                        <select name="id_penjahit" class="form-select" required>
+                                            <option value="">-- Pilih Penjahit --</option>
+                                            <?php foreach ($penjahit as $p): ?>
+                                                <option value="<?= $p['id_penjahit'] ?>"><?= $p['nama_penjahit'] ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
                                 </div>
 
-                                <div class="mb-3">
-                                    <label class="form-label">Penjahit</label>
-                                    <select name="id_penjahit" class="form-select" required>
-                                        <option value="">-- Pilih Penjahit --</option>
-                                        <?php foreach ($penjahit as $p): ?>
-                                            <option value="<?= $p['id_penjahit'] ?>"><?= $p['nama_penjahit'] ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Jumlah Bahan Mentah (pcs)</label>
+                                        <input type="number" name="jumlah" min="1" class="form-control" required>
+                                    </div>
 
-                                <div class="mb-3">
-                                    <label class="form-label">Jumlah Bahan Mentah (pcs)</label>
-                                    <input type="number" name="jumlah" min="1" class="form-control" required>
+                                    <div class="col-md-8 mb-3">
+                                        <label class="form-label">Tanggal Pengiriman</label>
+                                        <input type="date" name="tanggal" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                                    </div>
                                 </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">Tanggal Pengiriman</label>
-                                    <input type="date" name="tanggal" class="form-control" value="<?= date('Y-m-d') ?>" required>
-                                </div>
-
                                 <div class="d-flex justify-content-between">
                                     <button type="submit" class="btn btn-primary">Simpan Pengiriman</button>
                                     <a href="riwayat_pengiriman_penjahit.php" class="btn btn-secondary">Riwayat Pengiriman</a>
@@ -161,6 +164,7 @@ $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
                             </form>
 
                             <hr>
+
                             <h3 class="mt-4">Riwayat Pengiriman</h3>
                             <div class="table-responsive">
                                 <table class="table table-striped table-bordered mt-3">

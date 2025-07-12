@@ -26,14 +26,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nama = $conn->real_escape_string($_POST['nama_bahan']);
     $stok = $conn->real_escape_string($_POST['jumlah_stok']);
     $satuan = $conn->real_escape_string($_POST['satuan']);
-    $harga = $conn->real_escape_string($_POST['harga_per_satuan']);
+    // $harga = $conn->real_escape_string($_POST['harga_per_satuan']);
     $supplier = $conn->real_escape_string($_POST['supplier']);
 
     $sql = "UPDATE bahan_baku SET 
             nama_bahan = '$nama',
             jumlah_stok = '$stok',
             satuan = '$satuan',
-            harga_per_satuan = '$harga',
+            -- harga_per_satuan = '$harga',
             supplier = '$supplier'
             WHERE id_bahan = '$id'";
 
@@ -68,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     <div class="container-xxl flex-grow-1 container-p-y">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h2> Edit Data Barang</h2>
+                            <h2> Edit Data Bahan Baku</h2>
                         </div>
 
                         <div class="card p-4 shadow-sm">
@@ -83,19 +83,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <input type="text" id="nama_bahan" name="nama_bahan" class="form-control" value="<?= htmlspecialchars($bahan['nama_bahan']); ?>" required>
                                 </div>
 
-                                <div class="mb-3">
-                                    <label for="jumlah_stok" class="form-label">Jumlah Stok</label>
-                                    <input type="number" step="0.01" id="jumlah_stok" name="jumlah_stok" class="form-control" value="<?= $bahan['jumlah_stok']; ?>" required>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="jumlah_stok" class="form-label">Jumlah Stok</label>
+                                        <input type="number" step="1" id="jumlah_stok" name="jumlah_stok" class="form-control" value="<?= number_format($bahan['jumlah_stok']); ?>" required>
+                                    </div>
+
+                                    <div class="col-md-8 mb-3">
+                                        <label for="satuan" class="form-label">Satuan</label>
+                                        <input type="text" id="satuan" name="satuan" class="form-control" value="<?= htmlspecialchars($bahan['satuan']); ?>" required>
+                                    </div>
                                 </div>
 
-                                <div class="mb-3">
-                                    <label for="satuan" class="form-label">Satuan</label>
-                                    <input type="text" id="satuan" name="satuan" class="form-control" value="<?= htmlspecialchars($bahan['satuan']); ?>" required>
-                                </div>
-                                <div class="mb-3">
+                                <!-- <div class="mb-3">
                                     <label for="harga_per_satuan" class="form-label">Harga per Satuan</label>
                                     <input type="number" id="harga_per_satuan" name="harga_per_satuan" class="form-control" value="<?= $bahan['harga_per_satuan']; ?>" required>
-                                </div>
+                                </div> -->
 
                                 <div class="mb-3">
                                     <label for="supplier" class="form-label">Supplier</label>
