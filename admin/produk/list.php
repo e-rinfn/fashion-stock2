@@ -72,28 +72,34 @@ $produk = query($sql);
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php $no = 1;
-                                        foreach ($produk as $p) : ?>
+                                        <?php if (empty($bahan_baku)): ?>
                                             <tr>
-                                                <td class="text-center"><?= $no++ ?></td>
-                                                <td><?= htmlspecialchars($p['nama_produk']) ?></td>
-                                                <td><?= formatRupiah($p['harga_jual']) ?></td>
-                                                <td class="text-center"><?= $p['stok'] ?></td>
-                                                <td><?= htmlspecialchars(substr($p['deskripsi'], 0, 50)) ?>...</td>
-                                                <td class="text-center">
-                                                    <div class="d-flex gap-2">
-                                                        <a href="edit.php?id=<?= $p['id_produk'] ?>" class="btn btn-sm btn-primary">
-                                                            <i class="bx bx-edit"></i> Edit
-                                                        </a>
-                                                        <a href="#"
-                                                            class="btn btn-sm btn-danger btn-hapus"
-                                                            data-id="<?= $p['id_produk'] ?>">
-                                                            <i class="bx bx-trash"></i> Hapus
-                                                        </a>
-                                                    </div>
-                                                </td>
+                                                <td colspan="7" class="text-center">Tidak ada data bahan baku</td>
                                             </tr>
-                                        <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <?php $no = 1; ?>
+                                            <?php foreach ($produk as $p) : ?>
+                                                <tr>
+                                                    <td class="text-center"><?= $no++ ?></td>
+                                                    <td><?= htmlspecialchars($p['nama_produk']) ?></td>
+                                                    <td><?= formatRupiah($p['harga_jual']) ?></td>
+                                                    <td class="text-center"><?= $p['stok'] ?></td>
+                                                    <td><?= htmlspecialchars(substr($p['deskripsi'], 0, 50)) ?>...</td>
+                                                    <td class="text-center">
+                                                        <div class="d-flex gap-2">
+                                                            <a href="edit.php?id=<?= $p['id_produk'] ?>" class="btn btn-sm btn-primary">
+                                                                <i class="bx bx-edit"></i> Edit
+                                                            </a>
+                                                            <a href="#"
+                                                                class="btn btn-sm btn-danger btn-hapus"
+                                                                data-id="<?= $p['id_produk'] ?>">
+                                                                <i class="bx bx-trash"></i> Hapus
+                                                            </a>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
                                     </tbody>
                                 </table>
                             </div>
