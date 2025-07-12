@@ -199,10 +199,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </div>
                     </div>
 
-
-
-
-
                     <!-- / Content -->
 
                     <div class="content-backdrop fade"></div>
