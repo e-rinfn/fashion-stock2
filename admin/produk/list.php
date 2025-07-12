@@ -74,7 +74,7 @@ $produk = query($sql);
                                     <tbody>
                                         <?php if (empty($bahan_baku)): ?>
                                             <tr>
-                                                <td colspan="7" class="text-center">Tidak ada data bahan baku</td>
+                                                <td colspan="7" class="text-center">Tidak ada data produk</td>
                                             </tr>
                                         <?php else: ?>
                                             <?php $no = 1; ?>
