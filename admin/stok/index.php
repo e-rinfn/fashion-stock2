@@ -73,6 +73,11 @@ $produk = query($sql);
                                                 </td> -->
                                             </tr>
                                         <?php endforeach; ?>
+                                        <?php if (empty($produk)): ?>
+                                            <tr>
+                                                <td colspan="5" class="text-center">Tidak ada data produk</td>
+                                            </tr>
+                                        <?php endif; ?>
                                     </tbody>
                                 </table>
                             </div>
