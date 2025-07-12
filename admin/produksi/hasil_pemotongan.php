@@ -158,6 +158,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                 <td class="text-center"><?= $r['jumlah_hasil'] ?></td>
                                             </tr>
                                         <?php endforeach; ?>
+                                        <?php if (empty($riwayat)): ?>
+                                            <tr>
+                                                <td colspan="6" class="text-center">Belum ada data hasil pemotongan.</td>
+                                            </tr>
+                                        <?php endif; ?>
                                     </tbody>
                                 </table>
                             </div>
