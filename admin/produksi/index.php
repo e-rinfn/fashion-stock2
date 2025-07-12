@@ -162,7 +162,7 @@ $produksi = query("SELECT pp.tanggal_kirim, p.nama_pemotong, h.jumlah_hasil,
                                         <tbody>
                                             <?php if (empty($produksi)): ?>
                                                 <tr>
-                                                    <td colspan="5" class="text-center text-muted">Tidak ada data produksi</td>
+                                                    <td colspan="6" class="text-center text-muted">Tidak ada data produksi</td>
                                                 </tr>
                                             <?php endif; ?>
                                             <?php foreach ($produksi as $prod) : ?>
