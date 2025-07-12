@@ -83,6 +83,11 @@ $riwayat = query("SELECT h.*, p.nama_bahan, pm.nama_pemotong
                                                 <td class="text-center"><?= $r['jumlah_hasil'] ?></td>
                                             </tr>
                                         <?php endforeach; ?>
+                                        <?php if (empty($riwayat)): ?>
+                                            <tr>
+                                                <td colspan="5" class="text-center">Belum ada data hasil pemotongan.</td>
+                                            </tr>
+                                        <?php endif; ?>
                                     </tbody>
                                 </table>
                             </div>

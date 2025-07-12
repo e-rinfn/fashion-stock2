@@ -138,6 +138,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                 <td><?= $h['keterangan'] ?></td>
                                             </tr>
                                         <?php endforeach; ?>
+                                        <?php if (empty($history)): ?>
+                                            <tr>
+                                                <td colspan="5" class="text-center">Belum ada data hasil penjahitan.</td>
+                                            </tr>
+                                        <?php endif; ?>
                                     </tbody>
                                 </table>
                             </div>
