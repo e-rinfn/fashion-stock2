@@ -160,7 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <?php endforeach; ?>
                                         <?php if (empty($riwayat)): ?>
                                             <tr>
-                                                <td colspan="6" class="text-center">Belum ada data hasil pemotongan.</td>
+                                                <td colspan="5" class="text-center">Belum ada data hasil pemotongan.</td>
                                             </tr>
                                         <?php endif; ?>
                                     </tbody>
