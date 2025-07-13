@@ -76,7 +76,7 @@ $penjualan = query($sql);
 
                         <!-- Filter Form -->
                         <form method="GET" class="row g-3 mb-3">
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <select name="id_reseller" class="form-select">
                                     <option value="0">Semua Reseller</option>
                                     <?php foreach ($resellers as $res): ?>
@@ -93,7 +93,7 @@ $penjualan = query($sql);
                                     <option value="cicilan" <?= ($status == 'cicilan') ? 'selected' : '' ?>>Cicilan</option>
                                 </select>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <button type="submit" class="btn btn-primary">
                                     <i class="bx bx-filter"></i> Filter
                                 </button>

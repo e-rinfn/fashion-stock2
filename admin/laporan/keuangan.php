@@ -2,6 +2,27 @@
 $pageTitle = "Laporan Keuangan";
 require_once '../includes/header.php';
 
+function dateIndo($tanggal)
+{
+    $bulanIndo = [
+        1 => 'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember'
+    ];
+    $tanggal = date('Y-m-d', strtotime($tanggal));
+    $pecah = explode('-', $tanggal);
+    return $pecah[2] . ' ' . $bulanIndo[(int)$pecah[1]] . ' ' . $pecah[0];
+}
+
 // Filter bulan
 $bulan = $_GET['bulan'] ?? date('Y-m');
 $startDate = date('Y-m-01', strtotime($bulan));
@@ -24,7 +45,7 @@ $laba = $pemasukan_lunas - $pengeluaran;
 // Detail transaksi
 $transaksi = query("
     (SELECT 'Penjualan' as jenis, tanggal_penjualan as tanggal, 
-            CONCAT('Invoice #', id_penjualan) as keterangan, 
+            CONCAT('No. Pembelian #', id_penjualan) as keterangan, 
             total_harga as jumlah, 
             CASE 
                 WHEN status_pembayaran = 'lunas' THEN 'pemasukan-lunas'
@@ -114,16 +135,16 @@ $transaksi = query("
 
                         <div class="card">
                             <div class="card-header">
-                                <h5 class="mb-0">Detail Transaksi</h5>
+                                <h4 class="mb-0">Detail Transaksi</h4>
                             </div>
                             <div class="card-body">
-                                <form method="get" class="row g-2">
+                                <form method="get" class="row g-2 ">
                                     <div class="col-auto">
-                                        <input type="month" name="bulan" value="<?= $bulan ?>" class="form-control form-control-sm">
+                                        <input type="month" name="bulan" value="<?= $bulan ?>" class="form-control">
                                     </div>
                                     <div class="col-auto">
-                                        <button type="submit" class="btn btn-sm btn-primary">Filter</button>
-                                        <a href="keuangan.php" class="btn btn-sm btn-outline-secondary">Reset</a>
+                                        <button type="submit" class="btn btn-primary">Filter</button>
+                                        <a href="keuangan.php" class="btn btn-outline-secondary">Reset</a>
                                     </div>
                                 </form>
                             </div>
@@ -131,9 +152,10 @@ $transaksi = query("
                                 <div class="table-responsive">
                                     <table class="table table-bordered table-hover">
                                         <thead class="table-light">
-                                            <tr>
+                                            <tr class="text-center">
+                                                <th>No</th>
                                                 <th>Tanggal</th>
-                                                <th>Jenis</th>
+                                                <!-- <th>Jenis</th> -->
                                                 <th>Keterangan</th>
                                                 <th>Jumlah</th>
                                                 <th>Status</th>
@@ -145,10 +167,12 @@ $transaksi = query("
                                                     <td colspan="5" class="text-center">Tidak ada transaksi</td>
                                                 </tr>
                                             <?php else : ?>
+                                                <?php $no = 1; ?>
                                                 <?php foreach ($transaksi as $trx) : ?>
                                                     <tr>
-                                                        <td><?= date('d/m/Y', strtotime($trx['tanggal'])) ?></td>
-                                                        <td><?= htmlspecialchars($trx['jenis']) ?></td>
+                                                        <td class="text-center"><?= $no++ ?></td>
+                                                        <td><?= dateIndo(($trx['tanggal'])) ?></td>
+                                                        <!-- <td><?= htmlspecialchars($trx['jenis']) ?></td> -->
                                                         <td><?= htmlspecialchars($trx['keterangan']) ?></td>
                                                         <td class="text-end <?= str_contains($trx['tipe'], 'pemasukan') ? 'text-success' : 'text-danger' ?>">
                                                             <?= str_contains($trx['tipe'], 'pemasukan') ? '+' : '-' ?>
