@@ -27,6 +27,9 @@ if ($status != 'all') {
 $sql .= " ORDER BY p.tanggal_penjualan DESC";
 
 $penjualan = query($sql);
+
+
+
 ?>
 
 <style>
@@ -120,7 +123,11 @@ $penjualan = query($sql);
                                                             <a href="cicilan.php?id=<?= $jual['id_penjualan'] ?>" class="btn btn-sm btn-warning me-2 mb-1">Cicilan</a>
                                                         <?php endif; ?>
                                                         <a href="nota.php?id=<?= $jual['id_penjualan'] ?>" target="_blank" class="btn btn-sm btn-info me-2 mb-1">Nota</a>
+
+                                                        <!-- Tombol batal -->
+                                                        <button class="btn btn-sm btn-danger btn-batal" data-id="<?= $jual['id_penjualan'] ?>">Batal</button>
                                                     </td>
+
                                                 </tr>
                                             <?php endforeach; ?>
                                         <?php endif; ?>
@@ -165,6 +172,29 @@ $penjualan = query($sql);
             });
         });
     </script>
+
+    <script>
+        document.querySelectorAll('.btn-batal').forEach(button => {
+            button.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                Swal.fire({
+                    title: 'Yakin ingin membatalkan penjualan ini?',
+                    text: "Tindakan ini akan menghapus data penjualan!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Ya, batalkan!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = 'batal.php?id=' + id;
+                    }
+                });
+            });
+        });
+    </script>
+
 
     <?php include '../includes/footer.php'; ?>
 </body>

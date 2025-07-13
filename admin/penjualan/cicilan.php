@@ -184,7 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
                     <!-- Content -->
 
                     <div class="container-xxl flex-grow-1 container-p-y">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
                             <h2>Informasi Cicilan</h2>
                         </div>
 
@@ -197,11 +197,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
                         <?php endif; ?>
 
                         <div class="row">
-                            <div class="col-md-5">
+                            <div class="col-md-12">
                                 <div class="card mb-4">
-                                    <div class="card-header">
-                                        <h3>Detail Cicilan</h3>
-                                    </div>
+
                                     <div class="card-body">
                                         <table class="table table-bordered">
                                             <tr>
@@ -225,30 +223,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
                                                     <?php endif; ?>
                                                 </td>
                                             </tr>
-
-
-                                            <!-- <tr>
+                                            <tr>
                                                 <th>Total Dibayar</th>
-                                                <td class="text-center"><span class="badge bg-success fs-5"><?= formatRupiah($total_dibayar) ?></span></td>
-                                            </tr> -->
-
-
-                                            <!-- <tr>
+                                                <td><span class="badge bg-success fs-5"><?= formatRupiah($total_dibayar) ?></span></td>
+                                            </tr>
+                                            <tr>
                                                 <th>Sisa Hutang</th>
-                                                <td class="text-center"><span class="badge bg-warning fs-5 text-dark"><?= formatRupiah($sisa_hutang) ?></span></td>
-                                            </tr> -->
-
+                                                <td><span class="badge bg-warning fs-5 text-dark"><?= formatRupiah($sisa_hutang) ?></span></td>
+                                            </tr>
                                         </table>
                                     </div>
                                 </div>
+                            </div>
 
+                            <div class="col-md-4">
                                 <div class="card">
                                     <div class="card-header">
                                         <h3>Tambah Pembayaran</h3>
                                     </div>
                                     <div class="card-body">
                                         <form method="post" enctype="multipart/form-data">
-                                            <div class="form-group mt-2">
+                                            <div class="form-group">
                                                 <label>Jumlah Cicilan</label>
                                                 <!-- <input type="text" name="jumlah" class="form-control money"
                                                     placeholder="Masukkan jumlah" required
@@ -288,8 +283,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
                                     </div>
                                 </div>
                             </div>
-
-                            <div class="col-md-7">
+                            <div class="col-md-8">
                                 <div class="card">
                                     <div class="card-header">
                                         <h3>Riwayat Pembayaran</h3>
