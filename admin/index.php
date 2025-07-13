@@ -151,11 +151,13 @@ require_once './includes/header.php';
                                     <div class="row row-bordered g-0">
                                         <div class="col-12">
                                             <h5 class="card-header m-0 me-2 pb-3">Aktivitas Terakhir</h5>
-                                            <div class="table-responsive text-nowrap px-3 pb-3">
+
+                                            <!-- <div class="table-responsive text-nowrap px-3 pb-3"> -->
+                                            <div class="table-responsive text-nowrap px-3 pb-3 mb-4" style="max-height: 300px; overflow-y: auto;">
                                                 <table class="table table-striped table-bordered align-middle">
                                                     <thead class="table-light">
-                                                        <tr>
-                                                            <th>Waktu</th>
+                                                        <tr class="text-center">
+                                                            <th>Tanggal</th>
                                                             <th>Aktivitas</th>
                                                             <th>Detail</th>
                                                         </tr>
