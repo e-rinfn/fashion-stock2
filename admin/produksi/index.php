@@ -142,10 +142,9 @@ $produksi = query("SELECT pp.tanggal_kirim, p.nama_pemotong, h.jumlah_hasil,
                                     </div>
                                 </div>
                             </div>
-
-
                         </div>
-                        <div class="card">
+
+                        <!-- <div class="card">
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <table class="table table-bordered">
@@ -179,7 +178,8 @@ $produksi = query("SELECT pp.tanggal_kirim, p.nama_pemotong, h.jumlah_hasil,
                                     </table>
                                 </div>
                             </div>
-                        </div>
+                        </div> -->
+
                     </div>
                     <!-- / Content -->
 

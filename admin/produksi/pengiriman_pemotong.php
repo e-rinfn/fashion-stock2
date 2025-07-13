@@ -56,8 +56,19 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, b.satuan, pm.nama_pemotong
                     FROM pengiriman_pemotong p
                     JOIN bahan_baku b ON p.id_bahan = b.id_bahan
                     JOIN pemotong pm ON p.id_pemotong = pm.id_pemotong
-                    ORDER BY p.tanggal_kirim DESC LIMIT 5");
+                   ORDER BY 
+                        (p.status = 'dikirim') DESC, 
+                        p.tanggal_kirim DESC
+                    LIMIT 5");
 ?>
+
+
+<style>
+    /* Paksa SweetAlert berada di atas segalanya */
+    .swal2-container {
+        z-index: 99999 !important;
+    }
+</style>
 
 <body>
     <!-- Layout wrapper -->
@@ -134,9 +145,19 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, b.satuan, pm.nama_pemotong
                                         <input type="date" name="tanggal" class="form-control" required value="<?= date('Y-m-d') ?>">
                                     </div>
                                 </div>
-                                <div class="d-flex justify-content-between">
+                                <!-- <div class="d-flex justify-content-between">
                                     <button type="submit" class="btn btn-primary">Simpan Pengiriman</button>
                                     <a href="riwayat_pengiriman_pemotong.php" class="btn btn-secondary">Riwayat Pengiriman</a>
+                                </div> -->
+                                <div class="d-flex justify-content-between">
+                                    <button type="submit" class="btn btn-primary">Simpan Pengiriman</button>
+                                    <div class="btn-group">
+                                        <a href="riwayat_pengiriman_pemotong.php" class="btn btn-secondary">Riwayat Pengiriman</a>
+                                        <a href="batal_pengiriman_pemotong.php" class="btn btn-danger"
+                                            onclick="return confirm('Yakin ingin membatalkan pengiriman terakhir?')">
+                                            Batal Simpan
+                                        </a>
+                                    </div>
                                 </div>
                             </form>
 
@@ -153,6 +174,7 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, b.satuan, pm.nama_pemotong
                                             <th>Pemotong</th>
                                             <th>Jumlah</th>
                                             <th class="text-center">Status</th>
+                                            <!-- <th class="text-center">Aksi</th> -->
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -170,6 +192,17 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, b.satuan, pm.nama_pemotong
                                                         <?= $p['status'] == 'dikirim' ? 'Dalam Proses' : 'Selesai' ?>
                                                     </span>
                                                 </td>
+                                                <!-- <td class="text-center">
+                                                    <div class="btn-group btn-group-sm">
+                                                        <?php if ($p['status'] == 'dikirim'): ?>
+
+                                                            <a href="batal_pengiriman_pemotong.php?id=<?= $p['id_pengiriman_potong'] ?>"
+                                                                class="btn btn-danger btn-batal">
+                                                                <i class="bx bx-x"></i>
+                                                            </a>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </td> -->
                                             </tr>
                                         <?php endforeach; ?>
                                         <?php if (empty($pengiriman)): ?>
@@ -183,6 +216,33 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, b.satuan, pm.nama_pemotong
                         </div>
                     </div>
 
+                    <!-- SweetAlert2 -->
+                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+                    <script>
+                        // Konfirmasi pembatalan
+                        document.querySelectorAll('.btn-batal').forEach(btn => {
+                            btn.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                const url = this.getAttribute('href');
+
+                                Swal.fire({
+                                    title: 'Yakin membatalkan pengiriman?',
+                                    text: "Data yang dibatalkan tidak bisa dikembalikan!",
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#d33',
+                                    cancelButtonColor: '#6c757d',
+                                    confirmButtonText: 'Ya, Batalkan!',
+                                    cancelButtonText: 'Tidak'
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        window.location.href = url;
+                                    }
+                                });
+                            });
+                        });
+                    </script>
 
                     <!-- / Content -->
 

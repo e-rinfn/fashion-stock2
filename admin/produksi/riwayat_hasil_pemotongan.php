@@ -15,7 +15,7 @@ $riwayat = query("SELECT h.*, p.nama_bahan, pm.nama_pemotong
                     JOIN pengiriman_pemotong pg ON h.id_pengiriman_potong = pg.id_pengiriman_potong
                     JOIN bahan_baku p ON pg.id_bahan = p.id_bahan
                     JOIN pemotong pm ON pg.id_pemotong = pm.id_pemotong
-                    ORDER BY h.tanggal_selesai DESC LIMIT 5");
+                    ORDER BY h.tanggal_selesai DESC");
 
 ?>
 

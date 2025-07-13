@@ -159,8 +159,15 @@ $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
                                 </div>
                                 <div class="d-flex justify-content-between">
                                     <button type="submit" class="btn btn-primary">Simpan Pengiriman</button>
-                                    <a href="riwayat_pengiriman_penjahit.php" class="btn btn-secondary">Riwayat Pengiriman</a>
+                                    <div class="btn-group">
+                                        <a href="riwayat_pengiriman_penjahit.php" class="btn btn-secondary">Riwayat Pengiriman</a>
+                                        <a href="batal_pengiriman_penjahit.php" class="btn btn-danger"
+                                            onclick="return confirm('Yakin ingin membatalkan pengiriman terakhir?')">
+                                            Batal Simpan
+                                        </a>
+                                    </div>
                                 </div>
+
                             </form>
 
                             <hr>
@@ -202,11 +209,6 @@ $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
-                                        <?php if (empty($history)): ?>
-                                            <tr>
-                                                <td colspan="5" class="text-center">Belum ada data pengiriman penjahit.</td>
-                                            </tr>
-                                        <?php endif; ?>
                                     </tbody>
                                 </table>
                             </div>

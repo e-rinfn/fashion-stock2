@@ -151,8 +151,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                                 <div class="d-flex justify-content-between">
                                     <button type="submit" class="btn btn-primary">Catat Hasil</button>
-                                    <a href="riwayat_hasil_penjahitan.php" class="btn btn-secondary">Riwayat Hasil</a>
+                                    <div class="btn-group">
+                                        <a href="riwayat_hasil_penjahitan.php" class="btn btn-secondary">Riwayat Hasil</a>
+                                        <a href="batal_hasil_penjahitan.php" class="btn btn-danger"
+                                            onclick="return confirm('Yakin ingin membatalkan hasil jahit terakhir?')">
+                                            Batal Hasil Jahit
+                                        </a>
+                                    </div>
                                 </div>
+
                             </form>
 
                             <hr class="my-4">
