@@ -207,7 +207,7 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, b.satuan, pm.nama_pemotong
                                         <?php endforeach; ?>
                                         <?php if (empty($pengiriman)): ?>
                                             <tr>
-                                                <td colspan="6" class="text-center">Belum ada data pengiriman.</td>
+                                                <td colspan="7" class="text-center">Belum ada data pengiriman.</td>
                                             </tr>
                                         <?php endif; ?>
                                     </tbody>
