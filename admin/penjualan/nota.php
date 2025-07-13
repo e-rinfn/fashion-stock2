@@ -3,6 +3,27 @@ require_once '../../config/database.php';
 require_once '../../config/functions.php';
 require_once '../../vendor/autoload.php';
 
+function dateIndo($tanggal)
+{
+    $bulanIndo = [
+        1 => 'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember'
+    ];
+    $tanggal = date('Y-m-d', strtotime($tanggal));
+    $pecah = explode('-', $tanggal);
+    return $pecah[2] . ' ' . $bulanIndo[(int)$pecah[1]] . ' ' . $pecah[0];
+}
+
 $id_penjualan = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
 $penjualan = query("SELECT p.*, r.nama_reseller, r.alamat as alamat_reseller 
@@ -25,29 +46,55 @@ if ($penjualan['status_pembayaran'] == 'cicilan') {
     $total_cicilan = $cicilan['total'] ?? 0;
 }
 
+// Inisialisasi TCPDF
 $pdf = new TCPDF('P', 'mm', 'A5', true, 'UTF-8', false);
-$pdf->SetTitle("Nota Penjualan #$id_penjualan");
+$pdf->setPrintHeader(false);
+$pdf->setPrintFooter(false);
 $pdf->SetMargins(10, 10, 10);
 $pdf->AddPage();
 
-$pdf->SetFont('helvetica', 'B', 12);
-$pdf->Cell(0, 5, 'IRVEENA', 0, 1, 'C');
+// Font
 $pdf->SetFont('helvetica', '', 10);
-$pdf->Cell(0, 5, 'Jl. Contoh No.123, Tasikmalaya - Telp: 0878-3456-7080', 0, 1, 'C');
+
+// Header
+$pdf->Cell(0, 6, 'NAMA PERUSAHAAN', 0, 1, 'C');
+$pdf->SetFont('helvetica', '', 9);
+$pdf->Cell(0, 5, 'Jl. Contoh No. 123, Kota Tasikmalaya', 0, 1, 'C');
+$pdf->Cell(0, 5, 'Telp: 0812-3456-7890', 0, 1, 'C');
 $pdf->Ln(5);
 
-$pdf->SetFont('helvetica', '', 10);
-$pdf->Cell(0, 6, "No. Nota: #$id_penjualan", 0, 1);
-$pdf->Cell(0, 6, 'Tanggal: ' . date('d/m/Y H:i', strtotime($penjualan['tanggal_penjualan'])), 0, 1);
-$pdf->Cell(0, 6, 'Status: ' . ucfirst($penjualan['status_pembayaran']), 0, 1);
-if ($penjualan['status_pembayaran'] == 'cicilan') {
-    $pdf->Cell(0, 6, 'Dibayar: ' . formatRupiah($total_cicilan) . ' dari ' . formatRupiah($penjualan['total_harga']), 0, 1);
-}
-$pdf->Ln(2);
+// Judul
+$pdf->SetFont('helvetica', 'B', 11);
+$pdf->Cell(0, 6, 'NOTA PEMESANAN', 0, 1, 'C');
+$pdf->SetFont('helvetica', '', 9);
+$pdf->Ln(5);
 
-$pdf->Cell(0, 6, 'Reseller: ' . $penjualan['nama_reseller'], 0, 1);
-$pdf->MultiCell(0, 6, 'Alamat: ' . $penjualan['alamat_reseller'], 0, 1);
-$pdf->Ln(4);
+// Informasi Penjualan dan Reseller
+$pdf->SetFont('helvetica', '', 9);
+$pdf->Cell(40, 5, 'No. Nota', 0, 0);
+$pdf->Cell(3, 5, ':', 0, 0);
+$pdf->Cell(60, 5, '# ' . $penjualan['id_penjualan'], 0, 1);
+
+$pdf->Cell(40, 5, 'Tanggal Penjualan', 0, 0);
+$pdf->Cell(3, 5, ':', 0, 0);
+$pdf->Cell(60, 5, dateIndo($penjualan['tanggal_penjualan']), 0, 1);
+
+$pdf->Cell(40, 5, 'Status', 0, 0);
+$pdf->Cell(3, 5, ':', 0, 0);
+$pdf->Cell(60, 5, $penjualan['status_pembayaran'], 0, 1);
+
+$pdf->Cell(40, 5, 'Dibayar', 0, 0);
+$pdf->Cell(3, 5, ':', 0, 0);
+$pdf->Cell(60, 5, formatRupiah($total_cicilan) . ' dari ' . formatRupiah($penjualan['total_harga']), 0, 1);
+
+$pdf->Cell(40, 5, 'Reseller', 0, 0);
+$pdf->Cell(3, 5, ':', 0, 0);
+$pdf->Cell(60, 5, $penjualan['nama_reseller'], 0, 1);
+
+$pdf->Cell(40, 5, 'Alamat', 0, 0);
+$pdf->Cell(3, 5, ':', 0, 0);
+$pdf->Cell(60, 5, $penjualan['alamat_reseller'], 0, 1);
+$pdf->Ln(5);
 
 // Tabel Produk
 $pdf->SetFont('helvetica', 'B', 10);
@@ -73,13 +120,7 @@ $pdf->Ln(4);
 
 // Footer
 $pdf->SetFont('helvetica', '', 9);
-// $pdf->Cell(0, 6, 'Metode Pembayaran: ' . ucfirst($penjualan['metode_pembayaran']), 0, 1);
 $pdf->Cell(0, 6, 'Terima kasih telah berbelanja!', 0, 1, 'C');
-
-// $pdf->Ln(10);
-// $pdf->Cell(0, 6, 'Hormat Kami,', 0, 1, 'R');
-// $pdf->Ln(15);
-// $pdf->Cell(0, 6, '(____________________)', 0, 0, 'R');
 
 // Output PDF ke browser
 $pdf->Output('nota_penjualan_' . $id_penjualan . '.pdf', 'I');

@@ -3,6 +3,27 @@ require_once '../../vendor/autoload.php';
 require_once '../../config/database.php';
 require_once '../../config/functions.php';
 
+function dateIndo($tanggal)
+{
+    $bulanIndo = [
+        1 => 'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember'
+    ];
+    $tanggal = date('Y-m-d', strtotime($tanggal));
+    $pecah = explode('-', $tanggal);
+    return $pecah[2] . ' ' . $bulanIndo[(int)$pecah[1]] . ' ' . $pecah[0];
+}
+
 $id_cicilan = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
 // Ambil data cicilan
@@ -20,159 +41,85 @@ if (!$cicilan) {
     die("Data cicilan tidak ditemukan");
 }
 
-// Hitung sisa hutang
 $sisa_hutang = $cicilan['total_harga'] - $cicilan['total_dibayar'];
 
-// Create new PDF document
+// Inisialisasi TCPDF
 $pdf = new TCPDF('P', 'mm', 'A5', true, 'UTF-8', false);
-
-// Set document information
-$pdf->SetCreator('Sistem Mukena');
-$pdf->SetAuthor('Admin');
-$pdf->SetTitle('Nota Cicilan #' . $id_cicilan);
-$pdf->SetSubject('Nota Pembayaran Cicilan');
-
-// Remove default header/footer
 $pdf->setPrintHeader(false);
 $pdf->setPrintFooter(false);
-
-// Set margins
 $pdf->SetMargins(10, 10, 10);
-
-// Add a page
 $pdf->AddPage();
 
-// Content
-$html = '
-<style>
-    .header {
-        text-align: center;
-        margin-bottom: 10px;
-    }
-    .title {
-        font-size: 16px;
-        font-weight: bold;
-    }
-    .subtitle {
-        font-size: 14px;
-    }
-    .info {
-        font-size: 10px;
-        margin-bottom: 10px;
-    }
-    .table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 10px;
-        margin-bottom: 10px;
-    }
-    .table th {
-        background-color: #f2f2f2;
-        border: 1px solid #ddd;
-        padding: 5px;
-        text-align: left;
-    }
-    .table td {
-        border: 1px solid #ddd;
-        padding: 5px;
-    }
-    .text-right {
-        text-align: right;
-    }
-    .text-center {
-        text-align: center;
-    }
-    .footer {
-        margin-top: 15px;
-        font-size: 10px;
-    }
-    .signature {
-        width: 70mm;
-        margin-top: 20px;
-        text-align: center;
-    }
-</style>
+// Font
+$pdf->SetFont('helvetica', '', 10);
 
-<div class="header">
-    <div class="title">BISNIS FASHION MUKENA</div>
-    <div class="subtitle">Jl. Contoh No. 123, Kota Anda</div>
-    <div class="subtitle">Telp: 0812-3456-7890</div>
-</div>
+// Header
+$pdf->Cell(0, 6, 'NAMA PERUSAHAAN', 0, 1, 'C');
+$pdf->SetFont('helvetica', '', 9);
+$pdf->Cell(0, 5, 'Jl. Contoh No. 123, Kota Tasikmalaya', 0, 1, 'C');
+$pdf->Cell(0, 5, 'Telp: 0812-3456-7890', 0, 1, 'C');
+$pdf->Ln(5);
 
-<div class="header">
-    <div class="title">NOTA PEMBAYARAN CICILAN</div>
-    <div class="info">No: ' . $id_cicilan . ' | Tanggal: ' . date('d/m/Y', strtotime($cicilan['tanggal_bayar'])) . '</div>
-</div>
+// Judul
+$pdf->SetFont('helvetica', 'B', 11);
+$pdf->Cell(0, 6, 'NOTA PEMBAYARAN CICILAN', 0, 1, 'C');
+$pdf->SetFont('helvetica', '', 9);
+$pdf->Cell(0, 5, 'No Cicilan: ' . '#' . $id_cicilan . ' | Tanggal: ' . dateIndo($cicilan['tanggal_bayar']), 0, 1, 'C');
+$pdf->Ln(5);
 
-<table class="info">
-    <tr>
-        <td width="50%">
-            <strong>No. Penjualan:</strong> ' . $cicilan['id_penjualan'] . '<br>
-            <strong>Tanggal Penjualan:</strong> ' . date('d/m/Y', strtotime($cicilan['tanggal_penjualan'])) . '
-        </td>
-        <td width="50%">
-            <strong>Reseller:</strong> ' . $cicilan['nama_reseller'] . '<br>
-            <strong>Kontak:</strong> ' . $cicilan['kontak_reseller'] . '
-        </td>
-    </tr>
-</table>
+// Informasi Penjualan dan Reseller
+$pdf->SetFont('helvetica', '',  9);
+$pdf->Cell(40, 5, 'No. Penjualan', 0, 0);
+$pdf->Cell(3, 5, ':', 0, 0);
+$pdf->Cell(60, 5, '# ' . $cicilan['id_penjualan'], 0, 1);
 
-<table class="table">
-    <thead>
-        <tr>
-            <th width="70%">Deskripsi</th>
-            <th width="30%" class="text-right">Jumlah</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>Pembayaran Cicilan (' . ucfirst($cicilan['metode_pembayaran']) . ')</td>
-            <td class="text-right">' . formatRupiah($cicilan['jumlah_cicilan']) . '</td>
-        </tr>
-        <tr>
-            <td><strong>Total Pembayaran</strong></td>
-            <td class="text-right"><strong>' . formatRupiah($cicilan['jumlah_cicilan']) . '</strong></td>
-        </tr>
-    </tbody>
-</table>
+$pdf->Cell(40, 5, 'Tanggal Penjualan', 0, 0,);
+$pdf->Cell(3, 5, ':', 0, 0);
+$pdf->Cell(60, 5, dateIndo(($cicilan['tanggal_penjualan'])), 0, 1);
 
-<div class="info">
-    <p><strong>Informasi Pembayaran:</strong></p>
-    <table>
-        <tr>
-            <td width="50%">Total Harga Penjualan:</td>
-            <td width="50%">' . formatRupiah($cicilan['total_harga']) . '</td>
-        </tr>
-        <tr>
-            <td>Total Dibayar:</td>
-            <td>' . formatRupiah($cicilan['total_dibayar']) . '</td>
-        </tr>
-        <tr>
-            <td><strong>Sisa Hutang:</strong></td>
-            <td><strong>' . formatRupiah($sisa_hutang) . '</strong></td>
-        </tr>
-    </table>
-</div>
+$pdf->Cell(40, 5, 'Reseller', 0, 0);
+$pdf->Cell(3, 5, ':', 0, 0);
+$pdf->Cell(60, 5, $cicilan['nama_reseller'], 0, 1);
 
-<div style="margin-top: 10px; font-size: 9px;">
-    <p>Keterangan: Pembayaran ini merupakan bagian dari penjualan #' . $cicilan['id_penjualan'] . '</p>
-</div>
+$pdf->Cell(40, 5, 'Kontak', 0, 0);
+$pdf->Cell(3, 5, ':', 0, 0);
+$pdf->Cell(60, 5, $cicilan['kontak_reseller'], 0, 1);
+$pdf->Ln(5);
 
-<div style="display: flex; justify-content: space-between; margin-top: 20px;">
-    <div class="signature">
-        <div style="border-top: 1px solid #000; width: 70mm; padding-top: 5px;">
-            Hormat Kami,
-        </div>
-    </div>
-    <div class="signature">
-        <div style="border-top: 1px solid #000; width: 70mm; padding-top: 5px;">
-            Penerima,
-        </div>
-    </div>
-</div>';
+// Pembayaran
+$pdf->SetFont('helvetica', 'B', 10);
+$pdf->Cell(90, 6, 'Keterangan', 1, 0);
+$pdf->Cell(40, 6, 'Jumlah', 1, 1, 'R');
 
-// Print text using writeHTMLCell()
-$pdf->writeHTMLCell(0, 0, '', '', $html, 0, 1, 0, true, '', true);
+$pdf->SetFont('helvetica', '', 10);
+$pdf->Cell(90, 6, 'Pembayaran Cicilan (' . ucfirst($cicilan['metode_pembayaran']) . ')', 1, 0);
+$pdf->Cell(40, 6, formatRupiah($cicilan['jumlah_cicilan']), 1, 1, 'R');
 
-// Close and output PDF document
+$pdf->SetFont('helvetica', 'B', 10);
+$pdf->Cell(90, 6, 'Total Pembayaran', 1, 0);
+$pdf->Cell(40, 6, formatRupiah($cicilan['jumlah_cicilan']), 1, 1, 'R');
+$pdf->Ln(5);
+
+// Informasi Tambahan
+$pdf->SetFont('helvetica', '', 10);
+$pdf->Cell(60, 5, 'Total Harga Penjualan', 0, 0);
+$pdf->Cell(3, 5, ':', 0, 0);
+$pdf->Cell(40, 5, formatRupiah($cicilan['total_harga']), 0, 1);
+
+$pdf->Cell(60, 5, 'Total Dibayar', 0, 0);
+$pdf->Cell(3, 5, ':', 0, 0);
+$pdf->Cell(40, 5, formatRupiah($cicilan['total_dibayar']), 0, 1);
+
+$pdf->SetFont('helvetica', 'B', 10);
+$pdf->Cell(60, 5, 'Sisa Hutang', 0, 0);
+$pdf->Cell(3, 5, ':', 0, 0);
+$pdf->Cell(40, 5, formatRupiah($sisa_hutang), 0, 1);
+$pdf->Ln(5);
+
+// Keterangan
+$pdf->SetFont('helvetica', '', 9);
+$pdf->MultiCell(0, 5, 'Keterangan: Pembayaran ini merupakan bagian dari penjualan #' . $cicilan['id_penjualan'], 0, 'C');
+$pdf->Ln(10);
+
+// Output
 $pdf->Output('nota_cicilan_' . $id_cicilan . '.pdf', 'I');

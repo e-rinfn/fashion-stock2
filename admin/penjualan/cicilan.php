@@ -1,8 +1,27 @@
 <?php
 require_once '../../config/database.php';
 require_once '../../config/functions.php';
-// redirectIfNotLoggedIn();
-// checkRole('admin');
+
+function dateIndo($tanggal)
+{
+    $bulanIndo = [
+        1 => 'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember'
+    ];
+    $tanggal = date('Y-m-d', strtotime($tanggal));
+    $pecah = explode('-', $tanggal);
+    return $pecah[2] . ' ' . $bulanIndo[(int)$pecah[1]] . ' ' . $pecah[0];
+}
 
 $id_penjualan = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
@@ -185,11 +204,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
 
                     <div class="container-xxl flex-grow-1 container-p-y">
                         <div class="d-flex justify-content-between align-items-center mb-1">
-                            <h2>Informasi Cicilan</h2>
+                            <h2>Informasi Pembayaran</h2>
+                            <div class="btn-group mb-3" role="group" aria-label="Aksi Penjualan">
+                                <a href="list.php" class="btn btn-secondary">
+                                    <i class="bx bx-arrow-back"></i> Kembali
+                                </a>
+                            </div>
                         </div>
 
                         <?php if (isset($_GET['success'])): ?>
-                            <div class="alert alert-success">Pembayaran cicilan berhasil dicatat!</div>
+                            <div class="alert alert-success">Pembayaran berhasil dicatat!</div>
                         <?php endif; ?>
 
                         <?php if (isset($error)): ?>
@@ -201,42 +225,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
                                 <div class="card mb-4">
 
                                     <div class="card-body">
-                                        <table class="table table-bordered">
-                                            <tr>
-                                                <th width="40%">Reseller</th>
-                                                <td class="text-center"><?= $penjualan['nama_reseller'] ?></td>
-                                            </tr>
-                                            <tr>
-                                                <th>Total Harga</th>
-                                                <td><span class="badge bg-info fs-5"><?= formatRupiah($penjualan['total_harga']) ?></span></td>
-                                            </tr>
 
-                                            <tr>
+
+                                        <table class="table table-bordered">
+                                            <tr class="text-center">
+                                                <th>Nama Reseller</th>
+                                                <th>Total Harga</th>
                                                 <th>Status</th>
+                                                <th>Total Dibayar</th>
+                                                <th>Sisa Hutang</th>
+                                            </tr>
+                                            <tr>
+                                                <td><?= $penjualan['nama_reseller'] ?></td>
+                                                <td><?= formatRupiah($penjualan['total_harga']) ?></td>
                                                 <td>
                                                     <?php if ($penjualan['status_pembayaran'] === 'lunas'): ?>
-                                                        <span class="badge bg-success fs-5">Lunas</span>
+                                                        Lunas
                                                     <?php elseif ($penjualan['status_pembayaran'] === 'cicilan'): ?>
-                                                        <span class="badge bg-warning text-dark fs-5">Cicilan</span>
+                                                        Cicilan
                                                     <?php else: ?>
-                                                        <span class="badge bg-secondary fs-5"><?= htmlspecialchars($penjualan['status_pembayaran']) ?></span>
+                                                        <?= htmlspecialchars($penjualan['status_pembayaran']) ?>
                                                     <?php endif; ?>
                                                 </td>
-                                            </tr>
-                                            <tr>
-                                                <th>Total Dibayar</th>
-                                                <td><span class="badge bg-success fs-5"><?= formatRupiah($total_dibayar) ?></span></td>
-                                            </tr>
-                                            <tr>
-                                                <th>Sisa Hutang</th>
-                                                <td><span class="badge bg-warning fs-5 text-dark"><?= formatRupiah($sisa_hutang) ?></span></td>
-                                            </tr>
+                                                <td><?= formatRupiah($total_dibayar) ?></td>
+                                                <td><?= formatRupiah($sisa_hutang) ?></td>
                                         </table>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="col-md-4">
+                            <div class="col-md-5">
                                 <div class="card">
                                     <div class="card-header">
                                         <h3>Tambah Pembayaran</h3>
@@ -244,23 +262,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
                                     <div class="card-body">
                                         <form method="post" enctype="multipart/form-data">
                                             <div class="form-group">
-                                                <label>Jumlah Cicilan</label>
+                                                <label>Jumlah Dibayarkan</label>
                                                 <!-- <input type="text" name="jumlah" class="form-control money"
                                                     placeholder="Masukkan jumlah" required
                                                     value="<?= $sisa_hutang ?>"> -->
                                                 <input type="text" name="jumlah" class="form-control money"
                                                     placeholder="Masukkan jumlah" required
                                                     value="0">
-
                                             </div>
-
-                                            <div class="form-group mt-2">
-                                                <label>Tanggal Pembayaran</label>
+                                            <div class="form-group mt-3">
+                                                <label>Tanggal Pembayaran <span class="text-danger">(Bulan/Tanggal/Tahun)</span></label>
                                                 <input type="date" name="tanggal" class="form-control"
                                                     value="<?= date('Y-m-d') ?>" required>
                                             </div>
-
-                                            <div class="form-group mt-2">
+                                            <div class="form-group mt-3">
                                                 <label>Metode Pembayaran</label>
                                                 <select name="metode" class="form-control" required>
                                                     <option value="transfer">Transfer Bank</option>
@@ -268,14 +283,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
                                                     <option value="e-wallet">E-Wallet</option>
                                                 </select>
                                             </div>
-
-                                            <div class="form-group mt-2">
-                                                <label>Bukti Pembayaran (jpg, png, pdf max 2MB)</label>
+                                            <div class="form-group mt-3">
+                                                <label>Bukti Pembayaran <br> (jpg, png, pdf max 2MB)</label>
                                                 <input type="file" name="bukti_pembayaran" class="form-control" accept=".jpg,.jpeg,.png,.pdf" required>
                                             </div>
-
-
-
                                             <button type="submit" name="tambah_cicilan" class="btn btn-primary mt-3">
                                                 Simpan Pembayaran
                                             </button>
@@ -283,7 +294,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-8">
+                            <div class="col-md-7">
                                 <div class="card">
                                     <div class="card-header">
                                         <h3>Riwayat Pembayaran</h3>
@@ -295,19 +306,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
                                             <div class="table-responsive">
                                                 <table class="table table-bordered">
                                                     <thead>
-                                                        <tr>
-                                                            <th class="text-center">No</th>
+                                                        <tr class="text-center">
+                                                            <th>No</th>
                                                             <th>Tanggal</th>
                                                             <th>Jumlah</th>
                                                             <th>Metode</th>
-                                                            <th class="text-center">Bukti</th>
+                                                            <th>Bukti</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
                                                         <?php foreach ($cicilan as $i => $c): ?>
                                                             <tr>
                                                                 <td class="text-center"><?= $i + 1 ?></td>
-                                                                <td><?= date('d/m/Y', strtotime($c['tanggal_bayar'])) ?></td>
+                                                                <td><?= dateIndo($c['tanggal_bayar']) ?></td>
                                                                 <td><?= formatRupiah($c['jumlah_cicilan']) ?></td>
                                                                 <td><?= ucfirst($c['metode_pembayaran']) ?></td>
                                                                 <td class="text-center">

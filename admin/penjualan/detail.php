@@ -1,8 +1,27 @@
 <?php
 require_once '../../config/database.php';
 require_once '../../config/functions.php';
-// redirectIfNotLoggedIn();
-// checkRole('admin');
+
+function dateIndo($tanggal)
+{
+    $bulanIndo = [
+        1 => 'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember'
+    ];
+    $tanggal = date('Y-m-d', strtotime($tanggal));
+    $pecah = explode('-', $tanggal);
+    return $pecah[2] . ' ' . $bulanIndo[(int)$pecah[1]] . ' ' . $pecah[0];
+}
 
 $id_penjualan = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
@@ -59,21 +78,25 @@ $total_cicilan = $cicilan['total'] ?? 0;
                     <div class="container-xxl flex-grow-1 container-p-y">
 
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h2>Detail Penjualan #<?= $id_penjualan ?></h2>
-                            <div>
-                                <a href="list.php" class="btn btn-secondary">Kembali</a>
-                                <a href="nota.php?id=<?= $id_penjualan ?>" class="btn btn-info" target="_blank">Cetak Nota</a>
-                                <a href="cicilan.php?id=<?= $id_penjualan ?>" class="btn btn-primary" target="_blank">Cicilan</a>
-                                <!-- <?php if ($penjualan['status_pembayaran'] == 'cicilan'): ?>
-                                    <a href="cicilan.php?id=<?= $id_penjualan ?>" class="btn btn-primary">Kelola Cicilan</a>
-                                <?php endif; ?> -->
+                            <h2>Detail Pesanan #<?= $id_penjualan ?></h2>
+                            <div class="btn-group mb-3" role="group" aria-label="Aksi Penjualan">
+                                <a href="list.php" class="btn btn-secondary">
+                                    <i class="bx bx-arrow-back"></i> Kembali
+                                </a>
+                                <a href="cicilan.php?id=<?= $id_penjualan ?>" class="btn btn-warning">
+                                    <i class="bx bx-credit-card"></i> Cicilan
+                                </a>
+                                <a href="nota.php?id=<?= $id_penjualan ?>" class="btn btn-danger" target="_blank">
+                                    <i class="bx bx-printer"></i> Cetak Nota
+                                </a>
                             </div>
+
                         </div>
 
                         <div class="card mb-4">
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <table class="table table-bordered">
                                             <tr>
                                                 <th width="30%">Reseller</th>
@@ -81,29 +104,30 @@ $total_cicilan = $cicilan['total'] ?? 0;
                                             </tr>
                                             <tr>
                                                 <th>Tanggal</th>
-                                                <td><?= date('d/m/Y H:i', strtotime($penjualan['tanggal_penjualan'])) ?></td>
+                                                <td><?= dateIndo($penjualan['tanggal_penjualan']) . ' ' . date('H:i', strtotime($penjualan['tanggal_penjualan'])) ?></td>
                                             </tr>
-                                            <tr>
-                                                <th>Status Pembayaran</th>
-                                                <td>
-                                                    <?= ucfirst($penjualan['status_pembayaran']) ?>
-                                                    <?php if ($penjualan['status_pembayaran'] == 'cicilan'): ?>
-                                                        (Dibayar: <?= formatRupiah($total_cicilan) ?> dari <?= formatRupiah($penjualan['total_harga']) ?>)
-                                                    <?php endif; ?>
-                                                </td>
-                                            </tr>
+
                                         </table>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-8">
                                         <table class="table table-bordered">
                                             <tr>
                                                 <th width="30%">Total Harga</th>
                                                 <td><?= formatRupiah($penjualan['total_harga']) ?></td>
                                             </tr>
                                             <tr>
+                                                <th>Status Pembayaran</th>
+                                                <td>
+                                                    <?= ucfirst($penjualan['status_pembayaran']) ?>
+                                                    <?php if ($penjualan['status_pembayaran'] == 'cicilan'): ?> <br>
+                                                        Dibayar: <?= formatRupiah($total_cicilan) ?> dari <?= formatRupiah($penjualan['total_harga']) ?>
+                                                    <?php endif; ?>
+                                                </td>
+                                            </tr>
+                                            <!-- <tr>
                                                 <th>Metode Pembayaran</th>
                                                 <td><?= ucfirst($penjualan['metode_pembayaran']) ?></td>
-                                            </tr>
+                                            </tr> -->
                                         </table>
                                     </div>
                                 </div>

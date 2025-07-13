@@ -129,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_penjualan'])) {
                     <!-- Content -->
                     <div class="container-xxl flex-grow-1 container-p-y">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h2>Tambah Penjualan</h2>
+                            <h2>Tambah Pesanan</h2>
                         </div>
 
                         <div class="card">
@@ -137,26 +137,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_penjualan'])) {
                                 <div class="row">
                                     <form method="post" id="formPenjualan">
                                         <div class="card border border-dark shadow-sm rounded-3">
-                                            <div class="card-header">
+                                            <!-- <div class="card-header">
                                                 <h3>Informasi Penjualan</h3>
-                                            </div>
+                                            </div> -->
                                             <div class="card-body">
                                                 <?php if (isset($error)): ?>
                                                     <div class="alert error"><?= $error ?></div>
                                                 <?php endif; ?>
 
                                                 <div class="row g-3 align-items-center">
-                                                    <div class="col-md-4">
-                                                        <label class="form-label">Reseller</label>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label">Nama Reseller</label>
                                                         <select name="id_reseller" class="form-control" required>
-                                                            <option value="">Pilih Reseller</option>
+                                                            <option value="">-- Pilih Reseller --</option>
                                                             <?php foreach ($reseller as $r): ?>
                                                                 <option value="<?= $r['id_reseller'] ?>"><?= $r['nama_reseller'] ?></option>
                                                             <?php endforeach; ?>
                                                         </select>
                                                     </div>
 
-                                                    <div class="col-md-4">
+                                                    <div hidden class="col-md-4">
                                                         <label class="form-label">Metode Pembayaran</label>
                                                         <select name="metode_pembayaran" class="form-control" required>
                                                             <option value="transfer">Transfer Bank</option>
@@ -165,11 +165,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_penjualan'])) {
                                                         </select>
                                                     </div>
 
-                                                    <div class="col-md-4">
+                                                    <div hidden class="col-md-4">
                                                         <label class="form-label">Status Pembayaran</label>
                                                         <select name="status_pembayaran" class="form-control" required>
                                                             <option value="cicilan">Cicilan</option>
-                                                            <option value="lunas">Lunas</option>
+                                                            <option hidden value="lunas">Lunas</option>
                                                         </select>
                                                     </div>
                                                 </div>

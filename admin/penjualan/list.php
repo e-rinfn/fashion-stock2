@@ -1,6 +1,27 @@
 <?php
 require_once '../includes/header.php';
 
+function dateIndo($tanggal)
+{
+    $bulanIndo = [
+        1 => 'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember'
+    ];
+    $tanggal = date('Y-m-d', strtotime($tanggal));
+    $pecah = explode('-', $tanggal);
+    return $pecah[2] . ' ' . $bulanIndo[(int)$pecah[1]] . ' ' . $pecah[0];
+}
+
 // Ambil semua reseller untuk dropdown
 $resellers = query("SELECT * FROM reseller");
 
@@ -49,7 +70,7 @@ $penjualan = query($sql);
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h2>Data Penjualan</h2>
                             <a href="new.php" class="btn btn-success">
-                                <i class="bx bx-plus-circle"></i> Tambah Penjualan
+                                <i class="bx bx-plus-circle"></i> Tambah Pesanan
                             </a>
                         </div>
 
@@ -91,7 +112,7 @@ $penjualan = query($sql);
                                         <tr class="text-center">
                                             <th style="width: 50px;">No</th>
                                             <th>Tanggal</th>
-                                            <th>Reseller</th>
+                                            <th>Pelanggan</th>
                                             <th>Total</th>
                                             <th>Status</th>
                                             <th style="width: 200px;">Aksi</th>
@@ -107,7 +128,7 @@ $penjualan = query($sql);
                                             <?php foreach ($penjualan as $jual): ?>
                                                 <tr>
                                                     <td class="text-center"><?= $no++ ?></td>
-                                                    <td><?= date('d/m/Y H:i', strtotime($jual['tanggal_penjualan'])) ?></td>
+                                                    <td><?= dateIndo($jual['tanggal_penjualan']) ?></td>
                                                     <td><?= htmlspecialchars($jual['nama_reseller']) ?></td>
                                                     <td><?= formatRupiah($jual['total_harga']) ?></td>
                                                     <td class="text-center">
@@ -117,15 +138,30 @@ $penjualan = query($sql);
                                                             <span class="badge bg-warning text-dark">CICILAN</span>
                                                         <?php endif; ?>
                                                     </td>
-                                                    <td class="text-center">
-                                                        <a href="detail.php?id=<?= $jual['id_penjualan'] ?>" class="btn btn-sm btn-primary me-2 mb-1">Detail</a>
-                                                        <?php if ($jual['status_pembayaran'] == 'cicilan'): ?>
-                                                            <a href="cicilan.php?id=<?= $jual['id_penjualan'] ?>" class="btn btn-sm btn-warning me-2 mb-1">Cicilan</a>
-                                                        <?php endif; ?>
-                                                        <a href="nota.php?id=<?= $jual['id_penjualan'] ?>" target="_blank" class="btn btn-sm btn-info me-2 mb-1">Nota</a>
+                                                    <td class="text-end">
+                                                        <div class="btn-group" role="group" aria-label="Aksi Penjualan">
+                                                            <!-- Tombol Batal (hanya muncul jika belum lunas) -->
+                                                            <?php if ($jual['status_pembayaran'] != 'lunas'): ?>
+                                                                <button class="btn btn-sm btn-danger btn-batal" data-id="<?= $jual['id_penjualan'] ?>" title="Batalkan Penjualan">
+                                                                    <i class="bx bx-x-circle"></i>
+                                                                </button>
+                                                            <?php endif; ?>
+                                                            <?php if ($jual['status_pembayaran'] == 'cicilan'): ?>
+                                                                <a href="cicilan.php?id=<?= $jual['id_penjualan'] ?>" class="btn btn-sm btn-warning" title="Pembayaran">
+                                                                    <i class="bx bx-money"></i>
+                                                                </a>
+                                                            <?php endif; ?>
+                                                            <a href="detail.php?id=<?= $jual['id_penjualan'] ?>" class="btn btn-sm btn-primary" title="Detail">
+                                                                <i class="bx bx-detail"></i>
+                                                            </a>
 
-                                                        <!-- Tombol batal -->
-                                                        <button class="btn btn-sm btn-danger btn-batal" data-id="<?= $jual['id_penjualan'] ?>">Batal</button>
+
+                                                            <a href="nota.php?id=<?= $jual['id_penjualan'] ?>" target="_blank" class="btn btn-sm btn-info" title="Nota">
+                                                                <i class="bx bx-receipt"></i>
+                                                            </a>
+
+
+                                                        </div>
                                                     </td>
 
                                                 </tr>
