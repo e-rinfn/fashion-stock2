@@ -208,7 +208,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         ?>
                                             <tr>
                                                 <td><?= $no++ ?></td>
-                                                <td><?= $h['tgl_selesai'] ?></td>
+                                                <td><?= dateIndo($h['tgl_selesai']) ?></td>
                                                 <td><?= $h['nama_produk'] ?></td>
                                                 <td><?= $h['jumlah_produk_jadi'] ?> pcs</td>
                                                 <td><?= $h['keterangan'] ?></td>
