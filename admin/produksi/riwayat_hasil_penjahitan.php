@@ -2,8 +2,27 @@
 require_once __DIR__ . '../../includes/header.php';
 require_once '../../config/database.php';
 require_once '../../config/functions.php';
-// redirectIfNotLoggedIn();
-// checkRole('admin');
+
+function dateIndo($tanggal)
+{
+    $bulanIndo = [
+        1 => 'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember'
+    ];
+    $tanggal = date('Y-m-d', strtotime($tanggal));
+    $pecah = explode('-', $tanggal);
+    return $pecah[2] . ' ' . $bulanIndo[(int)$pecah[1]] . ' ' . $pecah[0];
+}
 
 // Ambil data pengiriman yang belum selesai
 $sql_pengiriman = "SELECT pj.id_pengiriman_jahit, pj.jumlah_bahan_mentah, 
@@ -107,34 +126,77 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <?php unset($_SESSION['success']); ?>
                             <?php endif; ?>
 
-                            <h3>Riwayat Hasil Penjahitan</h3>
+                            <form method="GET" class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <label class="form-label">Tanggal Awal</label>
+                                    <input type="date" name="awal" class="form-control" value="<?= htmlspecialchars($filter_awal) ?>">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Tanggal Akhir</label>
+                                    <input type="date" name="akhir" class="form-control" value="<?= htmlspecialchars($filter_akhir) ?>">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Produk</label>
+                                    <select name="produk" class="form-select">
+                                        <option value="">-- Semua Produk --</option>
+                                        <?php foreach ($produk as $p): ?>
+                                            <option value="<?= $p['id_produk'] ?>" <?= ($filter_produk == $p['id_produk']) ? 'selected' : '' ?>>
+                                                <?= $p['nama_produk'] ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-12 d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-primary me-2">Terapkan Filter</button>
+                                    <a href="riwayat_hasil_penjahitan.php" class="btn btn-secondary">Reset</a>
+                                </div>
+                            </form>
+
+                            <h4>Tabel Riwayat Hasil Penjahitan</h4>
                             <div class="table-responsive">
                                 <table class="table table-bordered table-striped align-middle">
                                     <thead class="table-light">
-                                        <tr>
+                                        <tr class="text-center">
                                             <th>No</th>
                                             <th>Tanggal</th>
                                             <th>Produk</th>
-                                            <th>Jumlah Jadi</th>
+                                            <th>Jumlah Jadi (Pcs)</th>
                                             <th>Keterangan</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php
+
+                                        // Ambil filter jika ada
+                                        $filter_produk = isset($_GET['produk']) ? intval($_GET['produk']) : '';
+                                        $filter_awal = isset($_GET['awal']) ? $_GET['awal'] : '';
+                                        $filter_akhir = isset($_GET['akhir']) ? $_GET['akhir'] : '';
+
+                                        // Buat kondisi filter dinamis
+                                        $filter_conditions = [];
+                                        if ($filter_produk !== '') {
+                                            $filter_conditions[] = "hp.id_produk = $filter_produk";
+                                        }
+                                        if ($filter_awal && $filter_akhir) {
+                                            $filter_conditions[] = "hp.tanggal_selesai BETWEEN '$filter_awal' AND '$filter_akhir'";
+                                        }
+
+                                        $where_clause = count($filter_conditions) > 0 ? "WHERE " . implode(" AND ", $filter_conditions) : "";
+
                                         $sql_history = "SELECT hp.*, p.nama_produk, 
-                        DATE_FORMAT(hp.tanggal_selesai, '%d-%m-%Y') as tgl_selesai
-                        FROM hasil_penjahitan hp
-                        JOIN produk p ON hp.id_produk = p.id_produk
-                        ORDER BY hp.tanggal_selesai DESC";
+                                                        DATE_FORMAT(hp.tanggal_selesai, '%d-%m-%Y') as tgl_selesai
+                                                        FROM hasil_penjahitan hp
+                                                        JOIN produk p ON hp.id_produk = p.id_produk
+                                                        ORDER BY hp.tanggal_selesai DESC";
                                         $history = query($sql_history);
                                         $no = 1;
                                         foreach ($history as $h):
                                         ?>
                                             <tr>
-                                                <td><?= $no++ ?></td>
-                                                <td><?= $h['tgl_selesai'] ?></td>
+                                                <td class="text-center"><?= $no++ ?></td>
+                                                <td><?= dateIndo($h['tgl_selesai']) ?></td>
                                                 <td><?= $h['nama_produk'] ?></td>
-                                                <td><?= $h['jumlah_produk_jadi'] ?> pcs</td>
+                                                <td class="text-center"><?= $h['jumlah_produk_jadi'] ?> pcs</td>
                                                 <td><?= $h['keterangan'] ?></td>
                                             </tr>
                                         <?php endforeach; ?>

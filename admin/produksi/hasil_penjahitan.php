@@ -2,8 +2,27 @@
 require_once __DIR__ . '../../includes/header.php';
 require_once '../../config/database.php';
 require_once '../../config/functions.php';
-// redirectIfNotLoggedIn();
-// checkRole('admin');
+
+function dateIndo($tanggal)
+{
+    $bulanIndo = [
+        1 => 'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember'
+    ];
+    $tanggal = date('Y-m-d', strtotime($tanggal));
+    $pecah = explode('-', $tanggal);
+    return $pecah[2] . ' ' . $bulanIndo[(int)$pecah[1]] . ' ' . $pecah[0];
+}
 
 // Ambil data pengiriman yang belum selesai
 $sql_pengiriman = "SELECT pj.id_pengiriman_jahit, pj.jumlah_bahan_mentah, 
@@ -107,23 +126,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <?php unset($_SESSION['success']); ?>
                             <?php endif; ?>
 
-                            <form method="post">
-
+                            <form method="post" class="mb-4">
                                 <div class="row">
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-8 mb-3">
                                         <label for="pengiriman-select" class="form-label">Pilih Pengiriman</label>
                                         <select name="id_pengiriman" id="pengiriman-select" class="form-select" required>
                                             <option value="">-- Pilih Pengiriman --</option>
                                             <?php foreach ($pengiriman as $p): ?>
                                                 <option value="<?= $p['id_pengiriman_jahit'] ?>"
-                                                    data-jumlah="<?= $p['jumlah_bahan_mentah'] ?>">
-                                                    <?= "ID: {$p['id_pengiriman_jahit']} - {$p['nama_penjahit']} - {$p['jumlah_bahan_mentah']} pcs (Kirim: {$p['tgl_kirim']})" ?>
+                                                    data-jumlah="<?= $p['jumlah_bahan_mentah'] ?>"> Tanggal
+                                                    <?= dateIndo($p['tgl_kirim']) ?> |
+                                                    <?= "{$p['nama_penjahit']} : {$p['jumlah_bahan_mentah']} pcs " ?>
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
 
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-4 mb-3">
                                         <label for="produk-select" class="form-label">Produk Jadi</label>
                                         <select name="id_produk" id="produk-select" class="form-select" required>
                                             <option value="">-- Pilih Produk --</option>
@@ -140,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </div>
 
                                     <div class="col-md-8 mb-3">
-                                        <label class="form-label">Tanggal Selesai</label>
+                                        <label class="form-label">Tanggal Selesai <span class="text-danger">(Bulan/Tanggal/Tahun)</span></label>
                                         <input type="date" name="tanggal" class="form-control" value="<?= date('Y-m-d') ?>" required>
                                     </div>
                                 </div>
@@ -155,7 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <a href="riwayat_hasil_penjahitan.php" class="btn btn-secondary">Riwayat Hasil</a>
                                         <a href="batal_hasil_penjahitan.php" class="btn btn-danger"
                                             onclick="return confirm('Yakin ingin membatalkan hasil jahit terakhir?')">
-                                            Batal Hasil Jahit
+                                            Batal Catat Hasil
                                         </a>
                                     </div>
                                 </div>
@@ -164,7 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                             <hr class="my-4">
 
-                            <h3>Riwayat Hasil Penjahitan</h3>
+                            <h4>Riwayat Hasil Penjahitan</h4>
                             <div class="table-responsive">
                                 <table class="table table-bordered table-striped align-middle">
                                     <thead class="table-light">

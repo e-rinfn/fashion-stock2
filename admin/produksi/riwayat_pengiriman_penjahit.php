@@ -2,8 +2,27 @@
 require_once __DIR__ . '../../includes/header.php';
 require_once '../../config/database.php';
 require_once '../../config/functions.php';
-// redirectIfNotLoggedIn();
-// checkRole('admin');
+
+function dateIndo($tanggal)
+{
+    $bulanIndo = [
+        1 => 'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember'
+    ];
+    $tanggal = date('Y-m-d', strtotime($tanggal));
+    $pecah = explode('-', $tanggal);
+    return $pecah[2] . ' ' . $bulanIndo[(int)$pecah[1]] . ' ' . $pecah[0];
+}
 
 // Handle POST request
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -59,6 +78,34 @@ $sql_hasil = "
 ";
 $hasil_potong = query($sql_hasil);
 
+$filter = [];
+if (!empty($_GET['penjahit'])) {
+    $id_penjahit = intval($_GET['penjahit']);
+    $filter[] = "pj.id_penjahit = $id_penjahit";
+}
+if (!empty($_GET['status'])) {
+    $status = $conn->real_escape_string($_GET['status']);
+    $filter[] = "pj.status = '$status'";
+}
+if (!empty($_GET['tanggal_awal']) && !empty($_GET['tanggal_akhir'])) {
+    $tgl_awal = $conn->real_escape_string($_GET['tanggal_awal']);
+    $tgl_akhir = $conn->real_escape_string($_GET['tanggal_akhir']);
+    $filter[] = "pj.tanggal_kirim BETWEEN '$tgl_awal' AND '$tgl_akhir'";
+}
+
+$where = count($filter) ? 'WHERE ' . implode(' AND ', $filter) : '';
+
+$sql_history = "
+    SELECT pj.*, p.nama_penjahit, 
+    DATE_FORMAT(pj.tanggal_kirim, '%d-%m-%Y') as tgl_kirim
+    FROM pengiriman_penjahit pj
+    JOIN penjahit p ON pj.id_penjahit = p.id_penjahit
+    $where
+    ORDER BY pj.tanggal_kirim DESC
+";
+$history = query($sql_history);
+
+
 // Ambil data penjahit
 $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
 ?>
@@ -96,51 +143,78 @@ $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
                                 <?php unset($_SESSION['success']); ?>
                             <?php endif; ?>
 
-                            <h3 class="mt-4">Riwayat Pengiriman</h3>
-                            <div class="table-responsive">
-                                <table class="table table-striped table-bordered mt-3">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th class="text-center">No</th>
-                                            <th>Tanggal</th>
-                                            <th>Penjahit</th>
-                                            <th>Jumlah</th>
-                                            <th class="text-center">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
-                                        $sql_history = "
-                                            SELECT pj.*, p.nama_penjahit, 
-                                            DATE_FORMAT(pj.tanggal_kirim, '%d-%m-%Y') as tgl_kirim
-                                            FROM pengiriman_penjahit pj
-                                            JOIN penjahit p ON pj.id_penjahit = p.id_penjahit
-                                            ORDER BY pj.tanggal_kirim DESC
-                                        ";
-                                        $history = query($sql_history);
-                                        $no = 1;
-                                        foreach ($history as $h):
-                                        ?>
-                                            <tr>
-                                                <td class="text-center"><?= $no++ ?></td>
-                                                <td><?= $h['tgl_kirim'] ?></td>
-                                                <td><?= $h['nama_penjahit'] ?></td>
-                                                <td><?= $h['jumlah_bahan_mentah'] ?> pcs</td>
-                                                <td class="text-center">
-                                                    <span class="badge <?= $h['status'] == 'dikirim' ? 'bg-warning text-dark' : 'bg-success' ?>">
-                                                        <?= $h['status'] == 'dikirim' ? 'Dalam Proses' : 'Selesai' ?>
-                                                    </span>
-                                                </td>
-                                            </tr>
+                            <form method="GET" class="row g-3 mb-4">
+                                <div class="col-md-3">
+                                    <label class="form-label">Tanggal Awal</label>
+                                    <input type="date" name="tanggal_awal" class="form-control" value="<?= $_GET['tanggal_awal'] ?? '' ?>">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Tanggal Akhir</label>
+                                    <input type="date" name="tanggal_akhir" class="form-control" value="<?= $_GET['tanggal_akhir'] ?? '' ?>">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Penjahit</label>
+                                    <select name="penjahit" class="form-select">
+                                        <option value="">Semua Penjahit</option>
+                                        <?php foreach ($penjahit as $p): ?>
+                                            <option value="<?= $p['id_penjahit'] ?>" <?= isset($_GET['penjahit']) && $_GET['penjahit'] == $p['id_penjahit'] ? 'selected' : '' ?>>
+                                                <?= $p['nama_penjahit'] ?>
+                                            </option>
                                         <?php endforeach; ?>
-                                        <?php if (empty($history)): ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Status</label>
+                                    <select name="status" class="form-select">
+                                        <option value="">Semua</option>
+                                        <option value="dikirim" <?= isset($_GET['status']) && $_GET['status'] == 'dikirim' ? 'selected' : '' ?>>Dalam Proses</option>
+                                        <option value="selesai" <?= isset($_GET['status']) && $_GET['status'] == 'selesai' ? 'selected' : '' ?>>Selesai</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-12 d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-primary me-2">Terapkan Filter</button>
+                                    <a href="riwayat_pengiriman_penjahit.php" class="btn btn-secondary">Reset</a>
+                                </div>
+                            </form>
+
+                            <h4>Tabel Riwayat Pengiriman Penjahit</h3>
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-bordered mt-3">
+                                        <thead class="table-light">
                                             <tr>
-                                                <td colspan="5" class="text-center">Belum ada data pengiriman.</td>
+                                                <th class="text-center">No</th>
+                                                <th>Tanggal</th>
+                                                <th>Penjahit</th>
+                                                <th>Jumlah</th>
+                                                <th class="text-center">Status</th>
                                             </tr>
-                                        <?php endif; ?>
-                                    </tbody>
-                                </table>
-                            </div>
+                                        </thead>
+                                        <tbody>
+                                            <?php
+                                            $no = 1;
+                                            foreach ($history as $h):
+                                            ?>
+                                                <tr>
+                                                    <td class="text-center"><?= $no++ ?></td>
+                                                    <td><?= dateIndo($h['tgl_kirim']) ?></td>
+                                                    <td><?= $h['nama_penjahit'] ?></td>
+                                                    <td><?= $h['jumlah_bahan_mentah'] ?> pcs</td>
+                                                    <td class="text-center">
+                                                        <span class="badge <?= $h['status'] == 'dikirim' ? 'bg-warning text-dark' : 'bg-success' ?>">
+                                                            <?= $h['status'] == 'dikirim' ? 'Dalam Proses' : 'Selesai' ?>
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                            <?php if (empty($history)): ?>
+                                                <tr>
+                                                    <td colspan="5" class="text-center">Belum ada data pengiriman.</td>
+                                                </tr>
+                                            <?php endif; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
                         </div>
                     </div>
 

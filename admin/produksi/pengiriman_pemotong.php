@@ -109,7 +109,7 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, b.satuan, pm.nama_pemotong
                                 <?php unset($_SESSION['success']); ?>
                             <?php endif; ?>
 
-                            <form method="post">
+                            <form method="post" class="mb-4">
                                 <div class="row">
                                     <div class="col-6 mb-3">
                                         <label class="form-label">Bahan Baku</label>
@@ -117,7 +117,7 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, b.satuan, pm.nama_pemotong
                                             <option value="">- Pilih Bahan -</option>
                                             <?php foreach ($bahan as $b): ?>
                                                 <option value="<?= $b['id_bahan'] ?>">
-                                                    <?= $b['nama_bahan'] ?> (Stok: <?= number_format($b['jumlah_stok'], 0, '', '') ?> <?= $b['satuan'] ?>)
+                                                    <?= $b['nama_bahan'] ?> | Stok: <?= number_format($b['jumlah_stok'], 0, '', '') ?> <?= $b['satuan'] ?>
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
@@ -137,31 +137,31 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, b.satuan, pm.nama_pemotong
                                 <div class="row">
                                     <div class="col-4 mb-3">
                                         <label class="form-label">Jumlah</label>
-                                        <input type="number" name="jumlah" step="0.01" class="form-control" required>
+                                        <input type="number" name="jumlah" step="1" class="form-control" required>
                                     </div>
 
                                     <div class="col-8 mb-3">
-                                        <label class="form-label">Tanggal Pengiriman</label>
+                                        <label class="form-label">Tanggal Pengiriman <span class="text-danger">(Bulan/Tanggal/Tahun)</span></label>
                                         <input type="date" name="tanggal" class="form-control" required value="<?= date('Y-m-d') ?>">
                                     </div>
                                 </div>
-                                <!-- <div class="d-flex justify-content-between">
+                                <div class="d-flex justify-content-between">
                                     <button type="submit" class="btn btn-primary">Simpan Pengiriman</button>
                                     <a href="riwayat_pengiriman_pemotong.php" class="btn btn-secondary">Riwayat Pengiriman</a>
-                                </div> -->
-                                <div class="d-flex justify-content-between">
+                                </div>
+                                <!-- <div class="d-flex justify-content-between">
                                     <button type="submit" class="btn btn-primary">Simpan Pengiriman</button>
                                     <div class="btn-group">
                                         <a href="riwayat_pengiriman_pemotong.php" class="btn btn-secondary">Riwayat Pengiriman</a>
                                         <a href="batal_pengiriman_pemotong.php" class="btn btn-danger"
                                             onclick="return confirm('Yakin ingin membatalkan pengiriman terakhir?')">
-                                            Batal Simpan
+                                            Batal Simpan Pengiriman
                                         </a>
                                     </div>
-                                </div>
+                                </div> -->
                             </form>
 
-                            <hr class="my-4">
+                            <hr>
 
                             <h4>Riwayat Pengiriman</h4>
                             <div class="table-responsive">
@@ -174,7 +174,7 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, b.satuan, pm.nama_pemotong
                                             <th>Pemotong</th>
                                             <th>Jumlah</th>
                                             <th class="text-center">Status</th>
-                                            <!-- <th class="text-center">Aksi</th> -->
+                                            <th class="text-center">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -192,7 +192,7 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, b.satuan, pm.nama_pemotong
                                                         <?= $p['status'] == 'dikirim' ? 'Dalam Proses' : 'Selesai' ?>
                                                     </span>
                                                 </td>
-                                                <!-- <td class="text-center">
+                                                <td class="text-center">
                                                     <div class="btn-group btn-group-sm">
                                                         <?php if ($p['status'] == 'dikirim'): ?>
 
@@ -202,7 +202,7 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, b.satuan, pm.nama_pemotong
                                                             </a>
                                                         <?php endif; ?>
                                                     </div>
-                                                </td> -->
+                                                </td>
                                             </tr>
                                         <?php endforeach; ?>
                                         <?php if (empty($pengiriman)): ?>

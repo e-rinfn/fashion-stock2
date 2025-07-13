@@ -117,25 +117,25 @@ $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
                                 <?php unset($_SESSION['success']); ?>
                             <?php endif; ?>
 
-                            <form method="post">
+                            <form method="post" class="mb-4">
                                 <div class="row">
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-8 mb-3">
                                         <label class="form-label">Pilih Hasil Potongan</label>
                                         <select name="id_hasil_potong" class="form-select" required>
-                                            <option value="">-- Pilih --</option>
+                                            <option value="">-- Pilih Potong --</option>
                                             <?php foreach ($hasil_potong as $hp): ?>
                                                 <?php
                                                 $sisa_stok = $hp['jumlah_hasil'] - $hp['jumlah_dikirim'];
                                                 if ($sisa_stok <= 0) continue;
                                                 ?>
                                                 <option value="<?= $hp['id_hasil_potong'] ?>">
-                                                    <?= "Selesai: " . dateIndo($hp['tgl_selesai']) . " ({$hp['nama_pemotong']}) - {$sisa_stok} pcs" ?>
+                                                    Selesai Potong Tanggal <?= dateIndo($hp['tgl_selesai']) . " | {$hp['nama_pemotong']} : {$sisa_stok} pcs" ?>
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
 
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-4 mb-3">
                                         <label class="form-label">Penjahit</label>
                                         <select name="id_penjahit" class="form-select" required>
                                             <option value="">-- Pilih Penjahit --</option>
@@ -153,7 +153,7 @@ $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
                                     </div>
 
                                     <div class="col-md-8 mb-3">
-                                        <label class="form-label">Tanggal Pengiriman</label>
+                                        <label class="form-label">Tanggal Pengiriman <span class="text-danger">(Bulan/Tanggal/Tahun)</span></label>
                                         <input type="date" name="tanggal" class="form-control" value="<?= date('Y-m-d') ?>" required>
                                     </div>
                                 </div>
@@ -163,7 +163,7 @@ $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
                                         <a href="riwayat_pengiriman_penjahit.php" class="btn btn-secondary">Riwayat Pengiriman</a>
                                         <a href="batal_pengiriman_penjahit.php" class="btn btn-danger"
                                             onclick="return confirm('Yakin ingin membatalkan pengiriman terakhir?')">
-                                            Batal Simpan
+                                            Batal Simpan Pengiriman
                                         </a>
                                     </div>
                                 </div>
@@ -172,9 +172,9 @@ $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
 
                             <hr>
 
-                            <h3 class="mt-4">Riwayat Pengiriman</h3>
+                            <h4>Riwayat Pengiriman</h4>
                             <div class="table-responsive">
-                                <table class="table table-striped table-bordered mt-3">
+                                <table class="table table-striped table-bordered">
                                     <thead class="table-light">
                                         <tr>
                                             <th class="text-center">No</th>

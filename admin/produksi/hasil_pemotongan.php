@@ -111,11 +111,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <select name="id_pengiriman" id="id_pengiriman" class="form-select" required>
                                         <option value="">- Pilih Pengiriman -</option>
                                         <?php foreach ($pengiriman as $p): ?>
-                                            <option value="<?= $p['id_pengiriman_potong'] ?>">
-                                                <?= dateIndo($p['tanggal_kirim']) ?> -
+                                            <option value="<?= $p['id_pengiriman_potong'] ?>"> Tanggal
+                                                <?= dateIndo($p['tanggal_kirim']) ?> |
                                                 <?= htmlspecialchars($p['nama_bahan']) ?> ke
-                                                <?= htmlspecialchars($p['nama_pemotong']) ?>
-                                                (<?= number_format($p['jumlah_bahan']) ?> <?= htmlspecialchars($p['satuan']) ?>)
+                                                <?= htmlspecialchars($p['nama_pemotong']) ?> |
+                                                <?= number_format($p['jumlah_bahan']) ?> <?= htmlspecialchars($p['satuan']) ?>
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
@@ -127,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <input type="number" name="jumlah_hasil" id="jumlah_hasil" class="form-control" required min="1">
                                     </div>
                                     <div class="col-md-8 mb-3">
-                                        <label for="tanggal" class="form-label">Tanggal Selesai</label>
+                                        <label for="tanggal" class="form-label">Tanggal Selesai <span class="text-danger">(Bulan/Tanggal/Tahun)</span></label>
                                         <input type="date" name="tanggal" id="tanggal" class="form-control" required value="<?= date('Y-m-d') ?>">
                                     </div>
                                 </div>
@@ -138,14 +138,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <a href="riwayat_hasil_pemotongan.php" class="btn btn-secondary">Riwayat Hasil</a>
                                         <a href="batal_hasil_potong.php" class="btn btn-danger"
                                             onclick="return confirm('Yakin ingin membatalkan hasil pemotongan terakhir?')">
-                                            Batal Catat
+                                            Batal Catat Hasil
                                         </a>
                                     </div>
                                 </div>
-
                             </form>
 
-                            <h3 class="mb-3">Riwayat Hasil Pemotongan</h3>
+                            <hr>
+
+                            <h4 class="mb-3">Riwayat Hasil Pemotongan</h4>
                             <?php
                             $riwayat = query("SELECT h.*, p.nama_bahan, pm.nama_pemotong 
                                             FROM hasil_pemotongan h
