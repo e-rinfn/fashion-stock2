@@ -167,14 +167,14 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, b.satuan, pm.nama_pemotong
                             <div class="table-responsive">
                                 <table class="table table-bordered table-striped align-middle">
                                     <thead class="table-light">
-                                        <tr>
-                                            <th class="text-center">No</th>
+                                        <tr class="text-center">
+                                            <th>No</th>
                                             <th>Tanggal</th>
                                             <th>Bahan Baku</th>
                                             <th>Pemotong</th>
                                             <th>Jumlah</th>
-                                            <th class="text-center">Status</th>
-                                            <th class="text-center">Aksi</th>
+                                            <th>Status</th>
+                                            <th>Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
