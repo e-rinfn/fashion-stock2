@@ -68,7 +68,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         // 3. Update stok produk
-        // $sql3 = "UPDATE produk SET stok = stok + $jumlah WHERE id_produk = $id_produk";
         $sql3 = "UPDATE produk SET stok = stok + $jumlah WHERE id_produk = $id_produk";
 
         if (!$conn->query($sql3)) {
@@ -86,7 +85,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 ?>
-
 
 <body>
     <!-- Layout wrapper -->
@@ -112,7 +110,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <h2>4. Tambah Data Hasil Penjahitan</h2>
                             <div class="btn-group ms-auto" role="group" aria-label="Navigasi Form">
                                 <a href="pengiriman_penjahit.php" class="btn btn-outline-warning">Kembali</a>
-                                <!-- <a href="hasil_pemotongan.php" class="btn btn-outline-primary">Next</a> -->
                             </div>
                         </div>
 
@@ -178,7 +175,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         </a>
                                     </div>
                                 </div>
-
                             </form>
 
                             <hr class="my-4">
@@ -187,20 +183,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <div class="table-responsive">
                                 <table class="table table-bordered table-striped align-middle">
                                     <thead class="table-light">
-                                        <tr>
+                                        <tr class="text-center">
                                             <th>No</th>
                                             <th>Tanggal</th>
                                             <th>Produk</th>
-                                            <th>Jumlah Jadi</th>
+                                            <th>Bahan Mentah</th>
+                                            <th>Produk Jadi</th>
                                             <th>Keterangan</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php
-                                        $sql_history = "SELECT hp.*, p.nama_produk, 
+                                        $sql_history = "SELECT hp.*, p.nama_produk, pj.jumlah_bahan_mentah,
                                             DATE_FORMAT(hp.tanggal_selesai, '%d-%m-%Y') as tgl_selesai
                                             FROM hasil_penjahitan hp
                                             JOIN produk p ON hp.id_produk = p.id_produk
+                                            JOIN pengiriman_penjahit pj ON hp.id_pengiriman_jahit = pj.id_pengiriman_jahit
                                             ORDER BY hp.tanggal_selesai DESC";
                                         $history = query($sql_history);
                                         $no = 1;
@@ -210,13 +208,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                 <td><?= $no++ ?></td>
                                                 <td><?= dateIndo($h['tgl_selesai']) ?></td>
                                                 <td><?= $h['nama_produk'] ?></td>
-                                                <td><?= $h['jumlah_produk_jadi'] ?> pcs</td>
+                                                <td class="text-center"><?= $h['jumlah_bahan_mentah'] ?> pcs</td>
+                                                <td class="text-center"><?= $h['jumlah_produk_jadi'] ?> pcs</td>
                                                 <td><?= $h['keterangan'] ?></td>
                                             </tr>
                                         <?php endforeach; ?>
                                         <?php if (empty($history)): ?>
                                             <tr>
-                                                <td colspan="5" class="text-center">Belum ada data hasil penjahitan.</td>
+                                                <td colspan="6" class="text-center">Belum ada data hasil penjahitan.</td>
                                             </tr>
                                         <?php endif; ?>
                                     </tbody>
@@ -242,8 +241,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <!-- Core JS footer -->
     <?php include '../includes/footer.php'; ?>
     <!-- /Core JS footer -->
-
-
 </body>
 
 </html>

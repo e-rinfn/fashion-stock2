@@ -182,12 +182,12 @@ $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
                                 <div class="table-responsive">
                                     <table class="table table-striped table-bordered mt-3">
                                         <thead class="table-light">
-                                            <tr>
-                                                <th class="text-center">No</th>
+                                            <tr class="text-center">
+                                                <th>No</th>
                                                 <th>Tanggal</th>
                                                 <th>Penjahit</th>
-                                                <th>Jumlah</th>
-                                                <th class="text-center">Status</th>
+                                                <th>Jumlah Kirim</th>
+                                                <th>Status</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -199,7 +199,7 @@ $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
                                                     <td class="text-center"><?= $no++ ?></td>
                                                     <td><?= dateIndo($h['tgl_kirim']) ?></td>
                                                     <td><?= $h['nama_penjahit'] ?></td>
-                                                    <td><?= $h['jumlah_bahan_mentah'] ?> pcs</td>
+                                                    <td class="text-center"><?= $h['jumlah_bahan_mentah'] ?> pcs</td>
                                                     <td class="text-center">
                                                         <span class="badge <?= $h['status'] == 'dikirim' ? 'bg-warning text-dark' : 'bg-success' ?>">
                                                             <?= $h['status'] == 'dikirim' ? 'Dalam Proses' : 'Selesai' ?>

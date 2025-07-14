@@ -49,7 +49,7 @@ if ($id_bahan) {
 
 $where_sql = count($where) > 0 ? "WHERE " . implode(' AND ', $where) : "";
 
-$riwayat = query("SELECT h.*, p.nama_bahan, pm.nama_pemotong 
+$riwayat = query("SELECT h.*, p.nama_bahan, p.satuan, pm.nama_pemotong, pg.jumlah_bahan 
     FROM hasil_pemotongan h
     JOIN pengiriman_pemotong pg ON h.id_pengiriman_potong = pg.id_pengiriman_potong
     JOIN bahan_baku p ON pg.id_bahan = p.id_bahan
@@ -81,23 +81,19 @@ $riwayat = query("SELECT h.*, p.nama_bahan, pm.nama_pemotong
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h2>Riwayat Data Hasil Pemotongan</h2>
                             <div class="btn-group ms-auto" role="group" aria-label="Navigasi Form">
-                                <!-- <a href="#" class="btn btn-outline-warning">Kembali</a> -->
                                 <a href="hasil_pemotongan.php" class="btn btn-secondary">Kembali</a>
                             </div>
                         </div>
 
                         <div class="card p-4 shadow-sm">
                             <?php if (isset($error)): ?>
-                                <div class="alert alert-danger"><?= $error ?></div>
+                                <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
                             <?php endif; ?>
 
                             <?php if (isset($_SESSION['success'])): ?>
-                                <div class="alert alert-success"><?= $_SESSION['success'] ?></div>
+                                <div class="alert alert-success"><?= htmlspecialchars($_SESSION['success']) ?></div>
                                 <?php unset($_SESSION['success']); ?>
                             <?php endif; ?>
-
-
-
 
                             <form class="row g-3 mb-4" method="get">
                                 <div class="col-md-3">
@@ -114,7 +110,7 @@ $riwayat = query("SELECT h.*, p.nama_bahan, pm.nama_pemotong
                                         <option value="">-- Semua Pemotong --</option>
                                         <?php foreach ($list_pemotong as $p): ?>
                                             <option value="<?= $p['id_pemotong'] ?>" <?= $id_pemotong == $p['id_pemotong'] ? 'selected' : '' ?>>
-                                                <?= $p['nama_pemotong'] ?>
+                                                <?= htmlspecialchars($p['nama_pemotong']) ?>
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
@@ -125,7 +121,7 @@ $riwayat = query("SELECT h.*, p.nama_bahan, pm.nama_pemotong
                                         <option value="">-- Semua Bahan --</option>
                                         <?php foreach ($list_bahan as $b): ?>
                                             <option value="<?= $b['id_bahan'] ?>" <?= $id_bahan == $b['id_bahan'] ? 'selected' : '' ?>>
-                                                <?= $b['nama_bahan'] ?>
+                                                <?= htmlspecialchars($b['nama_bahan']) ?>
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
@@ -136,18 +132,18 @@ $riwayat = query("SELECT h.*, p.nama_bahan, pm.nama_pemotong
                                 </div>
                             </form>
 
-
                             <!-- tabel -->
                             <h4 class="mb-3">Tabel Riwayat Hasil Pemotongan</h4>
                             <div class="table-responsive">
                                 <table class="table table-striped table-bordered align-middle">
                                     <thead class="table-light">
-                                        <tr>
+                                        <tr class="text-center">
                                             <th class="text-center">No</th>
                                             <th>Tanggal</th>
                                             <th>Bahan Baku</th>
                                             <th>Pemotong</th>
-                                            <th class="text-center">Jumlah Hasil (pcs)</th>
+                                            <th>Bahan Digunakan</th>
+                                            <th>Jumlah Hasil (pcs)</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -156,14 +152,15 @@ $riwayat = query("SELECT h.*, p.nama_bahan, pm.nama_pemotong
                                             <tr>
                                                 <td class="text-center"><?= $no++ ?></td>
                                                 <td><?= dateIndo($r['tanggal_selesai']) ?></td>
-                                                <td><?= $r['nama_bahan'] ?></td>
-                                                <td><?= $r['nama_pemotong'] ?></td>
-                                                <td class="text-center"><?= $r['jumlah_hasil'] ?></td>
+                                                <td><?= htmlspecialchars($r['nama_bahan']) ?></td>
+                                                <td><?= htmlspecialchars($r['nama_pemotong']) ?></td>
+                                                <td class="text-center"><?= number_format($r['jumlah_bahan'], 0, "", "") . " " . htmlspecialchars($r['satuan']) ?></td>
+                                                <td class="text-center"><?= number_format($r['jumlah_hasil'], 0, "", "") ?> pcs</td>
                                             </tr>
                                         <?php endforeach; ?>
                                         <?php if (empty($riwayat)): ?>
                                             <tr>
-                                                <td colspan="5" class="text-center">Belum ada data hasil pemotongan.</td>
+                                                <td colspan="6" class="text-center">Belum ada data hasil pemotongan.</td>
                                             </tr>
                                         <?php endif; ?>
                                     </tbody>
@@ -171,9 +168,6 @@ $riwayat = query("SELECT h.*, p.nama_bahan, pm.nama_pemotong
                             </div>
                         </div>
                     </div>
-
-
-
 
                     <!-- / Content -->
 
@@ -192,8 +186,6 @@ $riwayat = query("SELECT h.*, p.nama_bahan, pm.nama_pemotong
     <!-- Core JS footer -->
     <?php include '../includes/footer.php'; ?>
     <!-- /Core JS footer -->
-
-
 </body>
 
 </html>

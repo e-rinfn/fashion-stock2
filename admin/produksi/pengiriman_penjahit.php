@@ -176,12 +176,12 @@ $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
                             <div class="table-responsive">
                                 <table class="table table-striped table-bordered">
                                     <thead class="table-light">
-                                        <tr>
-                                            <th class="text-center">No</th>
+                                        <tr class="text-center">
+                                            <th>No</th>
                                             <th>Tanggal</th>
                                             <th>Penjahit</th>
-                                            <th>Jumlah</th>
-                                            <th class="text-center">Status</th>
+                                            <th>Jumlah Kirim</th>
+                                            <th>Status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -190,7 +190,7 @@ $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
                                             SELECT pj.*, p.nama_penjahit, pj.tanggal_kirim
                                             FROM pengiriman_penjahit pj
                                             JOIN penjahit p ON pj.id_penjahit = p.id_penjahit
-                                            ORDER BY pj.tanggal_kirim DESC
+                                            ORDER BY pj.tanggal_kirim DESC LIMIT 5
                                         ";
 
                                         $history = query($sql_history);
@@ -201,7 +201,7 @@ $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
                                                 <td class="text-center"><?= $no++ ?></td>
                                                 <td><?= dateIndo($h['tanggal_kirim']) ?></td>
                                                 <td><?= $h['nama_penjahit'] ?></td>
-                                                <td><?= $h['jumlah_bahan_mentah'] ?> pcs</td>
+                                                <td class="text-center"><?= $h['jumlah_bahan_mentah'] ?> pcs</td>
                                                 <td class="text-center">
                                                     <span class="badge <?= $h['status'] == 'dikirim' ? 'bg-warning text-dark' : 'bg-success' ?>">
                                                         <?= $h['status'] == 'dikirim' ? 'Dalam Proses' : 'Selesai' ?>

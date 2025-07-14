@@ -24,69 +24,35 @@ function dateIndo($tanggal)
     return $pecah[2] . ' ' . $bulanIndo[(int)$pecah[1]] . ' ' . $pecah[0];
 }
 
-// Ambil data pengiriman yang belum selesai
-$sql_pengiriman = "SELECT pj.id_pengiriman_jahit, pj.jumlah_bahan_mentah, 
-                   p.nama_penjahit, hp.jumlah_hasil,
-                   DATE_FORMAT(pj.tanggal_kirim, '%d-%m-%Y') as tgl_kirim
-                   FROM pengiriman_penjahit pj
-                   JOIN penjahit p ON pj.id_penjahit = p.id_penjahit
-                   JOIN hasil_pemotongan hp ON pj.id_hasil_potong = hp.id_hasil_potong
-                   WHERE pj.status = 'dikirim' LIMIT 5";
-$pengiriman = query($sql_pengiriman);
+// Get filter parameters
+$filter_produk = isset($_GET['produk']) ? intval($_GET['produk']) : '';
+$filter_awal = isset($_GET['awal']) ? $_GET['awal'] : '';
+$filter_akhir = isset($_GET['akhir']) ? $_GET['akhir'] : '';
 
-// Ambil data produk
+// Build filter conditions
+$filter_conditions = [];
+if ($filter_produk !== '') {
+    $filter_conditions[] = "hp.id_produk = $filter_produk";
+}
+if ($filter_awal && $filter_akhir) {
+    $filter_conditions[] = "hp.tanggal_selesai BETWEEN '$filter_awal' AND '$filter_akhir'";
+}
+
+$where_clause = count($filter_conditions) > 0 ? "WHERE " . implode(" AND ", $filter_conditions) : "";
+
+// Get product list for filter dropdown
 $produk = query("SELECT * FROM produk ORDER BY nama_produk");
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $id_pengiriman = intval($_POST['id_pengiriman']);
-    $id_produk = intval($_POST['id_produk']);
-    $jumlah = intval($_POST['jumlah']);
-    $tanggal = $conn->real_escape_string($_POST['tanggal']);
-    $keterangan = $conn->real_escape_string($_POST['keterangan']);
-
-    // Mulai transaksi
-    $conn->autocommit(FALSE);
-
-    try {
-        // 1. Catat hasil penjahitan
-        $sql1 = "INSERT INTO hasil_penjahitan 
-                (id_pengiriman_jahit, jumlah_produk_jadi, id_produk, tanggal_selesai, keterangan)
-                VALUES ($id_pengiriman, $jumlah, $id_produk, '$tanggal', '$keterangan')";
-
-        if (!$conn->query($sql1)) {
-            throw new Exception("Gagal mencatat hasil: " . $conn->error);
-        }
-
-        // 2. Update status pengiriman jadi selesai
-        $sql2 = "UPDATE pengiriman_penjahit SET 
-                status = 'selesai', 
-                tanggal_diterima = '$tanggal'
-                WHERE id_pengiriman_jahit = $id_pengiriman";
-
-        if (!$conn->query($sql2)) {
-            throw new Exception("Gagal update status: " . $conn->error);
-        }
-
-        // 3. Update stok produk
-        // $sql3 = "UPDATE produk SET stok = stok + $jumlah WHERE id_produk = $id_produk";
-        $sql3 = "UPDATE produk SET stok = stok + $jumlah WHERE id_produk = $id_produk";
-
-        if (!$conn->query($sql3)) {
-            throw new Exception("Gagal update stok: " . $conn->error);
-        }
-
-        // Commit transaksi
-        $conn->commit();
-        $_SESSION['success'] = "Hasil penjahitan berhasil dicatat";
-        header("Location: hasil_penjahitan.php");
-        exit();
-    } catch (Exception $e) {
-        $conn->rollback();
-        $error = $e->getMessage();
-    }
-}
+// Get sewing history with raw material data
+$sql_history = "SELECT hp.*, p.nama_produk, pj.jumlah_bahan_mentah,
+                DATE_FORMAT(hp.tanggal_selesai, '%d-%m-%Y') as tgl_selesai
+                FROM hasil_penjahitan hp
+                JOIN produk p ON hp.id_produk = p.id_produk
+                JOIN pengiriman_penjahit pj ON hp.id_pengiriman_jahit = pj.id_pengiriman_jahit
+                $where_clause
+                ORDER BY hp.tanggal_selesai DESC";
+$history = query($sql_history);
 ?>
-
 
 <body>
     <!-- Layout wrapper -->
@@ -111,18 +77,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h2>Riwayat Data Hasil Penjahitan</h2>
                             <div class="btn-group ms-auto" role="group" aria-label="Navigasi Form">
-                                <!-- <a href="#" class="btn btn-outline-warning">Kembali</a> -->
                                 <a href="hasil_penjahitan.php" class="btn btn-secondary">Kembali</a>
                             </div>
                         </div>
 
                         <div class="card p-4 shadow-sm">
-                            <?php if (isset($error)): ?>
-                                <div class="alert alert-danger"><?= $error ?></div>
-                            <?php endif; ?>
-
                             <?php if (isset($_SESSION['success'])): ?>
-                                <div class="alert alert-success"><?= $_SESSION['success'] ?></div>
+                                <div class="alert alert-success"><?= htmlspecialchars($_SESSION['success']) ?></div>
                                 <?php unset($_SESSION['success']); ?>
                             <?php endif; ?>
 
@@ -141,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <option value="">-- Semua Produk --</option>
                                         <?php foreach ($produk as $p): ?>
                                             <option value="<?= $p['id_produk'] ?>" <?= ($filter_produk == $p['id_produk']) ? 'selected' : '' ?>>
-                                                <?= $p['nama_produk'] ?>
+                                                <?= htmlspecialchars($p['nama_produk']) ?>
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
@@ -160,49 +121,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             <th>No</th>
                                             <th>Tanggal</th>
                                             <th>Produk</th>
+                                            <th>Bahan Mentah (Pcs)</th>
                                             <th>Jumlah Jadi (Pcs)</th>
                                             <th>Keterangan</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php
-
-                                        // Ambil filter jika ada
-                                        $filter_produk = isset($_GET['produk']) ? intval($_GET['produk']) : '';
-                                        $filter_awal = isset($_GET['awal']) ? $_GET['awal'] : '';
-                                        $filter_akhir = isset($_GET['akhir']) ? $_GET['akhir'] : '';
-
-                                        // Buat kondisi filter dinamis
-                                        $filter_conditions = [];
-                                        if ($filter_produk !== '') {
-                                            $filter_conditions[] = "hp.id_produk = $filter_produk";
-                                        }
-                                        if ($filter_awal && $filter_akhir) {
-                                            $filter_conditions[] = "hp.tanggal_selesai BETWEEN '$filter_awal' AND '$filter_akhir'";
-                                        }
-
-                                        $where_clause = count($filter_conditions) > 0 ? "WHERE " . implode(" AND ", $filter_conditions) : "";
-
-                                        $sql_history = "SELECT hp.*, p.nama_produk, 
-                                                        DATE_FORMAT(hp.tanggal_selesai, '%d-%m-%Y') as tgl_selesai
-                                                        FROM hasil_penjahitan hp
-                                                        JOIN produk p ON hp.id_produk = p.id_produk
-                                                        ORDER BY hp.tanggal_selesai DESC";
-                                        $history = query($sql_history);
-                                        $no = 1;
-                                        foreach ($history as $h):
-                                        ?>
+                                        <?php if (!empty($history)): ?>
+                                            <?php $no = 1; ?>
+                                            <?php foreach ($history as $h): ?>
+                                                <tr>
+                                                    <td class="text-center"><?= $no++ ?></td>
+                                                    <td><?= dateIndo($h['tgl_selesai']) ?></td>
+                                                    <td><?= htmlspecialchars($h['nama_produk']) ?></td>
+                                                    <td class="text-center"><?= number_format($h['jumlah_bahan_mentah']) ?> pcs</td>
+                                                    <td class="text-center"><?= number_format($h['jumlah_produk_jadi']) ?> pcs</td>
+                                                    <td><?= htmlspecialchars($h['keterangan']) ?></td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
                                             <tr>
-                                                <td class="text-center"><?= $no++ ?></td>
-                                                <td><?= dateIndo($h['tgl_selesai']) ?></td>
-                                                <td><?= $h['nama_produk'] ?></td>
-                                                <td class="text-center"><?= $h['jumlah_produk_jadi'] ?> pcs</td>
-                                                <td><?= $h['keterangan'] ?></td>
-                                            </tr>
-                                        <?php endforeach; ?>
-                                        <?php if (empty($history)): ?>
-                                            <tr>
-                                                <td colspan="5" class="text-center">Belum ada data hasil penjahitan.</td>
+                                                <td colspan="6" class="text-center">Belum ada data hasil penjahitan.</td>
                                             </tr>
                                         <?php endif; ?>
                                     </tbody>
@@ -210,10 +149,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </div>
                         </div>
                     </div>
-
-
-
-
 
                     <!-- / Content -->
 
@@ -232,8 +167,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <!-- Core JS footer -->
     <?php include '../includes/footer.php'; ?>
     <!-- /Core JS footer -->
-
-
 </body>
 
 </html>
