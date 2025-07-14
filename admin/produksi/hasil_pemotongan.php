@@ -166,13 +166,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <div class="table-responsive">
                                 <table class="table table-striped table-bordered align-middle">
                                     <thead class="table-light">
-                                        <tr>
-                                            <th class="text-center">No</th>
+                                        <tr class="text-center">
+                                            <th>No</th>
                                             <th>Tanggal</th>
                                             <th>Bahan Baku</th>
                                             <th>Pemotong</th>
-                                            <th class="text-center">Bahan Digunakan</th> <!-- baru -->
-                                            <th class="text-center">Jumlah Hasil (pcs)</th>
+                                            <th>Bahan Digunakan</th> <!-- baru -->
+                                            <th>Jumlah Hasil (pcs)</th>
                                         </tr>
                                     </thead>
 
@@ -186,7 +186,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                 <td><?= htmlspecialchars($r['nama_pemotong']) ?></td>
                                                 <!-- <td class="text-center"><?= number_format($r['jumlah_bahan']) ?></td> -->
                                                 <td class="text-center"><?= number_format($r['jumlah_bahan']) ?> <?= htmlspecialchars($r['satuan']) ?></td>
-                                                <td class="text-center"><?= number_format($r['jumlah_hasil']) ?></td>
+                                                <td class="text-center"><?= number_format($r['jumlah_hasil']) ?> pcs</td>
                                             </tr>
                                         <?php endforeach; ?>
                                     </tbody>
