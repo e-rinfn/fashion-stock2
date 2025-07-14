@@ -148,12 +148,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                             <h4 class="mb-3">Riwayat Hasil Pemotongan</h4>
                             <?php
-                            $riwayat = query("SELECT h.*, p.nama_bahan, pm.nama_pemotong 
+                            // $riwayat = query("SELECT h.*, p.nama_bahan, pm.nama_pemotong 
+                            //                 FROM hasil_pemotongan h
+                            //                 JOIN pengiriman_pemotong pg ON h.id_pengiriman_potong = pg.id_pengiriman_potong
+                            //                 JOIN bahan_baku p ON pg.id_bahan = p.id_bahan
+                            //                 JOIN pemotong pm ON pg.id_pemotong = pm.id_pemotong
+                            //                 ORDER BY h.tanggal_selesai DESC LIMIT 5");
+
+                            $riwayat = query("SELECT h.*, p.nama_bahan, p.satuan, pm.nama_pemotong, pg.jumlah_bahan
                                             FROM hasil_pemotongan h
                                             JOIN pengiriman_pemotong pg ON h.id_pengiriman_potong = pg.id_pengiriman_potong
                                             JOIN bahan_baku p ON pg.id_bahan = p.id_bahan
                                             JOIN pemotong pm ON pg.id_pemotong = pm.id_pemotong
                                             ORDER BY h.tanggal_selesai DESC LIMIT 5");
+
                             ?>
                             <div class="table-responsive">
                                 <table class="table table-striped table-bordered align-middle">
@@ -163,9 +171,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             <th>Tanggal</th>
                                             <th>Bahan Baku</th>
                                             <th>Pemotong</th>
+                                            <th class="text-center">Bahan Digunakan</th> <!-- baru -->
                                             <th class="text-center">Jumlah Hasil (pcs)</th>
                                         </tr>
                                     </thead>
+
                                     <tbody>
                                         <?php $no = 1;
                                         foreach ($riwayat as $r): ?>
@@ -174,10 +184,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                 <td><?= dateIndo($r['tanggal_selesai']) ?></td>
                                                 <td><?= htmlspecialchars($r['nama_bahan']) ?></td>
                                                 <td><?= htmlspecialchars($r['nama_pemotong']) ?></td>
+                                                <!-- <td class="text-center"><?= number_format($r['jumlah_bahan']) ?></td> -->
+                                                <td class="text-center"><?= number_format($r['jumlah_bahan']) ?> <?= htmlspecialchars($r['satuan']) ?></td>
                                                 <td class="text-center"><?= number_format($r['jumlah_hasil']) ?></td>
                                             </tr>
                                         <?php endforeach; ?>
                                     </tbody>
+
                                 </table>
                             </div>
                         </div>
