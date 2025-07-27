@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                     <div class="container-xxl flex-grow-1 container-p-y">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h2>Edit Data Reseller</h2>
+                            <h2>Edit Data Pengguna</h2>
                         </div>
 
                         <div class="card shadow-sm">
