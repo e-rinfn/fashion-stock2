@@ -86,6 +86,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 ?>
 
+<style>
+    /* Paksa SweetAlert berada di atas segalanya */
+    .swal2-container {
+        z-index: 99999 !important;
+    }
+</style>
+
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
 <body>
     <!-- Layout wrapper -->
     <div class="layout-wrapper layout-content-navbar">
@@ -169,12 +180,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <button type="submit" class="btn btn-primary">Catat Hasil</button>
                                     <div class="btn-group">
                                         <a href="riwayat_hasil_penjahitan.php" class="btn btn-secondary">Riwayat Hasil</a>
-                                        <a href="batal_hasil_penjahitan.php" class="btn btn-danger"
-                                            onclick="return confirm('Yakin ingin membatalkan hasil jahit terakhir?')">
+                                        <a href="#" class="btn btn-danger" id="btnBatalHasil">
                                             Batal Catat Hasil
                                         </a>
                                     </div>
                                 </div>
+
+                                <script>
+                                    document.getElementById('btnBatalHasil').addEventListener('click', function(e) {
+                                        e.preventDefault(); // Mencegah link langsung berjalan
+
+                                        Swal.fire({
+                                            title: 'Yakin?',
+                                            text: "Ingin membatalkan hasil jahit terakhir?",
+                                            icon: 'warning',
+                                            showCancelButton: true,
+                                            confirmButtonColor: '#d33',
+                                            cancelButtonColor: '#6c757d',
+                                            confirmButtonText: 'Ya, batalkan!',
+                                            cancelButtonText: 'Batal'
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                // Redirect manual
+                                                window.location.href = 'batal_hasil_penjahitan.php';
+                                            }
+                                        });
+                                    });
+                                </script>
+
                             </form>
 
                             <hr class="my-4">
@@ -199,7 +232,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             FROM hasil_penjahitan hp
                                             JOIN produk p ON hp.id_produk = p.id_produk
                                             JOIN pengiriman_penjahit pj ON hp.id_pengiriman_jahit = pj.id_pengiriman_jahit
-                                            ORDER BY hp.tanggal_selesai DESC";
+                                            ORDER BY hp.tanggal_selesai DESC LIMIT 5";
                                         $history = query($sql_history);
                                         $no = 1;
                                         foreach ($history as $h):

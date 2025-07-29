@@ -67,6 +67,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 ?>
 
+<style>
+    /* Paksa SweetAlert berada di atas segalanya */
+    .swal2-container {
+        z-index: 99999 !important;
+    }
+</style>
+
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <body>
     <!-- Layout wrapper -->
     <div class="layout-wrapper layout-content-navbar">
@@ -140,8 +150,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             onclick="return confirm('Yakin ingin membatalkan hasil pemotongan terakhir?')">
                                             Batal Catat Hasil
                                         </a>
+                                        <a href="#" class="btn btn-danger" id="btnBatalHasil">
+                                            Batal Catat Hasil 2
+                                        </a>
                                     </div>
                                 </div>
+                                <script>
+                                    document.getElementById('btnBatalHasil').addEventListener('click', function(e) {
+                                        e.preventDefault(); // Mencegah link langsung berjalan
+
+                                        Swal.fire({
+                                            title: 'Yakin?',
+                                            text: "Ingin membatalkan hasil potong terakhir?",
+                                            icon: 'warning',
+                                            showCancelButton: true,
+                                            confirmButtonColor: '#d33',
+                                            cancelButtonColor: '#6c757d',
+                                            confirmButtonText: 'Ya, batalkan!',
+                                            cancelButtonText: 'Batal'
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                // Redirect manual
+                                                window.location.href = 'batal_hasil_potong.php';
+                                            }
+                                        });
+                                    });
+                                </script>
+
                             </form>
 
                             <hr>

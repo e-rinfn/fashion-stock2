@@ -84,6 +84,16 @@ $hasil_potong = query($sql_hasil);
 $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
 ?>
 
+<style>
+    /* Paksa SweetAlert berada di atas segalanya */
+    .swal2-container {
+        z-index: 99999 !important;
+    }
+</style>
+
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <body>
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
@@ -161,12 +171,32 @@ $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
                                     <button type="submit" class="btn btn-primary">Simpan Pengiriman</button>
                                     <div class="btn-group">
                                         <a href="riwayat_pengiriman_penjahit.php" class="btn btn-secondary">Riwayat Pengiriman</a>
-                                        <a href="batal_pengiriman_penjahit.php" class="btn btn-danger"
-                                            onclick="return confirm('Yakin ingin membatalkan pengiriman terakhir?')">
+                                        <a href="#" class="btn btn-danger" id="btnBatalPengiriman">
                                             Batal Simpan Pengiriman
                                         </a>
                                     </div>
                                 </div>
+                                <script>
+                                    document.getElementById('btnBatalPengiriman').addEventListener('click', function(e) {
+                                        e.preventDefault(); // Mencegah link langsung berjalan
+
+                                        Swal.fire({
+                                            title: 'Yakin?',
+                                            text: "Ingin membatalkan pengiriman terakhir?",
+                                            icon: 'warning',
+                                            showCancelButton: true,
+                                            confirmButtonColor: '#d33',
+                                            cancelButtonColor: '#6c757d',
+                                            confirmButtonText: 'Ya, batalkan!',
+                                            cancelButtonText: 'Batal'
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                // Redirect manual
+                                                window.location.href = 'batal_pengiriman_penjahit.php';
+                                            }
+                                        });
+                                    });
+                                </script>
 
                             </form>
 
