@@ -15,7 +15,7 @@ if (isset($_GET['id'])) {
     $penjualan = $penjualan[0];
 
     // (Opsional) Cegah pembatalan jika status pembayaran sudah lunas
-    if ($penjualan['status_pembayaran'] === 'lunas') {
+    if ($penjualan['status_pembayaran'] === '') { // Saya menghapus '=== "lunas"' karena supaya yang lunas juga dapat dihapus
         $_SESSION['error'] = "Penjualan yang sudah lunas tidak dapat dibatalkan.";
         header("Location: list.php");
         exit;

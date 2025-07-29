@@ -140,8 +140,8 @@ $penjualan = query($sql);
                                                     </td>
                                                     <td class="text-end">
                                                         <div class="btn-group" role="group" aria-label="Aksi Penjualan">
-                                                            <!-- Tombol Batal (hanya muncul jika belum lunas) -->
-                                                            <?php if ($jual['status_pembayaran'] != 'lunas'): ?>
+                                                            <!-- Tombol Batal (hanya muncul jika belum lunas) namun kali ini saya aktifkan untuk fungsi menghapus status lunas -->
+                                                            <?php if ($jual['status_pembayaran'] != ''): ?>
                                                                 <button class="btn btn-sm btn-danger btn-batal" data-id="<?= $jual['id_penjualan'] ?>" title="Batalkan Penjualan">
                                                                     <i class="bx bx-x-circle"></i>
                                                                 </button>
