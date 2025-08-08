@@ -1,5 +1,13 @@
 <?php
 require_once '../includes/header.php';
+require_once '../../config/database.php';
+require_once '../../config/functions.php';
+
+// Check if user is logged in
+if (!isLoggedIn()) {
+    header("Location: {$base_url}auth/login.php");
+    exit;
+}
 
 function dateIndo($tanggal)
 {
@@ -24,31 +32,20 @@ function dateIndo($tanggal)
 ?>
 
 <style>
-    /* Paksa SweetAlert berada di atas segalanya */
     .swal2-container {
         z-index: 99999 !important;
     }
 </style>
 
 <body>
-    <!-- Layout wrapper -->
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
-
-            <!-- Sidebar -->
             <?php include '../includes/sidebar.php'; ?>
-            <!-- / Sidebar -->
 
-            <!-- Layout container -->
             <div class="layout-page">
-                <!-- Navbar -->
                 <?php include '../includes/navbar.php'; ?>
-                <!-- / Navbar -->
 
-                <!-- Content wrapper -->
                 <div class="content-wrapper">
-                    <!-- Content -->
-
                     <div class="container-xxl flex-grow-1 container-p-y">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h2>Data Supplier</h2>
@@ -56,26 +53,19 @@ function dateIndo($tanggal)
                                 <a href="add.php" class="btn btn-success">
                                     <i class="bx bx-plus-circle"></i> Tambah Supplier
                                 </a>
-                                <!--
-            <a href="../laporan/stok.php" class="btn btn-warning btn-sm m-1">
-                <i class="bx bx-file"></i> Laporan
-            </a>
-            -->
                             </div>
                         </div>
 
                         <div class="card p-3">
-
-                            <!-- Tampilkan pesan error atau success -->
-                            <?php if (isset($error)): ?>
-                                <div class="alert alert-danger"><?= $error ?></div>
+                            <?php if (isset($_SESSION['error'])): ?>
+                                <div class="alert alert-danger"><?= $_SESSION['error'] ?></div>
+                                <?php unset($_SESSION['error']); ?>
                             <?php endif; ?>
 
                             <?php if (isset($_SESSION['success'])): ?>
                                 <div class="alert alert-success"><?= $_SESSION['success'] ?></div>
                                 <?php unset($_SESSION['success']); ?>
                             <?php endif; ?>
-                            <!-- /Tampilkan pesan error atau success -->
 
                             <div class="table-responsive">
                                 <table class="table table-striped table-bordered table-hover">
@@ -89,111 +79,98 @@ function dateIndo($tanggal)
                                         </tr>
                                     </thead>
                                     <tbody>
-
                                         <?php
                                         $sql = "SELECT * FROM supplier ORDER BY nama_supplier";
                                         $supplier = query($sql);
                                         $no = 1;
-                                        foreach ($supplier as $row):
-                                        ?>
-                                            <tr>
-                                                <td class="text-center"><?= $no++ ?></td>
-                                                <td><?= htmlspecialchars($row['nama_supplier']) ?></td>
-                                                <td><?= htmlspecialchars($row['kontak']) ?></td>
-                                                <td class="text-end"><?= dateIndo($row['tanggal_bergabung']) ?></td>
-                                                <td class="text-center">
-                                                    <a href="edit.php?id=<?= $row['id_supplier'] ?>" class="btn btn-sm btn-primary me-1">
-                                                        <i class="bx bx-edit"></i> Edit
-                                                    </a>
-                                                    <a href="#"
-                                                        class="btn btn-sm btn-danger btn-delete"
-                                                        data-id="<?= $row['id_supplier'] ?>">
-                                                        <i class="bx bx-trash"></i> Hapus
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        <?php endforeach; ?>
-                                        <?php if (empty($supplier)): ?>
-                                            <tr>
-                                                <td colspan="7" class="text-center">Tidak ada data supp$supplier</td>
-                                            </tr>
-                                        <?php endif; ?>
 
+                                        if (empty($supplier)): ?>
+                                            <tr>
+                                                <td colspan="5" class="text-center">Tidak ada data supplier</td>
+                                            </tr>
+                                            <?php else:
+                                            foreach ($supplier as $row): ?>
+                                                <tr>
+                                                    <td class="text-center"><?= $no++ ?></td>
+                                                    <td><?= htmlspecialchars($row['nama_supplier']) ?></td>
+                                                    <td><?= htmlspecialchars($row['kontak']) ?></td>
+                                                    <td class="text-end"><?= dateIndo($row['tanggal_bergabung']) ?></td>
+                                                    <td class="text-center">
+                                                        <a href="edit.php?id=<?= $row['id_supplier'] ?>" class="btn btn-sm btn-primary me-1">
+                                                            <i class="bx bx-edit"></i> Edit
+                                                        </a>
+                                                        <a href="delete.php?id=<?= $row['id_supplier'] ?>"
+                                                            class="btn btn-sm btn-danger btn-delete"
+                                                            data-id="<?= $row['id_supplier'] ?>">
+                                                            <i class="bx bx-trash"></i> Hapus
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                        <?php endforeach;
+                                        endif; ?>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
-
-
-                    <!-- / Content -->
-
-                    <div class="content-backdrop fade"></div>
                 </div>
-                <!-- Content wrapper -->
             </div>
-            <!-- / Layout page -->
         </div>
-
-        <!-- Overlay -->
-        <div class="layout-overlay layout-menu-toggle"></div>
     </div>
-    <!-- / Layout wrapper -->
 
-    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const deleteButtons = document.querySelectorAll('.btn-delete');
 
-            deleteButtons.forEach(function(btn) {
-                btn.addEventListener('click', function(e) {
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
                     e.preventDefault();
                     const id = this.getAttribute('data-id');
+                    const url = this.getAttribute('href');
 
-                    Swal.fire({
-                        title: 'Yakin hapus data supplier?',
-                        text: "Data yang dihapus tidak bisa dikembalikan!",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#d33',
-                        cancelButtonColor: '#6c757d',
-                        confirmButtonText: 'Ya, hapus!',
-                        cancelButtonText: 'Batal'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.location.href = `delete.php?id=${id}`;
-                        }
-                    });
+                    // Check if supplier can be deleted
+                    fetch(`check_delete.php?id=${id}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.can_delete) {
+                                Swal.fire({
+                                    title: 'Yakin hapus supplier?',
+                                    text: "Data yang dihapus tidak bisa dikembalikan!",
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#d33',
+                                    cancelButtonColor: '#6c757d',
+                                    confirmButtonText: 'Ya, hapus!',
+                                    cancelButtonText: 'Batal'
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        window.location.href = url;
+                                    }
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Tidak Dapat Dihapus',
+                                    text: data.message,
+                                    icon: 'error',
+                                    confirmButtonText: 'OK'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire({
+                                title: 'Error',
+                                text: 'Terjadi kesalahan saat memeriksa data',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        });
                 });
             });
         });
     </script>
 
-
-
-
-    <script>
-        function showStokForm(id) {
-            // Sembunyikan semua form stok yang mungkin terbuka
-            document.querySelectorAll('.stok-form').forEach(form => {
-                form.style.display = 'none';
-            });
-
-            // Tampilkan form stok untuk bahan yang dipilih
-            document.getElementById('stok-form-' + id).style.display = '';
-        }
-
-        function hideStokForm(id) {
-            document.getElementById('stok-form-' + id).style.display = 'none';
-        }
-    </script>
-
-    <!-- Core JS footer -->
     <?php include '../includes/footer.php'; ?>
-    <!-- /Core JS footer -->
-
-
 </body>
 
 </html>

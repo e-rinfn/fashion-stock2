@@ -51,9 +51,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <?php endif; ?>
 
                                 <form method="post">
-                                    <div class="mb-3">
-                                        <label for="nama" class="form-label">Nama Supplier</label>
-                                        <input type="text" class="form-control" id="nama" name="nama" required>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="nama" class="form-label">Nama Supplier</label>
+                                            <input type="text" class="form-control" id="nama" name="nama" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="kontak" class="form-label">Kontak</label>
+                                            <input type="text" class="form-control" id="kontak" name="kontak" required>
+                                        </div>
                                     </div>
 
                                     <div class="mb-3">
@@ -61,10 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <textarea class="form-control" id="alamat" name="alamat" rows="3"></textarea>
                                     </div>
 
-                                    <div class="mb-3">
-                                        <label for="kontak" class="form-label">Kontak</label>
-                                        <input type="text" class="form-control" id="kontak" name="kontak" required>
-                                    </div>
+
 
                                     <div class="mb-3">
                                         <label for="tanggal" class="form-label">Tanggal Bergabung</label>

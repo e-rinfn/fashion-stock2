@@ -1,24 +1,40 @@
 <?php
+require_once '../includes/header.php';
 require_once '../../config/database.php';
 require_once '../../config/functions.php';
-// redirectIfNotLoggedIn();
-// checkRole('admin');
 
-$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+// Check if user is logged in
+if (!isLoggedIn()) {
+    header("Location: {$base_url}auth/login.php");
+    exit;
+}
 
-// Cek apakah supplier memiliki transaksi
-$sql_check = "SELECT COUNT(*) as total FROM pembelian WHERE id_supplier = $id";
-$result = $conn->query($sql_check);
-$row = $result->fetch_assoc();
-
-if ($row['total'] > 0) {
-    $_SESSION['error'] = "Supplier tidak dapat dihapus karena memiliki riwayat pembelian";
+if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
+    $_SESSION['error'] = "ID supplier tidak valid";
     header("Location: list.php");
     exit();
 }
 
-$sql = "DELETE FROM supplier WHERE id_supplier = $id";
-if ($conn->query($sql)) {
+$id_supplier = intval($_GET['id']);
+
+// Check if supplier exists
+$supplier = query("SELECT * FROM supplier WHERE id_supplier = $id_supplier");
+if (empty($supplier)) {
+    $_SESSION['error'] = "Supplier tidak ditemukan";
+    header("Location: list.php");
+    exit();
+}
+
+// Check relations
+$check_pembelian = query("SELECT 1 FROM pembelian WHERE id_supplier = $id_supplier LIMIT 1");
+if ($check_pembelian) {
+    $_SESSION['error'] = "Supplier tidak dapat dihapus karena memiliki data pembelian";
+    header("Location: list.php");
+    exit();
+}
+
+// Delete supplier
+if ($conn->query("DELETE FROM supplier WHERE id_supplier = $id_supplier")) {
     $_SESSION['success'] = "Supplier berhasil dihapus";
 } else {
     $_SESSION['error'] = "Gagal menghapus supplier: " . $conn->error;
