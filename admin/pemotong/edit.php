@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <!-- Content -->
 
                     <div class="container-xxl flex-grow-1 container-p-y">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
                             <h2>Edit Data Pemotong</h2>
                         </div>
 
@@ -69,10 +69,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <?php endif; ?>
 
                                 <form method="post">
-                                    <div class="mb-3">
-                                        <label for="nama_pemotong" class="form-label">Nama Pemotong</label>
-                                        <input type="text" class="form-control" id="nama_pemotong" name="nama_pemotong"
-                                            value="<?= htmlspecialchars($pemotong['nama_pemotong']); ?>" required>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="nama_pemotong" class="form-label">Nama Pemotong</label>
+                                            <input type="text" class="form-control" id="nama_pemotong" name="nama_pemotong"
+                                                value="<?= htmlspecialchars($pemotong['nama_pemotong']); ?>" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="kontak" class="form-label">Kontak</label>
+                                            <input type="text" class="form-control" id="kontak" name="kontak"
+                                                value="<?= htmlspecialchars($pemotong['kontak']); ?>" required>
+                                        </div>
                                     </div>
 
                                     <div class="mb-3">
@@ -80,11 +87,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <textarea class="form-control" id="alamat" name="alamat" rows="3"><?= htmlspecialchars($pemotong['alamat']); ?></textarea>
                                     </div>
 
-                                    <div class="mb-3">
-                                        <label for="kontak" class="form-label">Kontak</label>
-                                        <input type="text" class="form-control" id="kontak" name="kontak"
-                                            value="<?= htmlspecialchars($pemotong['kontak']); ?>" required>
-                                    </div>
 
                                     <div class="d-flex justify-content-between">
                                         <button type="submit" class="btn btn-primary">
