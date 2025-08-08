@@ -77,9 +77,10 @@ $bahan = query($sql);
                                         <tr>
                                             <th scope="col">No</th>
                                             <th scope="col">Nama Bahan</th>
-                                            <th scope="col">Harga</th>
                                             <th scope="col">Stok</th>
-                                            <th scope="col">Supplier</th>
+                                            <th scope="col">Satuan</th>
+                                            <th scope="col">Harga Per Satuan</th>
+                                            <!-- <th scope="col">Supplier</th> -->
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -88,9 +89,10 @@ $bahan = query($sql);
                                             <tr>
                                                 <td class="text-center"><?= $no++ ?></td>
                                                 <td><?= htmlspecialchars($b['nama_bahan']) ?></td>
-                                                <td><?= formatRupiah($b['harga_per_satuan']) ?></td>
-                                                <td class="text-center"><?= $b['jumlah_stok'] ?></td>
-                                                <td><?= htmlspecialchars(substr($b['supplier'], 0, 50)) ?>...</td>
+                                                <td class="text-end"><?= $b['jumlah_stok'] ?></td>
+                                                <td class="text-center"><?= $b['satuan'] ?></td>
+                                                <td class="text-end"><?= formatRupiah($b['harga_per_satuan']) ?></td>
+                                                <!-- <td><?= htmlspecialchars(substr($b['supplier'], 0, 50)) ?>...</td> -->
                                             </tr>
                                         <?php endforeach; ?>
                                         <?php if (empty($bahan)): ?>
