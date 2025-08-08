@@ -43,30 +43,27 @@ $pengeluaran = query("SELECT SUM(total_harga) as total FROM pembelian_bahan
 $laba = $pemasukan_lunas - $pengeluaran;
 
 // Detail transaksi
+// Detail transaksi
 $transaksi = query("
-    (SELECT 'Penjualan' as jenis, tanggal_penjualan as tanggal, 
-            CONCAT('No. Pembelian #', id_penjualan) as keterangan, 
-            total_harga as jumlah, 
+    SELECT * FROM (
+        -- Data Penjualan
+        SELECT 
+            'Penjualan' AS jenis, 
+            tanggal_penjualan AS tanggal, 
+            CONCAT('No. Penjualan #', id_penjualan) AS keterangan, 
+            total_harga AS jumlah, 
             CASE 
                 WHEN status_pembayaran = 'lunas' THEN 'pemasukan-lunas'
                 ELSE 'pemasukan-belum-lunas'
-            END as tipe,
+            END AS tipe,
             status_pembayaran
-     FROM penjualan
-     WHERE tanggal_penjualan BETWEEN '$startDate' AND '$endDate')
-    
-    UNION ALL
-    
-    (SELECT 'Pembelian Bahan' as jenis, tanggal_pembelian as tanggal, 
-            CONCAT('Pembelian ', nama_bahan) as keterangan, 
-            total_harga as jumlah, 'pengeluaran' as tipe,
-            NULL as status_pembayaran
-     FROM pembelian_bahan pb
-     JOIN bahan_baku bb ON pb.id_bahan = bb.id_bahan
-     WHERE tanggal_pembelian BETWEEN '$startDate' AND '$endDate')
-    
-    ORDER BY tanggal DESC
+        FROM penjualan
+        WHERE tanggal_penjualan BETWEEN '$startDate' AND '$endDate'
+    ) AS transaksi
+    ORDER BY tanggal DESC;
 ");
+
+
 ?>
 
 

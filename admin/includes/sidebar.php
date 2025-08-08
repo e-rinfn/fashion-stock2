@@ -34,10 +34,8 @@ function isActive($path)
                 <div data-i18n="Analytics">Dashboard</div>
             </a>
         </li>
-
-
         <li class="menu-header small text-uppercase">
-            <span class="menu-header-text">Pages</span>
+            <span class="menu-header-text">Master Data</span>
         </li>
         <li class="menu-item">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
@@ -70,11 +68,34 @@ function isActive($path)
                         <div data-i18n="Connections">Reseller</div>
                     </a>
                 </li>
+                <li class="menu-item <?= isActive('/supplier') ?>">
+                    <a href="<?= $base_url ?>/admin/supplier/list.php" class="menu-link">
+                        <div data-i18n="Connections">Supplier</div>
+                    </a>
+                </li>
             </ul>
         </li>
 
-        <!-- Components -->
-        <li class="menu-header small text-uppercase"><span class="menu-header-text">Components</span></li>
+
+        <li class="menu-item">
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons bx bx-collection"></i>
+                <div data-i18n="Account Settings">Stok</div>
+            </a>
+            <ul class="menu-sub">
+                <li class="menu-item <?= isActive('/admin/stok_bahan') ?>">
+                    <a href="<?= $base_url ?>/admin/stok_bahan/index.php" class="menu-link">
+                        <div data-i18n="Notifications">Stok Bahan</div>
+                    </a>
+                </li>
+                <li class="menu-item <?= isActive('/admin/stok_produk') ?>">
+                    <a href="<?= $base_url ?>/admin/stok_produk/index.php" class="menu-link">
+                        <div data-i18n="Account">Stok Barang</div>
+                    </a>
+                </li>
+            </ul>
+        </li>
+
         <!-- Cards -->
         <li class="menu-item <?= isActive('/produksi') ?>">
             <a href="<?= $base_url ?>/admin/produksi/index.php" class="menu-link">
@@ -82,17 +103,52 @@ function isActive($path)
                 <div data-i18n="Basic">Produksi</div>
             </a>
         </li>
-        <li class="menu-item <?= isActive('/stok') ?>">
-            <a href="<?= $base_url ?>/admin/stok/index.php" class="menu-link">
-                <i class="menu-icon tf-icons bx bx-collection"></i>
-                <div data-i18n="Basic">Stok</div>
+
+
+
+
+        <!-- Transaksi -->
+        <li class="menu-header small text-uppercase"><span class="menu-header-text">Transaksi</span></li>
+
+
+        <!-- Pembelian -->
+        <li class="menu-item">
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons bx bx-dock-left"></i>
+                <div data-i18n="Account Settings">Pembelian</div>
             </a>
+            <ul class="menu-sub">
+                <li class="menu-item <?= isActive('/admin/pembelian_bahan') ?>">
+                    <a href="<?= $base_url ?>/admin/pembelian_bahan/list.php" class="menu-link">
+                        <div data-i18n="Account">Pembelian Bahan</div>
+                    </a>
+                </li>
+                <li class="menu-item <?= isActive('/admin/pembelian_produk') ?>">
+                    <a href="<?= $base_url ?>/admin/pembelian_produk/list.php" class="menu-link">
+                        <div data-i18n="Notifications">Pembelian Barang</div>
+                    </a>
+                </li>
+            </ul>
         </li>
-        <li class="menu-item <?= isActive('/penjualan') ?>">
-            <a href="<?= $base_url ?>/admin/penjualan/list.php" class="menu-link">
+
+        <!-- Penjualan -->
+        <li class="menu-item">
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-cart"></i>
-                <div data-i18n="Basic">Penjualan</div>
+                <div data-i18n="Account Settings">Penjualan</div>
             </a>
+            <ul class="menu-sub">
+                <li class="menu-item <?= isActive('/penjualan_bahan') ?>">
+                    <a href="<?= $base_url ?>/admin/penjualan_bahan/list.php" class="menu-link">
+                        <div data-i18n="Account">Penjualan Bahan</div>
+                    </a>
+                </li>
+                <li class="menu-item <?= isActive('/penjualan_produk') ?>">
+                    <a href="<?= $base_url ?>/admin/penjualan_produk/list.php" class="menu-link">
+                        <div data-i18n="Notifications">Penjualan Barang</div>
+                    </a>
+                </li>
+            </ul>
         </li>
 
         <li class="menu-item <?= isActive('/laporan') ?>">

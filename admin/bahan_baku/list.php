@@ -195,11 +195,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                             <i class="bx bx-plus"></i> Stok
                                                         </button> -->
 
-                                                        <button type="button"
+                                                        <!-- <button type="button"
                                                             class="btn btn-warning btn-sm mb-1"
                                                             onclick="showAdjustForm(<?= $bahan['id_bahan']; ?>)">
                                                             <i class="bx bx-adjust"></i> Adjust
-                                                        </button>
+                                                        </button> -->
                                                     </td>
 
                                                 </tr>
@@ -265,50 +265,66 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const deleteButtons = document.querySelectorAll('.btn-delete');
+            // SweetAlert for delete confirmation
+            $(document).on('click', '.btn-delete', function(e) {
+                e.preventDefault();
+                const url = $(this).attr('href');
+                const id = $(this).data('id');
 
-            deleteButtons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const id = this.getAttribute('data-id');
-                    const url = this.getAttribute('href');
-
-                    // Cek terlebih dahulu via AJAX apakah bisa dihapus
-                    fetch(`check_delete.php?id=${id}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.can_delete) {
-                                Swal.fire({
-                                    title: 'Yakin hapus data bahan baku?',
-                                    text: "Data yang dihapus tidak bisa dikembalikan!",
-                                    icon: 'warning',
-                                    showCancelButton: true,
-                                    confirmButtonColor: '#d33',
-                                    cancelButtonColor: '#6c757d',
-                                    confirmButtonText: 'Ya, hapus!',
-                                    cancelButtonText: 'Batal'
-                                }).then((result) => {
-                                    if (result.isConfirmed) {
-                                        window.location.href = url;
-                                    }
-                                });
-                            } else {
-                                Swal.fire({
-                                    title: 'Tidak Dapat Dihapus',
-                                    text: data.message,
-                                    icon: 'error',
-                                    confirmButtonColor: '#3085d6',
-                                    confirmButtonText: 'OK'
-                                });
-                            }
+                Swal.fire({
+                    title: 'Confirm Deletion',
+                    text: "Are you sure you want to delete this material?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, Delete!',
+                    cancelButtonText: 'Cancel',
+                    showLoaderOnConfirm: true,
+                    preConfirm: () => {
+                        return fetch(`check_delete.php?id=${id}`)
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Network response was not ok');
+                                }
+                                return response.json();
+                            })
+                            .catch(error => {
+                                Swal.showValidationMessage(
+                                    `Request failed: ${error}`
+                                );
+                                return null;
+                            });
+                    },
+                    allowOutsideClick: () => !Swal.isLoading()
+                }).then((result) => {
+                    if (result.isConfirmed && result.value) {
+                        if (result.value.can_delete) {
+                            // Proceed with deletion
+                            window.location.href = url;
+                        } else {
+                            Swal.fire({
+                                title: 'Cannot Delete',
+                                text: result.value.message,
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    } else if (result.isConfirmed && !result.value) {
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Failed to check material dependencies',
+                            icon: 'error',
+                            confirmButtonText: 'OK'
                         });
+                    }
                 });
             });
         });
     </script>
 
 
-    <script>
+    <!-- <script>
         // Fungsi untuk menampilkan/sembunyikan form adjust stok
         function showAdjustForm(id) {
             // Sembunyikan semua form yang mungkin terbuka
@@ -335,9 +351,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         function hideStokForm(id) {
             document.getElementById('stok-form-' + id).style.display = 'none';
         }
-    </script>
+    </script> -->
 
-    <script>
+    <!-- <script>
         function showStokForm(id) {
             // Sembunyikan semua form stok yang mungkin terbuka
             document.querySelectorAll('.stok-form').forEach(form => {
@@ -351,7 +367,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         function hideStokForm(id) {
             document.getElementById('stok-form-' + id).style.display = 'none';
         }
-    </script>
+    </script> -->
 
     <!-- Core JS footer -->
     <?php include '../includes/footer.php'; ?>

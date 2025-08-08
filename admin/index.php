@@ -108,7 +108,7 @@ require_once './includes/header.php';
 
 
                             <!--/ Total Revenue -->
-                            <div class="col-12 col-md-8 col-lg-4 order-3 order-md-2">
+                            <!-- <div class="col-12 col-md-8 col-lg-4 order-3 order-md-2">
                                 <div class="row">
                                     <div class="col-12 mb-4">
                                         <div class="card shadow-sm border-0 h-100">
@@ -142,11 +142,11 @@ require_once './includes/header.php';
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div> -->
 
 
                             <!-- Total Aktivitas Terakhir -->
-                            <div class="col-12 col-lg-8 order-2 order-md-3 order-lg-2 mb-4">
+                            <div class="col-12 col-lg-12 order-2 order-md-3 order-lg-2 mb-4">
                                 <div class="card">
                                     <div class="row row-bordered g-0">
                                         <div class="col-12">
@@ -165,9 +165,13 @@ require_once './includes/header.php';
                                                     <tbody>
                                                         <?php
                                                         // Gabungkan beberapa tabel untuk menampilkan aktivitas terakhir
-                                                        $sql = "(SELECT 'pembelian' as type, tanggal_pembelian as waktu, CONCAT('Pembelian bahan baku: ', nama_bahan) as aktivitas, '' as detail 
-                                                                FROM pembelian_bahan pb JOIN bahan_baku bb ON pb.id_bahan = bb.id_bahan 
+                                                        $sql = "
+                                                        
+                                                                (SELECT 'pembelian' as type, tanggal_pembelian as waktu, CONCAT('Pembelian ke: ', nama_supplier) as aktivitas, 
+                                                                CONCAT('Total: ', FORMAT(total_harga, 0)) as detail
+                                                                FROM pembelian p JOIN supplier r ON p.id_supplier = r.id_supplier 
                                                                 ORDER BY waktu DESC LIMIT 3)
+
                                                                 
                                                                 UNION
                                                                 

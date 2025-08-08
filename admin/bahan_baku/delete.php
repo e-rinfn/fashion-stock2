@@ -1,5 +1,7 @@
 <?php
 require_once '../includes/header.php';
+require_once '../../config/database.php';
+require_once '../../config/functions.php';
 
 // Cek apakah user sudah login
 if (!isLoggedIn()) {
@@ -7,49 +9,56 @@ if (!isLoggedIn()) {
     exit;
 }
 
-if (!isset($_GET['id'])) {
+// Validasi ID
+if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
+    $_SESSION['error'] = "ID bahan tidak valid";
     header("Location: list.php");
     exit();
 }
 
-$id = $conn->real_escape_string($_GET['id']);
+$id_bahan = intval($_GET['id']);
 
-// Cek apakah bahan digunakan di tabel lain sebelum menghapus
-$check_sql = "SELECT COUNT(*) as total FROM pengiriman_pemotong WHERE id_bahan = '$id'";
-$check_result = $conn->query($check_sql);
-$check_data = $check_result->fetch_assoc();
-
-if ($check_data['total'] > 0) {
-    $_SESSION['error'] = "Bahan baku tidak dapat dihapus karena sudah digunakan dalam produksi";
+// Cek apakah bahan ada di database
+$bahan = query("SELECT * FROM bahan_baku WHERE id_bahan = $id_bahan");
+if (empty($bahan)) {
+    $_SESSION['error'] = "Bahan baku tidak ditemukan";
     header("Location: list.php");
     exit();
 }
 
-$sql = "DELETE FROM bahan_baku WHERE id_bahan = '$id'";
-
-if ($conn->query($sql)) {
-    $_SESSION['success'] = "Bahan baku berhasil dihapus";
-} else {
-    $_SESSION['error'] = "Gagal menghapus bahan baku: " . $conn->error;
-}
-
-$id_bahan = isset($_GET['id']) ? intval($_GET['id']) : 0;
-
-// Cek apakah bahan digunakan di tabel lain
+// Cek relasi dengan tabel lain
 $cek_pengiriman = query("SELECT id_pengiriman_potong FROM pengiriman_pemotong WHERE id_bahan = $id_bahan LIMIT 1");
-$cek_pembelian = query("SELECT id_pembelian FROM pembelian_bahan WHERE id_bahan = $id_bahan LIMIT 1");
 
-if ($cek_pengiriman || $cek_pembelian) {
-    $_SESSION['error'] = "Bahan baku tidak dapat dihapus karena masih terhubung dengan data pengiriman atau pembelian!";
+if ($cek_pengiriman || $cek_pembelian || $cek_penjualan) {
+    $error_msg = "Bahan baku tidak dapat dihapus karena masih digunakan dalam: ";
+    $reasons = [];
+
+    if ($cek_pengiriman) $reasons[] = "pengiriman pemotong";
+    if ($cek_pembelian) $reasons[] = "pembelian bahan";
+    if ($cek_penjualan) $reasons[] = "penjualan bahan";
+
+    $_SESSION['error'] = $error_msg . implode(", ", $reasons);
     header("Location: list.php");
     exit();
 }
 
-// Jika tidak terhubung, lakukan penghapusan
-if ($conn->query("DELETE FROM bahan_baku WHERE id_bahan = $id_bahan")) {
+// Mulai transaksi
+$conn->begin_transaction();
+
+try {
+    // Jika ada tabel relasi lain, tambahkan query DELETE di sini
+
+    // Hapus bahan baku
+    $delete_sql = "DELETE FROM bahan_baku WHERE id_bahan = $id_bahan";
+    if (!$conn->query($delete_sql)) {
+        throw new Exception("Gagal menghapus bahan baku: " . $conn->error);
+    }
+
+    $conn->commit();
     $_SESSION['success'] = "Bahan baku berhasil dihapus";
-} else {
-    $_SESSION['error'] = "Gagal menghapus bahan baku: " . $conn->error;
+} catch (Exception $e) {
+    $conn->rollback();
+    $_SESSION['error'] = $e->getMessage();
 }
 
 header("Location: list.php");
