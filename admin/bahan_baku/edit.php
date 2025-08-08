@@ -26,15 +26,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nama = $conn->real_escape_string($_POST['nama_bahan']);
     $stok = $conn->real_escape_string($_POST['jumlah_stok']);
     $satuan = $conn->real_escape_string($_POST['satuan']);
-    // $harga = $conn->real_escape_string($_POST['harga_per_satuan']);
-    $supplier = $conn->real_escape_string($_POST['supplier']);
+    $harga = $conn->real_escape_string($_POST['harga_per_satuan']);
+    // $supplier = $conn->real_escape_string($_POST['supplier']);
 
     $sql = "UPDATE bahan_baku SET 
             nama_bahan = '$nama',
             jumlah_stok = '$stok',
             satuan = '$satuan',
-            -- harga_per_satuan = '$harga',
-            supplier = '$supplier'
+            harga_per_satuan = '$harga'
+            -- supplier = '$supplier'
             WHERE id_bahan = '$id'";
 
     if ($conn->query($sql)) {
@@ -89,21 +89,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <input type="number" step="1" id="jumlah_stok" name="jumlah_stok" class="form-control" value="<?= number_format($bahan['jumlah_stok']); ?>" required>
                                     </div>
 
-                                    <div class="col-md-8 mb-3">
+                                    <div class="col-md-4 mb-3">
                                         <label for="satuan" class="form-label">Satuan</label>
                                         <input type="text" id="satuan" name="satuan" class="form-control" value="<?= htmlspecialchars($bahan['satuan']); ?>" required>
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <label for="harga_per_satuan" class="form-label">Harga per Satuan</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">Rp</span>
+                                            <input type="number" id="harga_per_satuan" name="harga_per_satuan" class="form-control" value="<?= $bahan['harga_per_satuan']; ?>" required>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <!-- <div class="mb-3">
-                                    <label for="harga_per_satuan" class="form-label">Harga per Satuan</label>
-                                    <input type="number" id="harga_per_satuan" name="harga_per_satuan" class="form-control" value="<?= $bahan['harga_per_satuan']; ?>" required>
-                                </div> -->
-
-                                <div class="mb-3">
                                     <label for="supplier" class="form-label">Supplier</label>
                                     <input type="text" id="supplier" name="supplier" class="form-control" value="<?= htmlspecialchars($bahan['supplier']); ?>">
-                                </div>
+                                </div> -->
 
                                 <div class="d-flex justify-content-between">
                                     <button type="submit" class="btn btn-primary">

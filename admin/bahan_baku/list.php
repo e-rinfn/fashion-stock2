@@ -133,15 +133,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 </a> -->
                             </div>
                         </div>
-                        <?php if (isset($_SESSION['error'])): ?>
-                            <div class="alert alert-danger"><?= $_SESSION['error'] ?></div>
-                            <?php unset($_SESSION['error']); ?>
-                        <?php endif; ?>
+
                         <div class="card p-3">
 
                             <!-- Tampilkan pesan error atau success -->
-                            <?php if (isset($error)): ?>
-                                <div class="alert alert-danger"><?= $error ?></div>
+                            <?php if (isset($_SESSION['error'])): ?>
+                                <div class="alert alert-danger"><?= $_SESSION['error'] ?></div>
+                                <?php unset($_SESSION['error']); ?>
                             <?php endif; ?>
 
                             <?php if (isset($_SESSION['success'])): ?>
@@ -158,8 +156,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             <th>Nama Bahan</th>
                                             <th>Stok</th>
                                             <th>Satuan</th>
-                                            <!-- <th>Harga/Satuan</th> -->
-                                            <th>Supplier</th>
+                                            <th>Harga/Satuan</th>
+                                            <!-- <th>Supplier</th> -->
                                             <th>Aksi</th>
                                         </tr>
                                     </thead>
@@ -176,8 +174,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                     <td><?= htmlspecialchars($bahan['nama_bahan']); ?></td>
                                                     <td class="text-end"><?= number_format($bahan['jumlah_stok']); ?></td>
                                                     <td class="text-center"><?= htmlspecialchars($bahan['satuan']); ?></td>
-                                                    <!-- <td class="text-end"><?= formatRupiah($bahan['harga_per_satuan']); ?></td> -->
-                                                    <td><?= htmlspecialchars($bahan['supplier']); ?></td>
+                                                    <td class="text-end"><?= formatRupiah($bahan['harga_per_satuan']); ?></td>
+                                                    <!-- <td><?= htmlspecialchars($bahan['supplier']); ?></td> -->
                                                     <td class="text-center">
                                                         <a href="edit.php?id=<?= $bahan['id_bahan']; ?>" class="btn btn-primary btn-sm me-1 mb-1">
                                                             <i class="bx bx-edit"></i> Edit
@@ -272,14 +270,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 const id = $(this).data('id');
 
                 Swal.fire({
-                    title: 'Confirm Deletion',
-                    text: "Are you sure you want to delete this material?",
+                    title: 'Konfirmasi Penghapusan',
+                    text: "Apakah Anda yakin ingin menghapus bahan ini?",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#d33',
                     cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Yes, Delete!',
-                    cancelButtonText: 'Cancel',
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal',
                     showLoaderOnConfirm: true,
                     preConfirm: () => {
                         return fetch(`check_delete.php?id=${id}`)
@@ -304,7 +302,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             window.location.href = url;
                         } else {
                             Swal.fire({
-                                title: 'Cannot Delete',
+                                title: 'Tidak Bisa Dihapus',
                                 text: result.value.message,
                                 icon: 'error',
                                 confirmButtonText: 'OK'
@@ -313,7 +311,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     } else if (result.isConfirmed && !result.value) {
                         Swal.fire({
                             title: 'Error',
-                            text: 'Failed to check material dependencies',
+                            text: 'Gagal memeriksa ketergantungan bahan',
                             icon: 'error',
                             confirmButtonText: 'OK'
                         });

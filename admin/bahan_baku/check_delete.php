@@ -9,7 +9,7 @@ header('Content-Type: application/json');
 if ($conn->connect_error) {
     echo json_encode([
         'can_delete' => false,
-        'message' => 'Database connection error'
+        'message' => 'Koneksi ke database gagal.'
     ]);
     exit;
 }
@@ -19,21 +19,21 @@ $id_bahan = isset($_GET['id']) ? intval($_GET['id']) : 0;
 if ($id_bahan <= 0) {
     echo json_encode([
         'can_delete' => false,
-        'message' => 'Invalid material ID'
+        'message' => 'ID bahan tidak valid.'
     ]);
     exit;
 }
 
 try {
-    // Check relations with other tables
+    // Daftar relasi yang akan dicek (key = pesan untuk user)
     $relations = [
-        'pengiriman pemotong' => "SELECT 1 FROM pengiriman_pemotong WHERE id_bahan = ? LIMIT 1",
+        'Pengiriman ke Pemotong' => "SELECT 1 FROM pengiriman_pemotong WHERE id_bahan = ? LIMIT 1",
+        'Penjualan Bahan' => "SELECT 1 FROM detail_penjualan_bahan WHERE id_bahan = ? LIMIT 1",
     ];
 
     $reasons = [];
 
-    // Prepare statements for better security
-    foreach ($relations as $name => $sql) {
+    foreach ($relations as $friendlyName => $sql) {
         $stmt = $conn->prepare($sql);
         if (!$stmt) {
             throw new Exception("Prepare failed: " . $conn->error);
@@ -44,7 +44,7 @@ try {
         $result = $stmt->get_result();
 
         if ($result->num_rows > 0) {
-            $reasons[] = $name;
+            $reasons[] = $friendlyName;
         }
         $stmt->close();
     }
@@ -52,7 +52,7 @@ try {
     if (!empty($reasons)) {
         echo json_encode([
             'can_delete' => false,
-            'message' => 'Material cannot be deleted because it is used in: ' . implode(', ', $reasons)
+            'message' => 'Data bahan ini tidak bisa dihapus karena masih digunakan pada: ' . implode(', ', $reasons) . '.'
         ]);
     } else {
         echo json_encode([
@@ -63,6 +63,6 @@ try {
 } catch (Exception $e) {
     echo json_encode([
         'can_delete' => false,
-        'message' => 'Error checking material relations: ' . $e->getMessage()
+        'message' => 'Terjadi kesalahan saat memeriksa relasi bahan: ' . $e->getMessage()
     ]);
 }
