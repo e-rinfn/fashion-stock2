@@ -28,12 +28,20 @@ $produk = query($sql);
     .swal2-container {
         z-index: 99999 !important;
     }
+
+    .deskripsi-truncated {
+        cursor: pointer;
+        color: #0d6efd;
+    }
+
+    .deskripsi-truncated:hover {
+        text-decoration: underline;
+    }
 </style>
 
 <body>
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
-
             <?php include '../includes/sidebar.php'; ?>
 
             <div class="layout-page">
@@ -77,8 +85,8 @@ $produk = query($sql);
                                         <tr>
                                             <th scope="col">No</th>
                                             <th scope="col">Nama Produk</th>
-                                            <th scope="col">Harga</th>
                                             <th scope="col">Stok</th>
+                                            <th scope="col">Harga Per Pcs</th>
                                             <th scope="col">Deskripsi</th>
                                         </tr>
                                     </thead>
@@ -88,9 +96,17 @@ $produk = query($sql);
                                             <tr>
                                                 <td class="text-center"><?= $no++ ?></td>
                                                 <td><?= htmlspecialchars($p['nama_produk']) ?></td>
-                                                <td><?= formatRupiah($p['harga_jual']) ?></td>
                                                 <td class="text-center"><?= $p['stok'] ?></td>
-                                                <td><?= htmlspecialchars(substr($p['deskripsi'], 0, 50)) ?>...</td>
+                                                <td><?= formatRupiah($p['harga_jual']) ?></td>
+                                                <td>
+                                                    <span class="deskripsi-truncated"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#deskripsiModal"
+                                                        data-deskripsi="<?= htmlspecialchars($p['deskripsi']) ?>"
+                                                        data-nama="<?= htmlspecialchars($p['nama_produk']) ?>">
+                                                        <?= htmlspecialchars(substr($p['deskripsi'], 0, 50)) ?>...
+                                                    </span>
+                                                </td>
                                             </tr>
                                         <?php endforeach; ?>
                                         <?php if (empty($produk)): ?>
@@ -103,8 +119,26 @@ $produk = query($sql);
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
 
-                    <div class="content-backdrop fade"></div>
+        <!-- Modal Deskripsi -->
+        <div class="modal fade" id="deskripsiModal" tabindex="-1" aria-labelledby="deskripsiModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deskripsiModalLabel">Deskripsi Produk</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <h6 id="namaProduk"></h6>
+                        <hr>
+                        <p id="fullDeskripsi" style="white-space: pre-line;"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -115,6 +149,20 @@ $produk = query($sql);
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Inisialisasi modal deskripsi
+            const deskripsiModal = new bootstrap.Modal(document.getElementById('deskripsiModal'));
+
+            // Event ketika modal akan ditampilkan
+            document.getElementById('deskripsiModal').addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const deskripsi = button.getAttribute('data-deskripsi');
+                const namaProduk = button.getAttribute('data-nama');
+
+                document.getElementById('namaProduk').textContent = namaProduk;
+                document.getElementById('fullDeskripsi').textContent = deskripsi;
+            });
+
+            // SweetAlert untuk konfirmasi hapus
             const deleteButtons = document.querySelectorAll('.btn-hapus');
             deleteButtons.forEach(btn => {
                 btn.addEventListener('click', function(e) {

@@ -65,9 +65,9 @@ $produk = query($sql);
                                         <tr>
                                             <th scope="col">No</th>
                                             <th scope="col">Nama Produk</th>
-                                            <th scope="col">Harga</th>
                                             <th scope="col">Stok</th>
-                                            <th scope="col">Deskripsi</th>
+                                            <th scope="col">Harga Per Pcs</th>
+                                            <th scope="col" style="width: 250px;">Deskripsi</th>
                                             <th scope="col">Aksi</th>
                                         </tr>
                                     </thead>
@@ -82,11 +82,11 @@ $produk = query($sql);
                                                 <tr>
                                                     <td class="text-center"><?= $no++ ?></td>
                                                     <td><?= htmlspecialchars($p['nama_produk']) ?></td>
-                                                    <td><?= formatRupiah($p['harga_jual']) ?></td>
-                                                    <td class="text-center"><?= $p['stok'] ?></td>
+                                                    <td class="text-end"><?= $p['stok'] ?></td>
+                                                    <td class="text-end"><?= formatRupiah($p['harga_jual']) ?></td>
                                                     <td><?= htmlspecialchars(substr($p['deskripsi'], 0, 50)) ?>...</td>
-                                                    <td class="text-center">
-                                                        <div class="d-flex gap-2">
+                                                    <td>
+                                                        <div class="text-center">
                                                             <a href="edit.php?id=<?= $p['id_produk'] ?>" class="btn btn-sm btn-primary">
                                                                 <i class="bx bx-edit"></i> Edit
                                                             </a>
