@@ -146,10 +146,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <button type="submit" class="btn btn-primary">Catat Hasil</button>
                                     <div class="btn-group">
                                         <a href="riwayat_hasil_pemotongan.php" class="btn btn-secondary">Riwayat Hasil</a>
-                                        <a href="batal_hasil_potong.php" class="btn btn-danger"
-                                            onclick="return confirm('Yakin ingin membatalkan hasil pemotongan terakhir?')">
-                                            Batal Catat Hasil
-                                        </a>
                                         <a href="#" class="btn btn-danger" id="btnBatalHasil">
                                             Batal Catat Hasil 2
                                         </a>

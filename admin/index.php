@@ -1,8 +1,6 @@
 <?php
 require_once '../config/functions.php';
 require_once './includes/header.php';
-
-
 ?>
 
 
