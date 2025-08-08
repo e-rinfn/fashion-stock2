@@ -147,7 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <div class="btn-group">
                                         <a href="riwayat_hasil_pemotongan.php" class="btn btn-secondary">Riwayat Hasil</a>
                                         <a href="#" class="btn btn-danger" id="btnBatalHasil">
-                                            Batal Catat Hasil 2
+                                            Batal Catat Hasil
                                         </a>
                                     </div>
                                 </div>
