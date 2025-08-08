@@ -79,12 +79,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <div class="row">
                                     <div class="col-md-4 mb-3">
                                         <label for="harga" class="form-label">Harga Jual</label>
-                                        <input type="number" id="harga" name="harga" class="form-control"
-                                            value="<?= rtrim(rtrim($produk['harga_jual'], '0'), '.') ?>" min="0" required>
+                                        <div class="input-group">
+                                            <span class="input-group-text">Rp</span>
+                                            <input type="number" id="harga" name="harga" class="form-control"
+                                                value="<?= rtrim(rtrim($produk['harga_jual'], '0'), '.') ?>" min="0" required>
+                                        </div>
                                     </div>
 
                                     <div class="col-md-8 mb-3">
-                                        <label for="stok" class="form-label">Stok</label>
+                                        <label for="stok" class="form-label">Stok Awal</label>
                                         <div class="input-group">
                                             <input type="number" id="stok" name="stok" class="form-control"
                                                 value="<?= htmlspecialchars($produk['stok']) ?>" min="0" required>

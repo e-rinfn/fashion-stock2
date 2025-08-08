@@ -74,7 +74,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                                     <div class="col-md-4 mb-3">
                                         <label for="harga_per_satuan" class="form-label">Harga per Satuan</label>
-                                        <input type="number" id="harga_per_satuan" name="harga_per_satuan" class="form-control" required>
+                                        <div class="input-group">
+                                            <span class="input-group-text">Rp</span>
+                                            <input type="number" id="harga_per_satuan" name="harga_per_satuan" class="form-control" required>
+                                        </div>
                                     </div>
                                 </div>
 
