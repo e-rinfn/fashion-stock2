@@ -68,16 +68,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <?php endif; ?>
 
                             <form method="post">
-                                <div class="mb-3">
-                                    <label for="nama" class="form-label">Nama Penjahit</label>
-                                    <input type="text" class="form-control" id="nama" name="nama"
-                                        value="<?= htmlspecialchars($penjahit['nama_penjahit']) ?>" required>
-                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="nama" class="form-label">Nama Penjahit</label>
+                                        <input type="text" class="form-control" id="nama" name="nama"
+                                            value="<?= htmlspecialchars($penjahit['nama_penjahit']) ?>" required>
+                                    </div>
 
-                                <div class="mb-3">
-                                    <label for="kontak" class="form-label">Kontak</label>
-                                    <input type="text" class="form-control" id="kontak" name="kontak"
-                                        value="<?= htmlspecialchars($penjahit['kontak']) ?>" required>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="kontak" class="form-label">Kontak</label>
+                                        <input type="text" class="form-control" id="kontak" name="kontak"
+                                            value="<?= htmlspecialchars($penjahit['kontak']) ?>" required>
+                                    </div>
                                 </div>
 
                                 <div class="mb-3">

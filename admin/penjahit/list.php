@@ -6,7 +6,6 @@ $penjahit = query($sql);
 ?>
 
 <style>
-    /* Paksa SweetAlert berada di atas segalanya */
     .swal2-container {
         z-index: 99999 !important;
     }
@@ -16,7 +15,6 @@ $penjahit = query($sql);
     <!-- Layout wrapper -->
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
-
             <!-- Sidebar -->
             <?php include '../includes/sidebar.php'; ?>
             <!-- / Sidebar -->
@@ -30,7 +28,6 @@ $penjahit = query($sql);
                 <!-- Content wrapper -->
                 <div class="content-wrapper">
                     <!-- Content -->
-
                     <div class="container-xxl flex-grow-1 container-p-y">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h2>Data Penjahit</h2>
@@ -38,46 +35,41 @@ $penjahit = query($sql);
                                 <a href="add.php" class="btn btn-success">
                                     <i class="bx bx-plus-circle"></i> Tambah Penjahit
                                 </a>
-                                <!-- <a href="../laporan/stok.php" class="btn btn-warning btn-sm m-1">
-                <i class="bx bx-file"></i> Laporan
-            </a> -->
                             </div>
                         </div>
 
                         <div class="card p-3">
-
-                            <!-- Tampilkan pesan error atau success -->
-                            <?php if (isset($error)): ?>
-                                <div class="alert alert-danger"><?= $error ?></div>
+                            <?php if (isset($_SESSION['error'])): ?>
+                                <div class="alert alert-danger"><?= $_SESSION['error'];
+                                                                unset($_SESSION['error']); ?></div>
                             <?php endif; ?>
 
                             <?php if (isset($_SESSION['success'])): ?>
-                                <div class="alert alert-success"><?= $_SESSION['success'] ?></div>
-                                <?php unset($_SESSION['success']); ?>
+                                <div class="alert alert-success"><?= $_SESSION['success'];
+                                                                    unset($_SESSION['success']); ?></div>
                             <?php endif; ?>
-                            <!-- /Tampilkan pesan error atau success -->
 
                             <div class="table-responsive">
                                 <table class="table table-striped table-bordered table-hover">
                                     <thead class="table-light text-center">
                                         <tr>
-                                            <th scope="col">No</th>
-                                            <th scope="col">Nama Penjahit</th>
-                                            <th scope="col">Kontak</th>
-                                            <th scope="col">Alamat</th>
-                                            <th scope="col">Aksi</th>
+                                            <th>No</th>
+                                            <th>Nama Penjahit</th>
+                                            <th>Kontak</th>
+                                            <th>Alamat</th>
+                                            <th>Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php if (empty($penjahit)): ?>
                                             <tr>
-                                                <td colspan="7" class="text-center">Tidak ada data penjahit</td>
+                                                <td colspan="5" class="text-center">Tidak ada data penjahit</td>
                                             </tr>
                                         <?php else: ?>
                                             <?php $no = 1;
-                                            foreach ($penjahit as $pj) : ?>
+                                            foreach ($penjahit as $pj): ?>
                                                 <tr>
-                                                    <td class="text-center"><?= $no++ ?></td>
+                                                    <td class="text-center"><?= $no++; ?></td>
                                                     <td><?= htmlspecialchars($pj['nama_penjahit']) ?></td>
                                                     <td><?= htmlspecialchars($pj['kontak']) ?></td>
                                                     <td><?= htmlspecialchars($pj['alamat']) ?></td>
@@ -90,7 +82,6 @@ $penjahit = query($sql);
                                                             data-id="<?= $pj['id_penjahit'] ?>">
                                                             <i class="bx bx-trash"></i> Hapus
                                                         </a>
-
                                                     </td>
                                                 </tr>
                                             <?php endforeach; ?>
@@ -100,17 +91,12 @@ $penjahit = query($sql);
                             </div>
                         </div>
                     </div>
-
-
                     <!-- / Content -->
-
-                    <div class="content-backdrop fade"></div>
                 </div>
                 <!-- Content wrapper -->
             </div>
             <!-- / Layout page -->
         </div>
-
         <!-- Overlay -->
         <div class="layout-overlay layout-menu-toggle"></div>
     </div>
@@ -125,19 +111,45 @@ $penjahit = query($sql);
             hapusButtons.forEach(button => {
                 button.addEventListener('click', function() {
                     const id = this.getAttribute('data-id');
+                    const url = `delete.php?id=${id}`;
 
                     Swal.fire({
-                        title: 'Yakin hapus data penjahit?',
-                        text: "Data tidak bisa dikembalikan!",
+                        title: 'Konfirmasi Hapus',
+                        text: "Apakah Anda yakin ingin menghapus data penjahit ini?",
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonColor: '#d33',
                         cancelButtonColor: '#6c757d',
-                        confirmButtonText: 'Ya, hapus!',
-                        cancelButtonText: 'Batal'
+                        confirmButtonText: 'Ya, Hapus!',
+                        cancelButtonText: 'Batal',
+                        showLoaderOnConfirm: true,
+                        preConfirm: () => {
+                            return fetch(`check_delete.php?id=${id}`)
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error(response.statusText);
+                                    }
+                                    return response.json();
+                                })
+                                .catch(error => {
+                                    Swal.showValidationMessage(
+                                        `Request failed: ${error}`
+                                    );
+                                });
+                        },
+                        allowOutsideClick: () => !Swal.isLoading()
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            window.location.href = `delete.php?id=${id}`;
+                            if (result.value.can_delete) {
+                                window.location.href = url;
+                            } else {
+                                Swal.fire({
+                                    title: 'Tidak Dapat Dihapus',
+                                    text: result.value.message,
+                                    icon: 'error',
+                                    confirmButtonText: 'OK'
+                                });
+                            }
                         }
                     });
                 });
@@ -145,30 +157,7 @@ $penjahit = query($sql);
         });
     </script>
 
-
-
-
-    <script>
-        function showStokForm(id) {
-            // Sembunyikan semua form stok yang mungkin terbuka
-            document.querySelectorAll('.stok-form').forEach(form => {
-                form.style.display = 'none';
-            });
-
-            // Tampilkan form stok untuk bahan yang dipilih
-            document.getElementById('stok-form-' + id).style.display = '';
-        }
-
-        function hideStokForm(id) {
-            document.getElementById('stok-form-' + id).style.display = 'none';
-        }
-    </script>
-
-    <!-- Core JS footer -->
     <?php include '../includes/footer.php'; ?>
-    <!-- /Core JS footer -->
-
-
 </body>
 
 </html>
