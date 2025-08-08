@@ -71,19 +71,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <?php endif; ?>
 
                                 <form method="post">
-                                    <div class="mb-3">
-                                        <label for="nama" class="form-label">Nama Reseller</label>
-                                        <input type="text" id="nama" name="nama" class="form-control" value="<?= htmlspecialchars($reseller['nama_reseller']) ?>" required>
-                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="nama" class="form-label">Nama Reseller</label>
+                                            <input type="text" id="nama" name="nama" class="form-control" value="<?= htmlspecialchars($reseller['nama_reseller']) ?>" required>
+                                        </div>
 
+                                        <div class="col-md-6 mb-3">
+                                            <label for="kontak" class="form-label">Kontak</label>
+                                            <input type="text" id="kontak" name="kontak" class="form-control" value="<?= htmlspecialchars($reseller['kontak']) ?>" required>
+                                        </div>
+                                    </div>
                                     <div class="mb-3">
                                         <label for="alamat" class="form-label">Alamat</label>
                                         <textarea id="alamat" name="alamat" class="form-control" rows="3" required><?= htmlspecialchars($reseller['alamat']) ?></textarea>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label for="kontak" class="form-label">Kontak</label>
-                                        <input type="text" id="kontak" name="kontak" class="form-control" value="<?= htmlspecialchars($reseller['kontak']) ?>" required>
                                     </div>
 
                                     <div class="mb-3">
