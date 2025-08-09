@@ -163,7 +163,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <div class="row">
                                     <div class="col-md-4 mb-3">
                                         <label class="form-label">Jumlah Produk Jadi (pcs)</label>
-                                        <input type="number" name="jumlah" min="1" class="form-control" required>
+                                        <div class="input-group">
+                                            <input type="number" name="jumlah" min="1" class="form-control" required>
+                                            <span class="input-group-text">Pcs</span>
+                                        </div>
                                     </div>
 
                                     <div class="col-md-8 mb-3">

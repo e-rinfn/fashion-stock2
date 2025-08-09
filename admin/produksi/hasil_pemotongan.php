@@ -134,7 +134,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <div class="row">
                                     <div class="col-md-4 mb-3">
                                         <label for="jumlah_hasil" class="form-label">Jumlah Hasil (pcs bahan mentah)</label>
-                                        <input type="number" name="jumlah_hasil" id="jumlah_hasil" class="form-control" required min="1">
+                                        <div class="input-group">
+                                            <input type="number" name="jumlah_hasil" id="jumlah_hasil" class="form-control" required min="1">
+                                            <span class="input-group-text">Pcs</span>
+                                        </div>
                                     </div>
                                     <div class="col-md-8 mb-3">
                                         <label for="tanggal" class="form-label">Tanggal Selesai <span class="text-danger">(Bulan/Tanggal/Tahun)</span></label>
