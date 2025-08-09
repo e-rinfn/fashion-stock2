@@ -169,10 +169,6 @@ $total_cicilan = $cicilan['total'] ?? 0;
                             <div class="alert alert-danger"><?= $error ?></div>
                         <?php endif; ?>
 
-
-
-
-
                         <div class="row">
                             <div class="col-md-12 mb-3">
                                 <div class="card mb-4">
@@ -201,11 +197,21 @@ $total_cicilan = $cicilan['total'] ?? 0;
                                                         <th>Status Pembayaran</th>
                                                         <td>
                                                             <?= ucfirst($pembelian_bahan['status_pembayaran']) ?>
-                                                            <?php if ($pembelian_bahan['status_pembayaran'] == 'cicilan'): ?> <br>
-                                                                Dibayar: <?= formatRupiah($total_cicilan) ?> dari <?= formatRupiah($pembelian_bahan['total_harga']) ?>
+
+                                                            <?php if ($pembelian_bahan['status_pembayaran'] == 'cicilan'): ?>
+                                                                <br>
+                                                                Dibayar: <?= formatRupiah($total_cicilan) ?>
+                                                                dari <?= formatRupiah($pembelian_bahan['total_harga']) ?>
+
+                                                                <?php
+                                                                $sisa_hutang = $pembelian_bahan['total_harga'] - $total_cicilan;
+                                                                ?>
+                                                                <br>
+                                                                Sisa Hutang: <?= formatRupiah($sisa_hutang) ?>
                                                             <?php endif; ?>
                                                         </td>
                                                     </tr>
+
                                                     <!-- <tr>
                                                 <th>Metode Pembayaran</th>
                                                 <td><?= ucfirst($pembelian_bahan['metode_pembayaran']) ?></td>
