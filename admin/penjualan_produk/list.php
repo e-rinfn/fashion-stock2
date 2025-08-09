@@ -147,9 +147,9 @@ $penjualan = query($sql);
                                                             <a href="cicilan.php?id=<?= $jual['id_penjualan'] ?>" class="btn btn-sm btn-warning" title="Pembayaran">
                                                                 <i class="bx bx-money"></i>
                                                             </a>
-                                                            <a href="detail.php?id=<?= $jual['id_penjualan'] ?>" class="btn btn-sm btn-primary" title="Detail">
+                                                            <!-- <a href="detail.php?id=<?= $jual['id_penjualan'] ?>" class="btn btn-sm btn-primary" title="Detail">
                                                                 <i class="bx bx-detail"></i>
-                                                            </a>
+                                                            </a> -->
 
 
                                                             <a href="nota.php?id=<?= $jual['id_penjualan'] ?>" target="_blank" class="btn btn-sm btn-info" title="Nota">
