@@ -279,10 +279,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_penjualan_bahan
                 </td>
                 <td class="stok">0</td>
                 <td>
+                <small class="text-danger stok-error" style="display:none">Melebihi stok tersedia</small>
                     <div class="input-group">
                         <input type="number" name="items[${rowId}][qty]" class="form-control qty" min="1" value="1" required>
-                        <small class="text-danger stok-error" style="display:none">Melebihi stok tersedia</small>
-                        <span class="input-group-text">Pcs</span>
+                        <span class="input-group-text">Roll</span>
                     </div>
                 </td>
                 <td class="currency-format subtotal">0</td>

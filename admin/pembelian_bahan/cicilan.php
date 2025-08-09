@@ -157,7 +157,7 @@ $total_cicilan = $cicilan['total'] ?? 0;
                     <!-- Content -->
 
                     <div class="container-xxl flex-grow-1 container-p-y">
-                        <h2 class="text-center">CICILAN PEMBELIAN BAHAN</h2>
+                        <h2 class="fw-bold text-success">PEMBELIAN BAHAN BAKU</h2>
                         <hr>
 
 

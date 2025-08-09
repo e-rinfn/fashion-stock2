@@ -171,6 +171,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
     }
 }
 
+// Ambil detail penjualan
+$detail = query("SELECT d.*, pr.nama_produk 
+                FROM detail_penjualan d
+                JOIN produk pr ON d.id_produk = pr.id_produk
+                WHERE d.id_penjualan = $id_penjualan");
+
+// Hitung total cicilan
+$cicilan_info = query("SELECT SUM(jumlah_cicilan) as total FROM cicilan WHERE id_penjualan = $id_penjualan AND status = 'lunas'")[0];
+$total_cicilan_info = $cicilan_info['total'] ?? 0;
+
 
 ?>
 
@@ -203,14 +213,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
                     <!-- Content -->
 
                     <div class="container-xxl flex-grow-1 container-p-y">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <h2>Informasi Pembayaran</h2>
-                            <div class="btn-group mb-3" role="group" aria-label="Aksi Penjualan">
-                                <a href="list.php" class="btn btn-secondary">
-                                    <i class="bx bx-arrow-back"></i> Kembali
-                                </a>
-                            </div>
-                        </div>
+                        <h2 class="fw-bold text-danger">PENJUALAN BARANG PRODUK</h2>
+
+                        <hr>
 
                         <?php if (isset($_GET['success'])): ?>
                             <div class="alert alert-success">Pembayaran berhasil dicatat!</div>
@@ -221,43 +226,101 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
                         <?php endif; ?>
 
                         <div class="row">
-                            <div class="col-md-12">
+                            <div class="col-md-12 mb-3">
                                 <div class="card mb-4">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <table class="table table-bordered">
+                                                    <tr>
+                                                        <th width="30%">Reseller</th>
+                                                        <td><?= $penjualan['nama_reseller'] ?></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Tanggal</th>
+                                                        <td><?= dateIndo($penjualan['tanggal_penjualan']) . ' ' . date('H:i', strtotime($penjualan['tanggal_penjualan'])) ?></td>
+                                                    </tr>
+
+                                                </table>
+                                            </div>
+                                            <div class="col-md-8">
+                                                <table class="table table-bordered">
+                                                    <tr>
+                                                        <th width="30%">Total Harga</th>
+                                                        <td><?= formatRupiah($penjualan['total_harga']) ?></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Status Pembayaran</th>
+                                                        <td>
+                                                            <?= ucfirst($penjualan['status_pembayaran']) ?>
+                                                            <?php if ($penjualan['status_pembayaran'] == 'cicilan'): ?> <br>
+                                                                Dibayar: <?= formatRupiah($total_cicilan_info) ?> dari <?= formatRupiah($penjualan['total_harga']) ?>
+                                                                <?php
+                                                                $sisa_hutang = $penjualan['total_harga'] - $total_cicilan_info;
+                                                                ?>
+                                                                <br>
+                                                                Sisa Hutang: <?= formatRupiah($sisa_hutang) ?>
+                                                            <?php endif; ?>
+                                                        </td>
+                                                    </tr>
+                                                    <!-- <tr>
+                                                <th>Metode Pembayaran</th>
+                                                <td><?= ucfirst($penjualan['metode_pembayaran']) ?></td>
+                                            </tr> -->
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card">
+                                    <div class="card-header">
+                                        <div class="d-flex justify-content-between">
+                                            <h3>Daftar Produk</h3>
+                                            <a href="nota.php?id=<?= $id_penjualan ?>" class="btn btn-danger" target="_blank">
+                                                <i class="bx bx-printer"></i> Cetak Nota
+                                            </a>
+                                        </div>
+                                    </div>
 
                                     <div class="card-body">
-
-
                                         <table class="table table-bordered">
-                                            <tr class="text-center">
-                                                <th>Nama Reseller</th>
-                                                <th>Total Harga</th>
-                                                <th>Status</th>
-                                                <th>Total Dibayar</th>
-                                                <th>Sisa Hutang</th>
-                                            </tr>
-                                            <tr>
-                                                <td><?= $penjualan['nama_reseller'] ?></td>
-                                                <td><?= formatRupiah($penjualan['total_harga']) ?></td>
-                                                <td>
-                                                    <?php if ($penjualan['status_pembayaran'] === 'lunas'): ?>
-                                                        Lunas
-                                                    <?php elseif ($penjualan['status_pembayaran'] === 'cicilan'): ?>
-                                                        Cicilan
-                                                    <?php else: ?>
-                                                        <?= htmlspecialchars($penjualan['status_pembayaran']) ?>
-                                                    <?php endif; ?>
-                                                </td>
-                                                <td><?= formatRupiah($total_dibayar) ?></td>
-                                                <td><?= formatRupiah($sisa_hutang) ?></td>
+                                            <thead>
+                                                <tr>
+                                                    <th>No</th>
+                                                    <th>Produk</th>
+                                                    <th>Harga Satuan</th>
+                                                    <th>Qty</th>
+                                                    <th>Subtotal</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($detail as $i => $d): ?>
+                                                    <tr>
+                                                        <td><?= $i + 1 ?></td>
+                                                        <td><?= $d['nama_produk'] ?></td>
+                                                        <td><?= formatRupiah($d['harga_satuan']) ?></td>
+                                                        <td><?= $d['jumlah'] ?></td>
+                                                        <td><?= formatRupiah($d['subtotal']) ?></td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <th colspan="4" class="text-right">Total</th>
+                                                    <th class="fs-6 text-center"><?= formatRupiah($penjualan['total_harga']) ?></th>
+                                                </tr>
+                                            </tfoot>
                                         </table>
                                     </div>
                                 </div>
                             </div>
-
+                            <hr>
                             <div class="col-md-5">
                                 <div class="card">
-                                    <div class="card-header">
+                                    <div class="card-header text-center">
                                         <h3>Tambah Pembayaran</h3>
+                                        <hr>
                                     </div>
                                     <div class="card-body">
                                         <form method="post" enctype="multipart/form-data">
@@ -285,19 +348,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
                                             </div>
                                             <div class="form-group mt-3">
                                                 <label>Bukti Pembayaran <br> (jpg, png, pdf max 2MB)</label>
-                                                <input type="file" name="bukti_pembayaran" class="form-control" accept=".jpg,.jpeg,.png,.pdf" required>
+                                                <input type="file" name="bukti_pembayaran" class="form-control" accept=".jpg,.jpeg,.png,.pdf">
                                             </div>
-                                            <button type="submit" name="tambah_cicilan" class="btn btn-primary mt-3">
-                                                Simpan Pembayaran
-                                            </button>
+
+                                            <div class="d-flex justify-content-between align-items-center mb-3 mt-3">
+
+                                                <a href="list.php" class="btn btn-secondary">
+                                                    <i class="bx bx-arrow-back"></i> Kembali
+                                                </a>
+                                                <button type="submit" name="tambah_cicilan" class="btn btn-primary">
+                                                    Simpan Pembayaran
+                                                </button>
+                                            </div>
                                         </form>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-7">
                                 <div class="card">
-                                    <div class="card-header">
+                                    <div class="card-header text-center">
                                         <h3>Riwayat Pembayaran</h3>
+                                        <hr>
                                     </div>
                                     <div class="card-body">
                                         <?php if (empty($cicilan)): ?>
@@ -335,9 +406,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
                                                                             <a href="<?= $fileUrl ?>" target="_blank">Lihat Bukti</a>
                                                                         <?php endif; ?>
                                                                     <?php else: ?>
-                                                                        -
+                                                                        Tidak ada bukti
                                                                     <?php endif; ?>
-                                                                    <br>
+                                                                    <hr>
                                                                     <div class="btn-group mt-1">
                                                                         <button class="btn btn-sm btn-warning" onclick="showEditForm(<?= $c['id_cicilan'] ?>)">
                                                                             <i class="bx bx-edit"></i>
@@ -452,7 +523,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
                 .then(data => {
                     if (data) {
                         document.getElementById('edit_id_cicilan').value = data.id_cicilan;
-                        document.getElementById('edit_jumlah').value = data.jumlah_cicilan;
+                        // document.getElementById('edit_jumlah').value = data.jumlah_cicilan;
+                        document.getElementById('edit_jumlah').value = parseFloat(data.jumlah_cicilan).toString();
                         document.getElementById('edit_tanggal').value = data.tanggal_bayar;
                         document.getElementById('edit_metode').value = data.metode_pembayaran;
 

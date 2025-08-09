@@ -68,7 +68,8 @@ $pembelian_bahan = query($sql);
                 <div class="content-wrapper">
                     <div class="container-xxl flex-grow-1 container-p-y">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h2>Data Pembelian Bahan</h2>
+                            <h2 class="fw-bold text-success">DATA PEMBELIAN BAHAN BAKU</h2>
+
                             <a href="new.php" class="btn btn-success">
                                 <i class="bx bx-plus-circle"></i> Tambah Pesanan
                             </a>

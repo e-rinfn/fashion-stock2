@@ -65,7 +65,7 @@ $pdf->Ln(5);
 
 // Judul
 $pdf->SetFont('helvetica', 'B', 11);
-$pdf->Cell(0, 6, 'NOTA PEMESANAN', 0, 1, 'C');
+$pdf->Cell(0, 6, 'NOTA PENJUALAN PRODUK', 0, 1, 'C');
 $pdf->SetFont('helvetica', '', 9);
 $pdf->Ln(5);
 
@@ -85,7 +85,12 @@ $pdf->Cell(60, 5, $penjualan['status_pembayaran'], 0, 1);
 
 $pdf->Cell(40, 5, 'Dibayar', 0, 0);
 $pdf->Cell(3, 5, ':', 0, 0);
-$pdf->Cell(60, 5, formatRupiah($total_cicilan) . ' dari ' . formatRupiah($penjualan['total_harga']), 0, 1);
+
+if ($total_cicilan > 0) {
+    $pdf->Cell(60, 5, formatRupiah($total_cicilan) . ' dari ' . formatRupiah($penjualan['total_harga']), 0, 1);
+} else {
+    $pdf->Cell(60, 5, '- dari ' . formatRupiah($penjualan['total_harga']), 0, 1);
+}
 
 $pdf->Cell(40, 5, 'Reseller', 0, 0);
 $pdf->Cell(3, 5, ':', 0, 0);

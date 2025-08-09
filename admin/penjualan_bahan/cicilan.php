@@ -124,7 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['tambah_cicilan'])) {
 
 // Proses edit cicilan
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
-    $id_cicilan = intval($_POST['id_cicilan']);
+    $id_cicilan_penjualan_bahan = intval($_POST['id_cicilan_penjualan_bahan']);
     $jumlah = floatval(str_replace('.', '', $_POST['jumlah']));
     $tanggal = $_POST['tanggal'];
     $metode = $conn->real_escape_string($_POST['metode']);
@@ -138,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
             $bukti_update = ", bukti_pembayaran = '$bukti_pembayaran'";
 
             // Hapus file lama jika ada
-            $old_file = query("SELECT bukti_pembayaran FROM cicilan WHERE id_cicilan = $id_cicilan")[0]['bukti_pembayaran'];
+            $old_file = query("SELECT bukti_pembayaran FROM cicilan WHERE id_cicilan_penjualan_bahan = $id_cicilan_penjualan_bahan")[0]['bukti_pembayaran'];
             if ($old_file && file_exists("bukti/$old_file")) {
                 unlink("bukti/$old_file");
             }
@@ -151,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
             tanggal_jatuh_tempo = '$tanggal',
             metode_pembayaran = '$metode'
             $bukti_update
-            WHERE id_cicilan = $id_cicilan";
+            WHERE id_cicilan_penjualan_bahan = $id_cicilan_penjualan_bahan";
 
     if ($conn->query($sql)) {
         // Update total dibayar di penjualan jika perlu
@@ -170,6 +170,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
         $error = "Gagal memperbarui cicilan: " . $conn->error;
     }
 }
+
+// Ambil detail penjualan
+$detail = query("SELECT d.*, pr.nama_bahan 
+                FROM detail_penjualan_bahan d
+                JOIN bahan_baku pr ON d.id_bahan = pr.id_bahan
+                WHERE d.id_penjualan_bahan = $id_penjualan_bahan");
+
+// Ambil detail penjualan
+$detail = query("SELECT d.*, pr.nama_bahan 
+                FROM detail_penjualan_bahan d
+                JOIN bahan_baku pr ON d.id_bahan = pr.id_bahan
+                WHERE d.id_penjualan_bahan = $id_penjualan_bahan");
+
+// Hitung total cicilan
+$cicilan_info = query("SELECT SUM(jumlah_cicilan_penjualan_bahan) as total FROM cicilan_penjualan_bahan WHERE id_penjualan_bahan = $id_penjualan_bahan AND status = 'lunas'")[0];
+$total_cicilan = $cicilan_info['total'] ?? 0;
 
 
 ?>
@@ -203,8 +219,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
                     <!-- Content -->
 
                     <div class="container-xxl flex-grow-1 container-p-y">
-                        <h2 class="text-center">CICILAN PENJUALAN BAHAN</h2>
+                        <h2 class="fw-bold text-warning">PENJUALAN BAHAN BAKU</h2>
                         <hr>
+
 
                         <?php if (isset($_GET['success'])): ?>
                             <div class="alert alert-success">Pembayaran berhasil dicatat!</div>
@@ -215,42 +232,103 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
                         <?php endif; ?>
 
                         <div class="row">
-                            <div class="col-md-12">
+                            <div class="col-md-12 mb-3">
+
                                 <div class="card mb-4">
-
                                     <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <table class="table table-bordered">
+                                                    <tr>
+                                                        <th width="30%">Reseller</th>
+                                                        <td><?= $penjualan_bahan['nama_reseller'] ?></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Tanggal</th>
+                                                        <td><?= dateIndo($penjualan_bahan['tanggal_penjualan_bahan']) . ' ' . date('H:i', strtotime($penjualan_bahan['tanggal_penjualan_bahan'])) ?></td>
+                                                    </tr>
 
+                                                </table>
+                                            </div>
+                                            <div class="col-md-8">
+                                                <table class="table table-bordered">
+                                                    <tr>
+                                                        <th width="30%">Total Harga</th>
+                                                        <td><?= formatRupiah($penjualan_bahan['total_harga']) ?></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Status Pembayaran</th>
+                                                        <td>
+                                                            <?= ucfirst($penjualan_bahan['status_pembayaran']) ?>
+                                                            <?php if ($penjualan_bahan['status_pembayaran'] == 'cicilan'): ?> <br>
+                                                                Dibayar: <?= formatRupiah($total_cicilan) ?> dari <?= formatRupiah($penjualan_bahan['total_harga']) ?>
+                                                                <?php
+                                                                $sisa_hutang = $penjualan_bahan['total_harga'] - $total_cicilan;
+                                                                ?>
+                                                                <br>
+                                                                Sisa Hutang: <?= formatRupiah($sisa_hutang) ?>
+                                                            <?php endif; ?>
+                                                        </td>
+                                                    </tr>
+                                                    <!-- <tr>
+                                                <th>Metode Pembayaran</th>
+                                                <td><?= ucfirst($penjualan_bahan['metode_pembayaran']) ?></td>
+                                            </tr> -->
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card">
+                                    <div class="card-header">
+                                        <div class="d-flex justify-content-between">
+                                            <h3>Daftar Produk</h3>
+                                            <a href="nota.php?id=<?= $id_penjualan_bahan ?>" class="btn btn-danger" target="_blank">
+                                                <i class="bx bx-printer"></i> Cetak Nota
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
                                         <table class="table table-bordered">
-                                            <tr class="text-center">
-                                                <th>Nama Reseller</th>
-                                                <th>Total Harga</th>
-                                                <th>Status</th>
-                                                <th>Total Dibayar</th>
-                                                <th>Sisa Hutang</th>
-                                            </tr>
-                                            <tr>
-                                                <td><?= $penjualan_bahan['nama_reseller'] ?></td>
-                                                <td><?= formatRupiah($penjualan_bahan['total_harga']) ?></td>
-                                                <td>
-                                                    <?php if ($penjualan_bahan['status_pembayaran'] === 'lunas'): ?>
-                                                        Lunas
-                                                    <?php elseif ($penjualan_bahan['status_pembayaran'] === 'cicilan'): ?>
-                                                        Cicilan
-                                                    <?php else: ?>
-                                                        <?= htmlspecialchars($penjualan_bahan['status_pembayaran']) ?>
-                                                    <?php endif; ?>
-                                                </td>
-                                                <td><?= formatRupiah($total_dibayar) ?></td>
-                                                <td><?= formatRupiah($sisa_hutang) ?></td>
+                                            <thead>
+                                                <tr>
+                                                    <th>No</th>
+                                                    <th>Produk</th>
+                                                    <th>Harga Satuan</th>
+                                                    <th>Qty</th>
+                                                    <th>Subtotal</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($detail as $i => $d): ?>
+                                                    <tr>
+                                                        <td><?= $i + 1 ?></td>
+                                                        <td><?= $d['nama_bahan'] ?></td>
+                                                        <td><?= formatRupiah($d['harga_satuan']) ?></td>
+                                                        <td><?= $d['jumlah'] ?></td>
+                                                        <td><?= formatRupiah($d['subtotal']) ?></td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <th colspan="4" class="text-right">Total</th>
+                                                    <th class="fs-6 text-center"><?= formatRupiah($penjualan_bahan['total_harga']) ?></th>
+                                                </tr>
+                                            </tfoot>
                                         </table>
                                     </div>
                                 </div>
                             </div>
 
+                            <hr>
+
                             <div class="col-md-5">
                                 <div class="card">
-                                    <div class="card-header">
+                                    <div class="card-header text-center">
                                         <h3>Tambah Pembayaran</h3>
+                                        <hr>
                                     </div>
                                     <div class="card-body">
                                         <form method="post" enctype="multipart/form-data">
@@ -294,8 +372,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
                             </div>
                             <div class="col-md-7">
                                 <div class="card">
-                                    <div class="card-header">
+                                    <div class="card-header text-center">
                                         <h3>Riwayat Pembayaran</h3>
+                                        <hr>
                                     </div>
                                     <div class="card-body">
                                         <?php if (empty($cicilan)): ?>
@@ -336,10 +415,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
                                                                         Tidak ada bukti
                                                                     <?php endif; ?>
                                                                     <hr>
-                                                                    <br>
                                                                     <div class="btn-group mt-1">
                                                                         <button class="btn btn-sm btn-warning" onclick="showEditForm(<?= $c['id_cicilan_penjualan_bahan'] ?>)">
                                                                             <i class="bx bx-edit"></i>
+                                                                        </button>
+                                                                        <button class="btn btn-sm btn-danger" onclick="confirmCancel(<?= $c['id_cicilan_penjualan_bahan'] ?>)">
+                                                                            <i class="bx bx-trash"></i>
                                                                         </button>
                                                                         <a href="nota_cicilan.php?id=<?= $c['id_cicilan_penjualan_bahan'] ?>" target="_blank" class="btn btn-sm btn-info">
                                                                             <i class="bx bx-printer"></i>
@@ -360,7 +441,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
                                                         </div>
                                                         <div class="card-body">
                                                             <form id="editCicilanForm" method="post" enctype="multipart/form-data">
-                                                                <input type="hidden" name="id_cicilan" id="edit_id_cicilan">
+                                                                <input type="hidden" name="id_cicilan_penjualan_bahan" id="edit_id_cicilan_penjualan_bahan">
                                                                 <input type="hidden" name="edit_cicilan" value="1">
 
                                                                 <div class="row">
@@ -430,6 +511,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
     </div>
     <!-- / Layout wrapper -->
 
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
         // Format input uang
         document.querySelectorAll('.money').forEach(input => {
@@ -443,15 +527,75 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
             return angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
         }
 
+        function confirmCancel(id_cicilan_penjualan_bahan) {
+            Swal.fire({
+                title: 'Apakah Anda yakin?',
+                text: "Anda akan menghapus pembayaran ini!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Tampilkan loading
+                    Swal.fire({
+                        title: 'Memproses...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Kirim request penghapusan ke server
+                    fetch(`cancel_cicilan.php?id=${id_cicilan_penjualan_bahan}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            Swal.close();
+                            if (data.success) {
+                                Swal.fire(
+                                    'Dihapus!',
+                                    'Pembayaran telah dihapus.',
+                                    'success'
+                                ).then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire(
+                                    'Gagal!',
+                                    data.message || 'Gagal menghapus pembayaran.',
+                                    'error'
+                                );
+                            }
+                        })
+                        .catch(error => {
+                            Swal.close();
+                            Swal.fire(
+                                'Error!',
+                                'Terjadi kesalahan saat memproses permintaan: ' + error.message,
+                                'error'
+                            );
+                        });
+                }
+            });
+        }
+
         // Fungsi untuk menampilkan form edit
-        function showEditForm(id_cicilan) {
+        function showEditForm(id_cicilan_penjualan_bahan) {
             // Ambil data cicilan via AJAX
-            fetch(`get_cicilan.php?id=${id_cicilan}`)
+            fetch(`get_cicilan.php?id=${id_cicilan_penjualan_bahan}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data) {
-                        document.getElementById('edit_id_cicilan').value = data.id_cicilan_penjualan_bahan;
-                        document.getElementById('edit_jumlah').value = data.jumlah_cicilan_penjualan_bahan;
+                        document.getElementById('edit_id_cicilan_penjualan_bahan').value = data.id_cicilan_penjualan_bahan;
+                        // document.getElementById('edit_jumlah').value = data.jumlah_cicilan_penjualan_bahan;
+                        document.getElementById('edit_jumlah').value = parseFloat(data.jumlah_cicilan_penjualan_bahan).toString();
                         document.getElementById('edit_tanggal').value = data.tanggal_bayar;
                         document.getElementById('edit_metode').value = data.metode_pembayaran;
 
@@ -471,12 +615,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
             document.getElementById('editFormContainer').style.display = 'none';
         }
     </script>
-
-
-
-
-
-
 
     <!-- Core JS footer -->
     <?php include '../includes/footer.php'; ?>

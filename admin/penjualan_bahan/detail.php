@@ -23,27 +23,27 @@ function dateIndo($tanggal)
     return $pecah[2] . ' ' . $bulanIndo[(int)$pecah[1]] . ' ' . $pecah[0];
 }
 
-$id_penjualan = isset($_GET['id']) ? intval($_GET['id']) : 0;
+$id_penjualan_bahan = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-// Ambil data penjualan
-$penjualan = query("SELECT p.*, r.nama_reseller 
-                    FROM penjualan p
+// Ambil data penjualan bahan
+$penjualan_bahan = query("SELECT p.*, r.nama_reseller 
+                    FROM penjualan_bahan p
                     JOIN reseller r ON p.id_reseller = r.id_reseller
-                    WHERE p.id_penjualan = $id_penjualan")[0] ?? null;
+                    WHERE p.id_penjualan_bahan = $id_penjualan_bahan")[0] ?? null;
 
-if (!$penjualan) {
+if (!$penjualan_bahan) {
     header("Location: list.php");
     exit();
 }
 
 // Ambil detail penjualan
-$detail = query("SELECT d.*, pr.nama_produk 
-                FROM detail_penjualan d
-                JOIN produk pr ON d.id_produk = pr.id_produk
-                WHERE d.id_penjualan = $id_penjualan");
+$detail = query("SELECT d.*, pr.nama_bahan 
+                FROM detail_penjualan_bahan d
+                JOIN bahan_baku pr ON d.id_bahan = pr.id_bahan
+                WHERE d.id_penjualan_bahan = $id_penjualan_bahan");
 
 // Hitung total cicilan
-$cicilan = query("SELECT SUM(jumlah_cicilan) as total FROM cicilan WHERE id_penjualan = $id_penjualan AND status = 'lunas'")[0];
+$cicilan = query("SELECT SUM(jumlah_cicilan_penjualan_bahan) as total FROM cicilan_penjualan_bahan WHERE id_penjualan_bahan = $id_penjualan_bahan AND status = 'lunas'")[0];
 $total_cicilan = $cicilan['total'] ?? 0;
 ?>
 
@@ -78,15 +78,15 @@ $total_cicilan = $cicilan['total'] ?? 0;
                     <div class="container-xxl flex-grow-1 container-p-y">
 
                         <div class="d-flex justify-content-between align-items-center mb-4">
-                            <h2>Detail Pesanan #<?= $id_penjualan ?></h2>
+                            <h2>Detail Pesanan #<?= $id_penjualan_bahan ?></h2>
                             <div class="btn-group mb-3" role="group" aria-label="Aksi Penjualan">
                                 <a href="list.php" class="btn btn-secondary">
                                     <i class="bx bx-arrow-back"></i> Kembali
                                 </a>
-                                <a href="cicilan.php?id=<?= $id_penjualan ?>" class="btn btn-warning">
+                                <a href="cicilan.php?id=<?= $id_penjualan_bahan ?>" class="btn btn-warning">
                                     <i class="bx bx-credit-card"></i> Cicilan
                                 </a>
-                                <a href="nota.php?id=<?= $id_penjualan ?>" class="btn btn-danger" target="_blank">
+                                <a href="nota.php?id=<?= $id_penjualan_bahan ?>" class="btn btn-danger" target="_blank">
                                     <i class="bx bx-printer"></i> Cetak Nota
                                 </a>
                             </div>
@@ -100,11 +100,11 @@ $total_cicilan = $cicilan['total'] ?? 0;
                                         <table class="table table-bordered">
                                             <tr>
                                                 <th width="30%">Reseller</th>
-                                                <td><?= $penjualan['nama_reseller'] ?></td>
+                                                <td><?= $penjualan_bahan['nama_reseller'] ?></td>
                                             </tr>
                                             <tr>
                                                 <th>Tanggal</th>
-                                                <td><?= dateIndo($penjualan['tanggal_penjualan']) . ' ' . date('H:i', strtotime($penjualan['tanggal_penjualan'])) ?></td>
+                                                <td><?= dateIndo($penjualan_bahan['tanggal_penjualan_bahan']) . ' ' . date('H:i', strtotime($penjualan_bahan['tanggal_penjualan_bahan'])) ?></td>
                                             </tr>
 
                                         </table>
@@ -113,20 +113,20 @@ $total_cicilan = $cicilan['total'] ?? 0;
                                         <table class="table table-bordered">
                                             <tr>
                                                 <th width="30%">Total Harga</th>
-                                                <td><?= formatRupiah($penjualan['total_harga']) ?></td>
+                                                <td><?= formatRupiah($penjualan_bahan['total_harga']) ?></td>
                                             </tr>
                                             <tr>
                                                 <th>Status Pembayaran</th>
                                                 <td>
-                                                    <?= ucfirst($penjualan['status_pembayaran']) ?>
-                                                    <?php if ($penjualan['status_pembayaran'] == 'cicilan'): ?> <br>
-                                                        Dibayar: <?= formatRupiah($total_cicilan) ?> dari <?= formatRupiah($penjualan['total_harga']) ?>
+                                                    <?= ucfirst($penjualan_bahan['status_pembayaran']) ?>
+                                                    <?php if ($penjualan_bahan['status_pembayaran'] == 'cicilan'): ?> <br>
+                                                        Dibayar: <?= formatRupiah($total_cicilan) ?> dari <?= formatRupiah($penjualan_bahan['total_harga']) ?>
                                                     <?php endif; ?>
                                                 </td>
                                             </tr>
                                             <!-- <tr>
                                                 <th>Metode Pembayaran</th>
-                                                <td><?= ucfirst($penjualan['metode_pembayaran']) ?></td>
+                                                <td><?= ucfirst($penjualan_bahan['metode_pembayaran']) ?></td>
                                             </tr> -->
                                         </table>
                                     </div>
@@ -153,7 +153,7 @@ $total_cicilan = $cicilan['total'] ?? 0;
                                         <?php foreach ($detail as $i => $d): ?>
                                             <tr>
                                                 <td><?= $i + 1 ?></td>
-                                                <td><?= $d['nama_produk'] ?></td>
+                                                <td><?= $d['nama_bahan'] ?></td>
                                                 <td><?= formatRupiah($d['harga_satuan']) ?></td>
                                                 <td><?= $d['jumlah'] ?></td>
                                                 <td><?= formatRupiah($d['subtotal']) ?></td>
@@ -163,7 +163,7 @@ $total_cicilan = $cicilan['total'] ?? 0;
                                     <tfoot>
                                         <tr>
                                             <th colspan="4" class="text-right">Total</th>
-                                            <th class="fs-6 text-center"><?= formatRupiah($penjualan['total_harga']) ?></th>
+                                            <th class="fs-6 text-center"><?= formatRupiah($penjualan_bahan['total_harga']) ?></th>
                                         </tr>
                                     </tfoot>
                                 </table>
