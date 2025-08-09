@@ -137,7 +137,10 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, b.satuan, pm.nama_pemotong
                                 <div class="row">
                                     <div class="col-4 mb-3">
                                         <label class="form-label">Jumlah</label>
-                                        <input type="number" name="jumlah" step="1" class="form-control" required>
+                                        <div class="input-group">
+                                            <input type="number" name="jumlah" step="1" class="form-control" required>
+                                            <span class="input-group-text">Roll</span>
+                                        </div>
                                     </div>
 
                                     <div class="col-8 mb-3">
