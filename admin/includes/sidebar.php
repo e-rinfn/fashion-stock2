@@ -120,12 +120,12 @@ function isActive($path)
             <ul class="menu-sub">
                 <li class="menu-item <?= isActive('/admin/pembelian_bahan') ?>">
                     <a href="<?= $base_url ?>/admin/pembelian_bahan/list.php" class="menu-link">
-                        <div data-i18n="Account">Pembelian Bahan</div>
+                        <div data-i18n="Account" class="text-success">Pembelian Bahan</div>
                     </a>
                 </li>
                 <li class="menu-item <?= isActive('/admin/pembelian_produk') ?>">
                     <a href="<?= $base_url ?>/admin/pembelian_produk/list.php" class="menu-link">
-                        <div data-i18n="Notifications">Pembelian Barang</div>
+                        <div data-i18n="Notifications" class="text-primary">Pembelian Barang</div>
                     </a>
                 </li>
             </ul>
@@ -140,12 +140,12 @@ function isActive($path)
             <ul class="menu-sub">
                 <li class="menu-item <?= isActive('/penjualan_bahan') ?>">
                     <a href="<?= $base_url ?>/admin/penjualan_bahan/list.php" class="menu-link">
-                        <div data-i18n="Account">Penjualan Bahan</div>
+                        <div data-i18n="Account" class="text-warning">Penjualan Bahan</div>
                     </a>
                 </li>
                 <li class="menu-item <?= isActive('/penjualan_produk') ?>">
                     <a href="<?= $base_url ?>/admin/penjualan_produk/list.php" class="menu-link">
-                        <div data-i18n="Notifications">Penjualan Barang</div>
+                        <div data-i18n="Notifications" class="text-danger">Penjualan Barang</div>
                     </a>
                 </li>
             </ul>
