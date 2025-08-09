@@ -149,22 +149,17 @@ $pembelian_bahan = query($sql);
                                                             <span class="badge bg-warning text-dark">CICILAN</span>
                                                         <?php endif; ?>
                                                     </td>
-                                                    <td class="text-end">
+                                                    <td class="text-center">
                                                         <div class="btn-group" role="group" aria-label="Aksi Pembelian">
-                                                            <!-- Tombol Batal (hanya muncul jika belum lunas) namun kali ini saya aktifkan untuk fungsi menghapus status lunas -->
-                                                            <?php if ($p['status_pembayaran'] != ''): ?>
-                                                                <button class="btn btn-sm btn-danger btn-batal" data-id="<?= $p['id_pembelian_bahan'] ?>" title="Batalkan Pembelian">
-                                                                    <i class="bx bx-x-circle"></i>
-                                                                </button>
-                                                            <?php endif; ?>
-                                                            <?php if ($p['status_pembayaran'] == 'cicilan'): ?>
-                                                                <a href="cicilan.php?id=<?= $p['id_pembelian_bahan'] ?>" class="btn btn-sm btn-warning" title="Pembayaran">
-                                                                    <i class="bx bx-money"></i>
-                                                                </a>
-                                                            <?php endif; ?>
-                                                            <a href="detail.php?id=<?= $p['id_pembelian_bahan'] ?>" class="btn btn-sm btn-primary" title="Detail">
-                                                                <i class="bx bx-detail"></i>
+                                                            <button class="btn btn-sm btn-danger btn-batal" data-id="<?= $p['id_pembelian_bahan'] ?>" title="Batalkan Pembelian">
+                                                                <i class="bx bx-x-circle"></i>
+                                                            </button>
+                                                            <a href="cicilan.php?id=<?= $p['id_pembelian_bahan'] ?>" class="btn btn-sm btn-warning" title="Pembayaran">
+                                                                <i class="bx bx-money"></i>
                                                             </a>
+                                                            <!-- <a href="detail.php?id=<?= $p['id_pembelian_bahan'] ?>" class="btn btn-sm btn-primary" title="Detail">
+                                                                <i class="bx bx-detail"></i>
+                                                            </a> -->
                                                         </div>
                                                     </td>
 

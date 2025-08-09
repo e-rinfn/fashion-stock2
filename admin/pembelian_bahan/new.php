@@ -25,10 +25,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_pembelian_bahan
             $harga = floatval($item['harga']);
             $bahan = query("SELECT jumlah_stok FROM bahan_baku WHERE id_bahan = $id_bahan")[0];
 
-            if ($qty > $bahan['jumlah_stok']) {
-                $error = "Jumlah melebihi stok tersedia untuk bahan ID $id_bahan";
-                break;
-            }
+            // if ($qty > $bahan['jumlah_stok']) {
+            //     $error = "Jumlah melebihi stok tersedia untuk bahan ID $id_bahan";
+            //     break;
+            // }
 
             if ($harga <= 0) {
                 $error = "Harga tidak valid untuk bahan ID $id_bahan";
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_pembelian_bahan
                         $harga = floatval($item['harga']);
                         $bahan = query("SELECT jumlah_stok FROM bahan_baku WHERE id_bahan = $id_bahan")[0];
 
-                        if ($bahan['jumlah_stok'] < $qty) throw new Exception("Stok bahan tidak mencukupi untuk bahan ID $id_bahan");
+                        // if ($bahan['jumlah_stok'] < $qty) throw new Exception("Stok bahan tidak mencukupi untuk bahan ID $id_bahan");
 
                         $subtotal = $harga * $qty;
 
@@ -346,7 +346,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_pembelian_bahan
                     if (bahan) {
                         hargaInput.value = bahan.harga_per_satuan;
                         stokDisplay.textContent = bahan.jumlah_stok;
-                        qtyInput.max = bahan.jumlah_stok;
+                        // qtyInput.max = bahan.jumlah_stok;
                         qtyInput.value = 1;
                         hitungSubtotal(rowId);
                     }
@@ -368,15 +368,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_pembelian_bahan
             });
 
             qtyInput.addEventListener('input', function() {
-                const maxStok = parseInt(qtyInput.max) || 0;
+                // const maxStok = parseInt(qtyInput.max) || 0;
                 const enteredQty = parseInt(this.value) || 0;
 
-                if (enteredQty > maxStok) {
-                    stokError.style.display = 'block';
-                    this.value = maxStok;
-                } else {
-                    stokError.style.display = 'none';
-                }
+                // if (enteredQty > maxStok) {
+                //     stokError.style.display = 'block';
+                //     this.value = maxStok;
+                // } else {
+                //     stokError.style.display = 'none';
+                // }
 
                 hitungSubtotal(rowId);
             });

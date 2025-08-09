@@ -47,6 +47,13 @@ $sisa_hutang = $pembelian_bahan['total_harga'] - $total_dibayar;
 
 $bukti_pembayaran = null; // default null
 
+// Ambil detail pembelian_bahan
+$detail = query("SELECT d.*, pr.nama_bahan 
+                FROM detail_pembelian_bahan d
+                JOIN bahan_baku pr ON d.id_bahan = pr.id_bahan
+                WHERE d.id_pembelian_bahan = $id_pembelian_bahan");
+
+
 if (isset($_FILES['bukti_pembayaran']) && $_FILES['bukti_pembayaran']['error'] === UPLOAD_ERR_OK) {
     $fileTmpPath = $_FILES['bukti_pembayaran']['tmp_name'];
     $fileName = $_FILES['bukti_pembayaran']['name'];
@@ -114,6 +121,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['tambah_cicilan'])) {
     }
 }
 
+// Hitung total cicilan
+$cicilan = query("SELECT SUM(jumlah_cicilan) as total FROM cicilan_pembelian_bahan WHERE id_pembelian_bahan = $id_pembelian_bahan AND status = 'lunas'")[0];
+$total_cicilan = $cicilan['total'] ?? 0;
+
+
 ?>
 
 <?php include '../includes/header.php'; ?>
@@ -157,37 +169,90 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['tambah_cicilan'])) {
                             <div class="alert alert-danger"><?= $error ?></div>
                         <?php endif; ?>
 
+
+
+
+
                         <div class="row">
-                            <div class="col-md-12">
+                            <div class="col-md-12 mb-3">
                                 <div class="card mb-4">
                                     <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <table class="table table-bordered">
+                                                    <tr>
+                                                        <th width="30%">Supplier</th>
+                                                        <td><?= $pembelian_bahan['nama_supplier'] ?></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Tanggal</th>
+                                                        <td><?= dateIndo($pembelian_bahan['tanggal_pembelian']) . ' ' . date('H:i', strtotime($pembelian_bahan['tanggal_pembelian'])) ?></td>
+                                                    </tr>
+
+                                                </table>
+                                            </div>
+                                            <div class="col-md-8">
+                                                <table class="table table-bordered">
+                                                    <tr>
+                                                        <th width="30%">Total Harga</th>
+                                                        <td><?= formatRupiah($pembelian_bahan['total_harga']) ?></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Status Pembayaran</th>
+                                                        <td>
+                                                            <?= ucfirst($pembelian_bahan['status_pembayaran']) ?>
+                                                            <?php if ($pembelian_bahan['status_pembayaran'] == 'cicilan'): ?> <br>
+                                                                Dibayar: <?= formatRupiah($total_cicilan) ?> dari <?= formatRupiah($pembelian_bahan['total_harga']) ?>
+                                                            <?php endif; ?>
+                                                        </td>
+                                                    </tr>
+                                                    <!-- <tr>
+                                                <th>Metode Pembayaran</th>
+                                                <td><?= ucfirst($pembelian_bahan['metode_pembayaran']) ?></td>
+                                            </tr> -->
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-header text-center">
+                                        <h3>Daftar Bahan Baku Yang Dibeli</h3>
+                                        <hr>
+                                    </div>
+                                    <div class="card-body">
                                         <table class="table table-bordered">
-                                            <tr class="text-center">
-                                                <th>Nama Supplier</th>
-                                                <th>Total Harga</th>
-                                                <th>Status</th>
-                                                <th>Total Dibayar</th>
-                                                <th>Sisa Hutang</th>
-                                            </tr>
-                                            <tr>
-                                                <td><?= $pembelian_bahan['nama_supplier'] ?></td>
-                                                <td><?= formatRupiah($pembelian_bahan['total_harga']) ?></td>
-                                                <td>
-                                                    <?php if ($pembelian_bahan['status_pembayaran'] === 'lunas'): ?>
-                                                        Lunas
-                                                    <?php elseif ($pembelian_bahan['status_pembayaran'] === 'cicilan'): ?>
-                                                        Cicilan
-                                                    <?php else: ?>
-                                                        <?= htmlspecialchars($pembelian_bahan['status_pembayaran']) ?>
-                                                    <?php endif; ?>
-                                                </td>
-                                                <td><?= formatRupiah($total_dibayar) ?></td>
-                                                <td><?= formatRupiah($sisa_hutang) ?></td>
+                                            <thead>
+                                                <tr class="text-center">
+                                                    <th>No</th>
+                                                    <th>Bahan</th>
+                                                    <th>Harga Per Satuan</th>
+                                                    <th>Qty</th>
+                                                    <th>Subtotal</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($detail as $i => $d): ?>
+                                                    <tr>
+                                                        <td class="text-center"><?= $i + 1 ?></td>
+                                                        <td><?= $d['nama_bahan'] ?></td>
+                                                        <td class="text-end"><?= formatRupiah($d['harga_satuan']) ?></td>
+                                                        <td class="text-center"><?= $d['jumlah'] ?></td>
+                                                        <td class="text-end"><?= formatRupiah($d['subtotal']) ?></td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <th colspan="4" class="text-right">Total</th>
+                                                    <th class="fs-6 text-end"><?= formatRupiah($pembelian_bahan['total_harga']) ?></th>
+                                                </tr>
+                                            </tfoot>
                                         </table>
                                     </div>
                                 </div>
                             </div>
-
+                            <hr>
                             <div class="col-md-5">
                                 <div class="card">
                                     <div class="card-header text-center">
