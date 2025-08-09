@@ -25,51 +25,32 @@ function dateIndo($tanggal)
 }
 
 // Get filter parameters
-$filter_produk   = isset($_GET['produk']) ? intval($_GET['produk']) : 0;
-$filter_penjahit = isset($_GET['penjahit']) ? intval($_GET['penjahit']) : 0;
-$filter_awal     = isset($_GET['awal']) ? $_GET['awal'] : '';
-$filter_akhir    = isset($_GET['akhir']) ? $_GET['akhir'] : '';
+$filter_produk = isset($_GET['produk']) ? intval($_GET['produk']) : '';
+$filter_awal = isset($_GET['awal']) ? $_GET['awal'] : '';
+$filter_akhir = isset($_GET['akhir']) ? $_GET['akhir'] : '';
+
+// Build filter conditions
+$filter_conditions = [];
+if ($filter_produk !== '') {
+    $filter_conditions[] = "hp.id_produk = $filter_produk";
+}
+if ($filter_awal && $filter_akhir) {
+    $filter_conditions[] = "hp.tanggal_selesai BETWEEN '$filter_awal' AND '$filter_akhir'";
+}
+
+$where_clause = count($filter_conditions) > 0 ? "WHERE " . implode(" AND ", $filter_conditions) : "";
 
 // Get product list for filter dropdown
 $produk = query("SELECT * FROM produk ORDER BY nama_produk");
 
-// Get penjahit list for filter dropdown
-$penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
-
-// Build filter conditions
-$filter_conditions = [];
-if ($filter_produk > 0) {
-    $filter_conditions[] = "hp.id_produk = $filter_produk";
-}
-if ($filter_penjahit > 0) {
-    $filter_conditions[] = "pj.id_penjahit = $filter_penjahit";
-}
-if (!empty($filter_awal) && !empty($filter_akhir)) {
-    $filter_conditions[] = "hp.tanggal_selesai BETWEEN '$filter_awal' AND '$filter_akhir'";
-}
-
-$where_clause = !empty($filter_conditions)
-    ? "WHERE " . implode(" AND ", $filter_conditions)
-    : "";
-
 // Get sewing history with raw material data
-$sql_history = "
-    SELECT hp.*, 
-           p.nama_produk, 
-           pj.jumlah_bahan_mentah, 
-           pen.nama_penjahit,
-           DATE_FORMAT(hp.tanggal_selesai, '%d-%m-%Y') as tgl_selesai
-    FROM hasil_penjahitan hp
-    JOIN produk p 
-        ON hp.id_produk = p.id_produk
-    JOIN pengiriman_penjahit pj 
-        ON hp.id_pengiriman_jahit = pj.id_pengiriman_jahit
-    JOIN penjahit pen 
-        ON pj.id_penjahit = pen.id_penjahit
-    $where_clause
-    ORDER BY hp.tanggal_selesai DESC
-";
-
+$sql_history = "SELECT hp.*, p.nama_produk, pj.jumlah_bahan_mentah,
+                DATE_FORMAT(hp.tanggal_selesai, '%d-%m-%Y') as tgl_selesai
+                FROM hasil_penjahitan hp
+                JOIN produk p ON hp.id_produk = p.id_produk
+                JOIN pengiriman_penjahit pj ON hp.id_pengiriman_jahit = pj.id_pengiriman_jahit
+                $where_clause
+                ORDER BY hp.tanggal_selesai DESC";
 $history = query($sql_history);
 ?>
 
@@ -107,32 +88,21 @@ $history = query($sql_history);
                             <?php endif; ?>
 
                             <form method="GET" class="row g-3 mb-4">
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <label class="form-label">Tanggal Awal</label>
                                     <input type="date" name="awal" class="form-control" value="<?= htmlspecialchars($filter_awal) ?>">
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <label class="form-label">Tanggal Akhir</label>
                                     <input type="date" name="akhir" class="form-control" value="<?= htmlspecialchars($filter_akhir) ?>">
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <label class="form-label">Produk</label>
                                     <select name="produk" class="form-select">
                                         <option value="">-- Semua Produk --</option>
                                         <?php foreach ($produk as $p): ?>
                                             <option value="<?= $p['id_produk'] ?>" <?= ($filter_produk == $p['id_produk']) ? 'selected' : '' ?>>
                                                 <?= htmlspecialchars($p['nama_produk']) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Penjahit</label>
-                                    <select name="penjahit" class="form-select">
-                                        <option value="">-- Semua Penjahit --</option>
-                                        <?php foreach ($penjahit as $p): ?>
-                                            <option value="<?= $p['id_penjahit'] ?>" <?= ($filter_penjahit == $p['id_penjahit']) ? 'selected' : '' ?>>
-                                                <?= htmlspecialchars($p['nama_penjahit']) ?>
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
@@ -150,7 +120,6 @@ $history = query($sql_history);
                                         <tr class="text-center">
                                             <th>No</th>
                                             <th>Tanggal</th>
-                                            <th>Penjahit</th>
                                             <th>Produk</th>
                                             <th>Bahan Mentah (Pcs)</th>
                                             <th>Jumlah Jadi (Pcs)</th>
@@ -164,7 +133,6 @@ $history = query($sql_history);
                                                 <tr>
                                                     <td class="text-center"><?= $no++ ?></td>
                                                     <td><?= dateIndo($h['tgl_selesai']) ?></td>
-                                                    <td><?= htmlspecialchars($h['nama_penjahit']) ?></td>
                                                     <td><?= htmlspecialchars($h['nama_produk']) ?></td>
                                                     <td class="text-center"><?= number_format($h['jumlah_bahan_mentah']) ?> pcs</td>
                                                     <td class="text-center"><?= number_format($h['jumlah_produk_jadi']) ?> pcs</td>
@@ -173,7 +141,7 @@ $history = query($sql_history);
                                             <?php endforeach; ?>
                                         <?php else: ?>
                                             <tr>
-                                                <td colspan="7" class="text-center">Belum ada data hasil penjahitan.</td>
+                                                <td colspan="6" class="text-center">Belum ada data hasil penjahitan.</td>
                                             </tr>
                                         <?php endif; ?>
                                     </tbody>

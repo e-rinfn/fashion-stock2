@@ -202,6 +202,7 @@ $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
                                 </script>
 
                             </form>
+                            <small class="text-end text-danger">Pembatalan tidak dapat dilakukan karena data sudah masuk ke tahap penjahitan.</small>
 
                             <hr>
 
@@ -242,6 +243,11 @@ $penjahit = query("SELECT * FROM penjahit ORDER BY nama_penjahit");
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
+                                        <?php if (empty($history)): ?>
+                                            <tr>
+                                                <td colspan="5" class="text-center">Belum ada pengiriman ke penjahit.</td>
+                                            </tr>
+                                        <?php endif; ?>
                                     </tbody>
                                 </table>
                             </div>

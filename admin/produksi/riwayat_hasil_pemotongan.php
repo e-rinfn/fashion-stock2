@@ -94,6 +94,10 @@ $riwayat = query("SELECT h.*, p.nama_bahan, p.satuan, pm.nama_pemotong, pg.jumla
                                 <div class="alert alert-success"><?= htmlspecialchars($_SESSION['success']) ?></div>
                                 <?php unset($_SESSION['success']); ?>
                             <?php endif; ?>
+                            <?php if (isset($_SESSION['error'])): ?>
+                                <div class="alert alert-error"><?= htmlspecialchars($_SESSION['error']) ?></div>
+                                <?php unset($_SESSION['error']); ?>
+                            <?php endif; ?>
 
                             <form class="row g-3 mb-4" method="get">
                                 <div class="col-md-3">

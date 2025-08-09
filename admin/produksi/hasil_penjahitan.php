@@ -212,8 +212,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 </script>
 
                             </form>
+                            <small class="text-end text-danger">Pembatalan dapat mengurangi stok produksi.</small>
 
-                            <hr class="my-4">
+                            <hr>
 
                             <h4>Riwayat Hasil Penjahitan</h4>
                             <div class="table-responsive">
@@ -222,6 +223,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <tr class="text-center">
                                             <th>No</th>
                                             <th>Tanggal</th>
+                                            <th>Penjahit</th>
                                             <th>Produk</th>
                                             <th>Bahan Mentah</th>
                                             <th>Produk Jadi</th>
@@ -230,12 +232,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </thead>
                                     <tbody>
                                         <?php
-                                        $sql_history = "SELECT hp.*, p.nama_produk, pj.jumlah_bahan_mentah,
-                                            DATE_FORMAT(hp.tanggal_selesai, '%d-%m-%Y') as tgl_selesai
-                                            FROM hasil_penjahitan hp
-                                            JOIN produk p ON hp.id_produk = p.id_produk
-                                            JOIN pengiriman_penjahit pj ON hp.id_pengiriman_jahit = pj.id_pengiriman_jahit
-                                            ORDER BY hp.tanggal_selesai DESC LIMIT 5";
+                                        // $sql_history = "SELECT hp.*, p.nama_produk, pj.jumlah_bahan_mentah,
+                                        //     DATE_FORMAT(hp.tanggal_selesai, '%d-%m-%Y') as tgl_selesai
+                                        //     FROM hasil_penjahitan hp
+                                        //     JOIN produk p ON hp.id_produk = p.id_produk
+                                        //     JOIN pengiriman_penjahit pj ON hp.id_pengiriman_jahit = pj.id_pengiriman_jahit
+                                        //     ORDER BY hp.tanggal_selesai DESC LIMIT 5";
+
+                                        $sql_history = "
+                                                        SELECT hp.*, 
+                                                            p.nama_produk, 
+                                                            pj.jumlah_bahan_mentah,
+                                                            pen.nama_penjahit,
+                                                            DATE_FORMAT(hp.tanggal_selesai, '%d-%m-%Y') as tgl_selesai
+                                                        FROM hasil_penjahitan hp
+                                                        JOIN produk p 
+                                                            ON hp.id_produk = p.id_produk
+                                                        JOIN pengiriman_penjahit pj 
+                                                            ON hp.id_pengiriman_jahit = pj.id_pengiriman_jahit
+                                                        JOIN penjahit pen
+                                                            ON pj.id_penjahit = pen.id_penjahit
+                                                        ORDER BY hp.tanggal_selesai DESC 
+                                                        LIMIT 5
+                                                    ";
                                         $history = query($sql_history);
                                         $no = 1;
                                         foreach ($history as $h):
@@ -243,6 +262,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             <tr>
                                                 <td><?= $no++ ?></td>
                                                 <td><?= dateIndo($h['tgl_selesai']) ?></td>
+                                                <td><?= $h['nama_penjahit'] ?></td>
                                                 <td><?= $h['nama_produk'] ?></td>
                                                 <td class="text-center"><?= $h['jumlah_bahan_mentah'] ?> pcs</td>
                                                 <td class="text-center"><?= $h['jumlah_produk_jadi'] ?> pcs</td>
@@ -251,7 +271,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <?php endforeach; ?>
                                         <?php if (empty($history)): ?>
                                             <tr>
-                                                <td colspan="6" class="text-center">Belum ada data hasil penjahitan.</td>
+                                                <td colspan="7" class="text-center">Belum ada data hasil penjahitan.</td>
                                             </tr>
                                         <?php endif; ?>
                                     </tbody>

@@ -154,6 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         </a>
                                     </div>
                                 </div>
+
                                 <script>
                                     document.getElementById('btnBatalHasil').addEventListener('click', function(e) {
                                         e.preventDefault(); // Mencegah link langsung berjalan
@@ -178,9 +179,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                             </form>
 
+                            <small class="text-end text-danger">Pembatalan tidak dapat dilakukan karena data sudah masuk ke tahap pengiriman ke penjahit.</small>
                             <hr>
 
                             <h4 class="mb-3">Riwayat Hasil Pemotongan</h4>
+
                             <?php
                             // $riwayat = query("SELECT h.*, p.nama_bahan, pm.nama_pemotong 
                             //                 FROM hasil_pemotongan h
@@ -223,6 +226,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                 <td class="text-center"><?= number_format($r['jumlah_hasil']) ?> pcs</td>
                                             </tr>
                                         <?php endforeach; ?>
+                                        <?php if (empty($riwayat)): ?>
+                                            <tr>
+                                                <td colspan="6" class="text-center">Belum ada data hasil pemotongan.</td>
+                                            </tr>
+                                        <?php endif; ?>
                                     </tbody>
 
                                 </table>
