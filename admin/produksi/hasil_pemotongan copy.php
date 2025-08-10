@@ -22,21 +22,9 @@ function dateIndo($tanggal)
     return $pecah[2] . ' ' . $bulanIndo[(int)$pecah[1]] . ' ' . $pecah[0];
 }
 
-function getTarifUpah($jenis)
-{
-    global $conn;
-    $result = $conn->query("SELECT id_tarif, tarif_per_unit FROM tarif_upah 
-                          WHERE jenis_tarif = '$jenis' 
-                          ORDER BY berlaku_sejak DESC LIMIT 1");
-    if ($result && $result->num_rows > 0) {
-        return $result->fetch_assoc();
-    }
-    return ['id_tarif' => null, 'tarif_per_unit' => 0];
-}
-
 // Ambil data pengiriman yang belum selesai
 $pengiriman = query("SELECT pp.id_pengiriman_potong, pp.tanggal_kirim, pp.jumlah_bahan, 
-                    b.nama_bahan, b.satuan, p.nama_pemotong, p.id_pemotong
+                    b.nama_bahan, b.satuan, p.nama_pemotong
                     FROM pengiriman_pemotong pp
                     JOIN bahan_baku b ON pp.id_bahan = b.id_bahan
                     JOIN pemotong p ON pp.id_pemotong = p.id_pemotong
@@ -48,99 +36,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $jumlah_hasil = $conn->real_escape_string($_POST['jumlah_hasil']);
     $tanggal = $conn->real_escape_string($_POST['tanggal']);
 
-    // Validasi input
-    if (empty($id_pengiriman) || empty($jumlah_hasil) || empty($tanggal)) {
-        $_SESSION['error'] = "Semua field harus diisi!";
-        header("Location: hasil_pemotongan.php");
-        exit();
-    }
-
-    // Dapatkan tarif upah terbaru
-    $tarif_data = getTarifUpah('pemotongan');
-    $tarif = $tarif_data['tarif_per_unit'];
-    $id_tarif = $tarif_data['id_tarif'];
-    $total_upah = $jumlah_hasil * $tarif;
-
-    // Dapatkan id_pemotong dari pengiriman
-    $pemotong_data = query("SELECT id_pemotong FROM pengiriman_pemotong WHERE id_pengiriman_potong = $id_pengiriman");
-    $id_pemotong = $pemotong_data[0]['id_pemotong'] ?? null;
-
-    if (!$id_pemotong) {
-        $_SESSION['error'] = "Data pemotong tidak ditemukan!";
-        header("Location: hasil_pemotongan.php");
-        exit();
-    }
-
     // Start transaction
     $conn->begin_transaction();
 
     try {
-        // 1. Update status pengiriman
-        $update = $conn->query("UPDATE pengiriman_pemotong 
-                              SET status = 'selesai', tanggal_diterima = '$tanggal' 
-                              WHERE id_pengiriman_potong = $id_pengiriman");
+        // Update status pengiriman
+        $update = $conn->query("UPDATE pengiriman_pemotong SET status = 'selesai', tanggal_diterima = '$tanggal' 
+                             WHERE id_pengiriman_potong = $id_pengiriman");
 
         if (!$update) {
             throw new Exception("Gagal mengupdate status pengiriman: " . $conn->error);
         }
 
-        // 2. Catat hasil pemotongan dengan upah
-        $sql = "INSERT INTO hasil_pemotongan 
-                (id_pengiriman_potong, jumlah_hasil, tanggal_selesai, id_tarif, total_upah)
-                VALUES (?, ?, ?, ?, ?)";
+        // Catat hasil pemotongan
+        $sql = "INSERT INTO hasil_pemotongan (id_pengiriman_potong, jumlah_hasil, tanggal_selesai)
+                VALUES ($id_pengiriman, $jumlah_hasil, '$tanggal')";
 
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("iisid", $id_pengiriman, $jumlah_hasil, $tanggal, $id_tarif, $total_upah);
-
-        if (!$stmt->execute()) {
-            throw new Exception("Gagal mencatat hasil pemotongan: " . $stmt->error);
-        }
-
-        $id_hasil_pemotongan = $stmt->insert_id;
-
-        // 3. Catat ke tabel pembayaran_upah (status masih 'terhitung')
-        $periode_awal = $tanggal;
-        $periode_akhir = $tanggal;
-
-        $sql_pembayaran = "INSERT INTO pembayaran_upah 
-                          (id_penerima, jenis_penerima, periode_awal, periode_akhir, total_upah, status)
-                          VALUES (?, 'pemotong', ?, ?, ?, 'terhitung')";
-
-        $stmt_pembayaran = $conn->prepare($sql_pembayaran);
-        $stmt_pembayaran->bind_param("issd", $id_pemotong, $periode_awal, $periode_akhir, $total_upah);
-
-        if (!$stmt_pembayaran->execute()) {
-            throw new Exception("Gagal mencatat pembayaran upah: " . $stmt_pembayaran->error);
-        }
-
-        $id_pembayaran = $stmt_pembayaran->insert_id;
-
-        // 4. Catat detail pembayaran
-        $sql_detail = "INSERT INTO detail_pembayaran_upah
-                      (id_pembayaran, id_hasil, jenis_hasil, jumlah_unit, tarif_per_unit, subtotal)
-                      VALUES (?, ?, 'potong', ?, ?, ?)";
-
-        $stmt_detail = $conn->prepare($sql_detail);
-        $stmt_detail->bind_param("iiidd", $id_pembayaran, $id_hasil_pemotongan, $jumlah_hasil, $tarif, $total_upah);
-
-        if (!$stmt_detail->execute()) {
-            throw new Exception("Gagal mencatat detail pembayaran: " . $stmt_detail->error);
+        if (!$conn->query($sql)) {
+            throw new Exception("Gagal mencatat hasil pemotongan: " . $conn->error);
         }
 
         $conn->commit();
-        $_SESSION['success'] = "Hasil pemotongan berhasil dicatat. Total upah: Rp " . number_format($total_upah, 0, ',', '.');
+        $_SESSION['success'] = "Hasil pemotongan berhasil dicatat";
+        header("Location: hasil_pemotongan.php");
+        exit();
     } catch (Exception $e) {
         $conn->rollback();
-        $_SESSION['error'] = $e->getMessage();
+        $error = $e->getMessage();
     }
-
-    header("Location: hasil_pemotongan.php");
-    exit();
 }
-
-// Ambil tarif upah saat ini untuk ditampilkan
-$tarif_data = getTarifUpah('pemotongan');
-$tarif_sekarang = $tarif_data['tarif_per_unit'];
 ?>
 
 <style>
@@ -208,30 +132,15 @@ $tarif_sekarang = $tarif_data['tarif_per_unit'];
                                 </div>
 
                                 <div class="row">
-                                    <div class="col-md-3 mb-3">
+                                    <div class="col-md-4 mb-3">
                                         <label for="jumlah_hasil" class="form-label">Jumlah Hasil (pcs bahan mentah)</label>
                                         <div class="input-group">
                                             <input type="number" name="jumlah_hasil" id="jumlah_hasil" class="form-control" required min="1">
                                             <span class="input-group-text">Pcs</span>
                                         </div>
                                     </div>
-                                    <div class="col-md-3 mb-3">
-                                        <label class="form-label">Tarif Upah</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text">Rp</span>
-                                            <input type="text" id="tarif_upah" class="form-control" readonly value="<?= number_format($tarif_sekarang, 0, ',', '.') ?>">
-                                            <span class="input-group-text">/Pcs</span>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3 mb-3">
-                                        <label class="form-label">Total Upah</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text">Rp</span>
-                                            <input type="text" id="total_upah" class="form-control" readonly>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3 mb-3">
-                                        <label for="tanggal" class="form-label">Tanggal Selesai</label>
+                                    <div class="col-md-8 mb-3">
+                                        <label for="tanggal" class="form-label">Tanggal Selesai <span class="text-danger">(Bulan/Tanggal/Tahun)</span></label>
                                         <input type="date" name="tanggal" id="tanggal" class="form-control" required value="<?= date('Y-m-d') ?>">
                                     </div>
                                 </div>
@@ -247,17 +156,8 @@ $tarif_sekarang = $tarif_data['tarif_per_unit'];
                                 </div>
 
                                 <script>
-                                    // Hitung total upah otomatis saat jumlah hasil diubah
-                                    document.getElementById('jumlah_hasil').addEventListener('input', function() {
-                                        const jumlah = parseInt(this.value) || 0;
-                                        const tarif = <?= $tarif_sekarang ?>;
-                                        const total = jumlah * tarif;
-                                        document.getElementById('total_upah').value = total.toLocaleString('id-ID');
-                                    });
-
-                                    // Konfirmasi pembatalan
                                     document.getElementById('btnBatalHasil').addEventListener('click', function(e) {
-                                        e.preventDefault();
+                                        e.preventDefault(); // Mencegah link langsung berjalan
 
                                         Swal.fire({
                                             title: 'Yakin?',
@@ -270,11 +170,13 @@ $tarif_sekarang = $tarif_data['tarif_per_unit'];
                                             cancelButtonText: 'Batal'
                                         }).then((result) => {
                                             if (result.isConfirmed) {
+                                                // Redirect manual
                                                 window.location.href = 'batal_hasil_potong.php';
                                             }
                                         });
                                     });
                                 </script>
+
                             </form>
 
                             <small class="text-end text-danger">Pembatalan tidak dapat dilakukan karena data sudah masuk ke tahap pengiriman ke penjahit.</small>
@@ -283,14 +185,20 @@ $tarif_sekarang = $tarif_data['tarif_per_unit'];
                             <h4 class="mb-3">Riwayat Hasil Pemotongan</h4>
 
                             <?php
-                            $riwayat = query("SELECT h.*, p.nama_bahan, p.satuan, pm.nama_pemotong, pg.jumlah_bahan,
-                                            t.tarif_per_unit, h.total_upah
+                            // $riwayat = query("SELECT h.*, p.nama_bahan, pm.nama_pemotong 
+                            //                 FROM hasil_pemotongan h
+                            //                 JOIN pengiriman_pemotong pg ON h.id_pengiriman_potong = pg.id_pengiriman_potong
+                            //                 JOIN bahan_baku p ON pg.id_bahan = p.id_bahan
+                            //                 JOIN pemotong pm ON pg.id_pemotong = pm.id_pemotong
+                            //                 ORDER BY h.tanggal_selesai DESC LIMIT 5");
+
+                            $riwayat = query("SELECT h.*, p.nama_bahan, p.satuan, pm.nama_pemotong, pg.jumlah_bahan
                                             FROM hasil_pemotongan h
                                             JOIN pengiriman_pemotong pg ON h.id_pengiriman_potong = pg.id_pengiriman_potong
                                             JOIN bahan_baku p ON pg.id_bahan = p.id_bahan
                                             JOIN pemotong pm ON pg.id_pemotong = pm.id_pemotong
-                                            LEFT JOIN tarif_upah t ON h.id_tarif = t.id_tarif
                                             ORDER BY h.tanggal_selesai DESC LIMIT 5");
+
                             ?>
                             <div class="table-responsive">
                                 <table class="table table-striped table-bordered align-middle">
@@ -300,10 +208,8 @@ $tarif_sekarang = $tarif_data['tarif_per_unit'];
                                             <th>Tanggal</th>
                                             <th>Bahan Baku</th>
                                             <th>Pemotong</th>
-                                            <th>Bahan Digunakan</th>
-                                            <th>Jumlah Hasil</th>
-                                            <th>Tarif</th>
-                                            <th>Total Upah</th>
+                                            <th>Bahan Digunakan</th> <!-- baru -->
+                                            <th>Jumlah Hasil (pcs)</th>
                                         </tr>
                                     </thead>
 
@@ -315,18 +221,18 @@ $tarif_sekarang = $tarif_data['tarif_per_unit'];
                                                 <td><?= dateIndo($r['tanggal_selesai']) ?></td>
                                                 <td><?= htmlspecialchars($r['nama_bahan']) ?></td>
                                                 <td><?= htmlspecialchars($r['nama_pemotong']) ?></td>
+                                                <!-- <td class="text-center"><?= number_format($r['jumlah_bahan']) ?></td> -->
                                                 <td class="text-center"><?= number_format($r['jumlah_bahan']) ?> <?= htmlspecialchars($r['satuan']) ?></td>
                                                 <td class="text-center"><?= number_format($r['jumlah_hasil']) ?> pcs</td>
-                                                <td class="text-center">Rp <?= number_format($r['tarif_per_unit'] ?? 0, 0, ',', '.') ?></td>
-                                                <td class="text-center">Rp <?= number_format($r['total_upah'] ?? 0, 0, ',', '.') ?></td>
                                             </tr>
                                         <?php endforeach; ?>
                                         <?php if (empty($riwayat)): ?>
                                             <tr>
-                                                <td colspan="8" class="text-center">Belum ada data hasil pemotongan.</td>
+                                                <td colspan="6" class="text-center">Belum ada data hasil pemotongan.</td>
                                             </tr>
                                         <?php endif; ?>
                                     </tbody>
+
                                 </table>
                             </div>
                         </div>

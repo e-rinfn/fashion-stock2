@@ -54,22 +54,20 @@ $where_clause = !empty($filter_conditions)
 
 // Get sewing history with raw material data
 $sql_history = "
-    SELECT hp.*, 
-           p.nama_produk, 
-           pj.jumlah_bahan_mentah, 
-           pen.nama_penjahit,
-           DATE_FORMAT(hp.tanggal_selesai, '%d-%m-%Y') as tgl_selesai
-    FROM hasil_penjahitan hp
-    JOIN produk p 
-        ON hp.id_produk = p.id_produk
-    JOIN pengiriman_penjahit pj 
-        ON hp.id_pengiriman_jahit = pj.id_pengiriman_jahit
-    JOIN penjahit pen 
-        ON pj.id_penjahit = pen.id_penjahit
-    $where_clause
-    ORDER BY hp.tanggal_selesai DESC
-";
-
+                SELECT hp.*, 
+                    p.nama_produk, 
+                    pj.jumlah_bahan_mentah,
+                    pen.nama_penjahit,
+                    t.tarif_per_unit,
+                    DATE_FORMAT(hp.tanggal_selesai, '%d-%m-%Y') as tgl_selesai
+                FROM hasil_penjahitan hp
+                JOIN produk p ON hp.id_produk = p.id_produk
+                JOIN pengiriman_penjahit pj ON hp.id_pengiriman_jahit = pj.id_pengiriman_jahit
+                JOIN penjahit pen ON pj.id_penjahit = pen.id_penjahit
+                LEFT JOIN tarif_upah t ON hp.id_tarif = t.id_tarif
+                ORDER BY hp.tanggal_selesai DESC 
+                LIMIT 5
+            ";
 $history = query($sql_history);
 ?>
 
@@ -152,9 +150,12 @@ $history = query($sql_history);
                                             <th>Tanggal</th>
                                             <th>Penjahit</th>
                                             <th>Produk</th>
-                                            <th>Bahan Mentah (Pcs)</th>
-                                            <th>Jumlah Jadi (Pcs)</th>
+                                            <th>Bahan Mentah</th>
+                                            <th>Produk Jadi</th>
+                                            <th>Tarif</th>
+                                            <th>Total Upah</th>
                                             <th>Keterangan</th>
+                                        </tr>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -162,18 +163,20 @@ $history = query($sql_history);
                                             <?php $no = 1; ?>
                                             <?php foreach ($history as $h): ?>
                                                 <tr>
-                                                    <td class="text-center"><?= $no++ ?></td>
+                                                    <td><?= $no++ ?></td>
                                                     <td><?= dateIndo($h['tgl_selesai']) ?></td>
                                                     <td><?= htmlspecialchars($h['nama_penjahit']) ?></td>
                                                     <td><?= htmlspecialchars($h['nama_produk']) ?></td>
                                                     <td class="text-center"><?= number_format($h['jumlah_bahan_mentah']) ?> pcs</td>
                                                     <td class="text-center"><?= number_format($h['jumlah_produk_jadi']) ?> pcs</td>
+                                                    <td class="text-center">Rp <?= number_format($h['tarif_per_unit'] ?? 0, 0, ',', '.') ?></td>
+                                                    <td class="text-center">Rp <?= number_format($h['total_upah'] ?? 0, 0, ',', '.') ?></td>
                                                     <td><?= htmlspecialchars($h['keterangan']) ?></td>
                                                 </tr>
                                             <?php endforeach; ?>
                                         <?php else: ?>
                                             <tr>
-                                                <td colspan="7" class="text-center">Belum ada data hasil penjahitan.</td>
+                                                <td colspan="9" class="text-center">Belum ada data hasil penjahitan.</td>
                                             </tr>
                                         <?php endif; ?>
                                     </tbody>

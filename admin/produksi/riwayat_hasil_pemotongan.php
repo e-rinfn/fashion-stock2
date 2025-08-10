@@ -49,14 +49,109 @@ if ($id_bahan) {
 
 $where_sql = count($where) > 0 ? "WHERE " . implode(' AND ', $where) : "";
 
-$riwayat = query("SELECT h.*, p.nama_bahan, p.satuan, pm.nama_pemotong, pg.jumlah_bahan 
+
+// Ubah query riwayat untuk menambahkan data upah
+// $riwayat = query("SELECT h.*, p.nama_bahan, p.satuan, pm.nama_pemotong, pg.jumlah_bahan, 
+//                   t.tarif_per_unit, h.total_upah
+//                   FROM hasil_pemotongan h
+//                   JOIN pengiriman_pemotong pg ON h.id_pengiriman_potong = pg.id_pengiriman_potong
+//                   JOIN bahan_baku p ON pg.id_bahan = p.id_bahan
+//                   JOIN pemotong pm ON pg.id_pemotong = pm.id_pemotong
+//                   LEFT JOIN tarif_upah t ON h.id_tarif = t.id_tarif
+//                   $where_sql
+//                   ORDER BY h.tanggal_selesai DESC");
+
+// Ubah query riwayat untuk mengecek status pembayaran
+// $riwayat = query("
+//     SELECT 
+//         h.id_hasil_potong, h.tanggal_selesai, h.jumlah_hasil, h.total_upah,
+//         p.nama_bahan, p.satuan, 
+//         pm.nama_pemotong, 
+//         pg.jumlah_bahan, pg.id_pemotong,
+//         t.tarif_per_unit,
+//         d.id_detail, pb.id_pembayaran,
+//         CASE WHEN d.id_detail IS NULL THEN 'Belum Dibayar' ELSE 'Sudah Dibayar' END as status_pembayaran
+//     FROM hasil_pemotongan h
+//     JOIN pengiriman_pemotong pg ON h.id_pengiriman_potong = pg.id_pengiriman_potong
+//     JOIN bahan_baku p ON pg.id_bahan = p.id_bahan
+//     JOIN pemotong pm ON pg.id_pemotong = pm.id_pemotong
+//     LEFT JOIN tarif_upah t ON h.id_tarif = t.id_tarif
+//     LEFT JOIN detail_pembayaran_upah d ON h.id_hasil_potong = d.id_hasil AND d.jenis_hasil = 'potong'
+//     LEFT JOIN pembayaran_upah pb ON d.id_pembayaran = pb.id_pembayaran
+//     $where_sql
+//     ORDER BY h.tanggal_selesai DESC
+// ");
+
+// Ubah query riwayat untuk mendapatkan lebih banyak data pembayaran
+$riwayat = query("
+    SELECT 
+        h.id_hasil_potong, h.tanggal_selesai, h.jumlah_hasil, h.total_upah,
+        p.nama_bahan, p.satuan, 
+        pm.nama_pemotong, 
+        pg.jumlah_bahan, pg.id_pemotong,
+        t.tarif_per_unit,
+        d.id_detail, pb.id_pembayaran, pb.status as status_pembayaran
     FROM hasil_pemotongan h
     JOIN pengiriman_pemotong pg ON h.id_pengiriman_potong = pg.id_pengiriman_potong
     JOIN bahan_baku p ON pg.id_bahan = p.id_bahan
     JOIN pemotong pm ON pg.id_pemotong = pm.id_pemotong
+    LEFT JOIN tarif_upah t ON h.id_tarif = t.id_tarif
+    LEFT JOIN detail_pembayaran_upah d ON h.id_hasil_potong = d.id_hasil AND d.jenis_hasil = 'potong'
+    LEFT JOIN pembayaran_upah pb ON d.id_pembayaran = pb.id_pembayaran
     $where_sql
-    ORDER BY h.tanggal_selesai DESC");
+    ORDER BY h.tanggal_selesai DESC
+");
+
+// Tambahkan query ini setelah query $riwayat
+// $total_upah_per_pemotong = query("
+//     SELECT pm.id_pemotong, pm.nama_pemotong, 
+//            SUM(h.total_upah) as total_upah,
+//            COUNT(h.id_hasil_potong) as jumlah_produksi
+//     FROM hasil_pemotongan h
+//     JOIN pengiriman_pemotong pg ON h.id_pengiriman_potong = pg.id_pengiriman_potong
+//     JOIN pemotong pm ON pg.id_pemotong = pm.id_pemotong
+//     $where_sql
+//     GROUP BY pm.id_pemotong, pm.nama_pemotong
+//     ORDER BY total_upah DESC
+// ");
+
+// $total_upah_per_pemotong = query("
+//     SELECT pm.id_pemotong, pm.nama_pemotong, 
+//            SUM(h.total_upah) as total_upah,
+//            COUNT(h.id_hasil_potong) as jumlah_produksi
+//     FROM hasil_pemotongan h
+//     JOIN pengiriman_pemotong pg ON h.id_pengiriman_potong = pg.id_pengiriman_potong
+//     JOIN pemotong pm ON pg.id_pemotong = pm.id_pemotong
+//     LEFT JOIN detail_pembayaran_upah d ON h.id_hasil_potong = d.id_hasil AND d.jenis_hasil = 'potong'
+//     WHERE d.id_detail IS NULL
+//     " . ($where_sql ? " AND $where_sql" : "") . "
+//     GROUP BY pm.id_pemotong, pm.nama_pemotong
+//     HAVING SUM(h.total_upah)
+//     ORDER BY total_upah DESC
+// ");
+
+$total_upah_per_pemotong = query("
+    SELECT pm.id_pemotong, pm.nama_pemotong, 
+           SUM(h.total_upah) - IFNULL((
+               SELECT SUM(c.jumlah_cicilan) 
+               FROM cicilan_upah c
+               JOIN pembayaran_upah pu ON c.id_pembayaran = pu.id_pembayaran
+               WHERE pu.id_penerima = pm.id_pemotong AND pu.jenis_penerima = 'pemotong'
+           ), 0) as total_upah,
+           COUNT(h.id_hasil_potong) as jumlah_produksi
+    FROM hasil_pemotongan h
+    JOIN pengiriman_pemotong pg ON h.id_pengiriman_potong = pg.id_pengiriman_potong
+    JOIN pemotong pm ON pg.id_pemotong = pm.id_pemotong
+    LEFT JOIN detail_pembayaran_upah d ON h.id_hasil_potong = d.id_hasil AND d.jenis_hasil = 'potong'
+    WHERE d.id_detail IS NULL
+    " . ($where_sql ? " AND $where_sql" : "") . "
+    GROUP BY pm.id_pemotong, pm.nama_pemotong
+    HAVING total_upah > 0
+    ORDER BY total_upah DESC
+");
+
 ?>
+
 
 <body>
     <!-- Layout wrapper -->
@@ -99,7 +194,7 @@ $riwayat = query("SELECT h.*, p.nama_bahan, p.satuan, pm.nama_pemotong, pg.jumla
                                 <?php unset($_SESSION['error']); ?>
                             <?php endif; ?>
 
-                            <form class="row g-3 mb-4" method="get">
+                            <form class="row g-3 mb-4" method="get" hidden>
                                 <div class="col-md-3">
                                     <label for="tgl_awal" class="form-label">Tanggal Awal</label>
                                     <input type="date" id="tgl_awal" name="tgl_awal" class="form-control" value="<?= htmlspecialchars($tgl_awal) ?>">
@@ -136,39 +231,132 @@ $riwayat = query("SELECT h.*, p.nama_bahan, p.satuan, pm.nama_pemotong, pg.jumla
                                 </div>
                             </form>
 
+
                             <!-- tabel -->
                             <h4 class="mb-3">Tabel Riwayat Hasil Pemotongan</h4>
                             <div class="table-responsive">
                                 <table class="table table-striped table-bordered align-middle">
                                     <thead class="table-light">
                                         <tr class="text-center">
-                                            <th class="text-center">No</th>
+                                            <th>No</th>
                                             <th>Tanggal</th>
                                             <th>Bahan Baku</th>
                                             <th>Pemotong</th>
                                             <th>Bahan Digunakan</th>
                                             <th>Jumlah Hasil (pcs)</th>
+                                            <th>Tarif per Unit</th>
+                                            <th>Total Upah</th>
+                                            <th>Status Pembayaran</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php $no = 1;
-                                        foreach ($riwayat as $r): ?>
+                                        <?php if (!empty($riwayat)): ?>
+                                            <?php $no = 1;
+                                            foreach ($riwayat as $r): ?>
+                                                <tr>
+                                                    <td class="text-center"><?= $no++ ?></td>
+                                                    <td><?= dateIndo($r['tanggal_selesai'] ?? '') ?></td>
+                                                    <td><?= htmlspecialchars($r['nama_bahan'] ?? '') ?></td>
+                                                    <td><?= htmlspecialchars($r['nama_pemotong'] ?? '') ?></td>
+                                                    <td class="text-center">
+                                                        <?= isset($r['jumlah_bahan'], $r['satuan']) ?
+                                                            number_format($r['jumlah_bahan'], 0, "", "") . " " . htmlspecialchars($r['satuan']) : '-' ?>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <?= isset($r['jumlah_hasil']) ? number_format($r['jumlah_hasil'], 0, "", "") . ' pcs' : '-' ?>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <?= isset($r['tarif_per_unit']) ? 'Rp ' . number_format($r['tarif_per_unit'], 0, ',', '.') : '-' ?>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <?= isset($r['total_upah']) ? 'Rp ' . number_format($r['total_upah'], 0, ',', '.') : '-' ?>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <?php if (isset($r['status_pembayaran'])): ?>
+                                                            <?php if ($r['status_pembayaran'] == 'dibayar'): ?>
+                                                                <span class="badge bg-success">Sudah Dibayar</span>
+                                                                <?php if (!empty($r['id_pembayaran'])): ?>
+                                                                    <div class="btn-group mt-1" role="group">
+                                                                        <a href="detail_pembayaran.php?id=<?= $r['id_pembayaran'] ?>"
+                                                                            class="btn btn-sm btn-info" hidden>Detail</a>
+                                                                        <button class="btn btn-sm btn-danger btn-batal-bayar"
+                                                                            data-id="<?= $r['id_pembayaran'] ?>"
+                                                                            data-nama="<?= htmlspecialchars($r['nama_pemotong']) ?>" hidden>
+                                                                            Batal
+                                                                        </button>
+                                                                    </div>
+                                                                <?php endif; ?>
+
+                                                            <?php elseif ($r['status_pembayaran'] == 'terhitung'): ?>
+                                                                <span class="badge bg-warning text-dark">Terhitung</span>
+
+                                                            <?php elseif ($r['status_pembayaran'] == 'dibatalkan'): ?>
+                                                                <span class="badge bg-danger">Dibatalkan</span>
+
+                                                            <?php else: ?>
+                                                                <span class="badge bg-secondary">Status Tidak Dikenal</span>
+                                                            <?php endif; ?>
+                                                        <?php else: ?>
+                                                            <span class="badge bg-secondary">Status Tidak Diketahui</span>
+                                                        <?php endif; ?>
+
+                                                        <?php if (!empty($r['id_pembayaran'])): ?>
+                                                            <a href="detail_pembayaran.php?id=<?= $r['id_pembayaran'] ?>"
+                                                                class="btn btn-sm btn-primary mt-1">
+                                                                Detail Pembayaran
+                                                            </a>
+                                                        <?php endif; ?>
+                                                    </td>
+
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
                                             <tr>
-                                                <td class="text-center"><?= $no++ ?></td>
-                                                <td><?= dateIndo($r['tanggal_selesai']) ?></td>
-                                                <td><?= htmlspecialchars($r['nama_bahan']) ?></td>
-                                                <td><?= htmlspecialchars($r['nama_pemotong']) ?></td>
-                                                <td class="text-center"><?= number_format($r['jumlah_bahan'], 0, "", "") . " " . htmlspecialchars($r['satuan']) ?></td>
-                                                <td class="text-center"><?= number_format($r['jumlah_hasil'], 0, "", "") ?> pcs</td>
-                                            </tr>
-                                        <?php endforeach; ?>
-                                        <?php if (empty($riwayat)): ?>
-                                            <tr>
-                                                <td colspan="6" class="text-center">Belum ada data hasil pemotongan.</td>
+                                                <td colspan="9" class="text-center">Belum ada data hasil pemotongan.</td>
                                             </tr>
                                         <?php endif; ?>
                                     </tbody>
                                 </table>
+                            </div>
+
+                            <!-- Tambahkan setelah tabel riwayat -->
+                            <div class="card mt-4">
+                                <div class="card-header">
+                                    <h5>Ringkasan Total Upah Belum Dibayar per Pemotong</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped table-bordered">
+                                            <thead>
+                                                <tr class="text-center">
+                                                    <th>No</th>
+                                                    <th>Nama Pemotong</th>
+                                                    <th>Jumlah Produksi</th>
+                                                    <th>Total Upah Belum Dibayar</th>
+
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php if (!empty($total_upah_per_pemotong)): ?>
+                                                    <?php $no_total = 1;
+                                                    foreach ($total_upah_per_pemotong as $total): ?>
+                                                        <tr>
+                                                            <td class="text-center"><?= $no_total++ ?></td>
+                                                            <td><?= htmlspecialchars($total['nama_pemotong']) ?></td>
+                                                            <td class="text-center"><?= $total['jumlah_produksi'] ?></td>
+                                                            <td class="text-end">Rp <?= number_format($total['total_upah'], 0, ',', '.') ?></td>
+
+                                                        </tr>
+                                                    <?php endforeach; ?>
+                                                <?php else: ?>
+                                                    <tr>
+                                                        <td colspan="5" class="text-center">Tidak ada upah yang belum dibayarkan</td>
+                                                    </tr>
+                                                <?php endif; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -181,6 +369,113 @@ $riwayat = query("SELECT h.*, p.nama_bahan, p.satuan, pm.nama_pemotong, pg.jumla
             </div>
             <!-- / Layout page -->
         </div>
+
+        <!-- Tambahkan sebelum penutup body -->
+        <!-- Modal Pembayaran -->
+        <div class="modal fade" id="modalPembayaran" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Pembayaran Upah Pemotong</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form action="proses_pembayaran_upah.php" method="post">
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Pemotong</label>
+                                <input type="text" class="form-control" id="nama_pemotong_modal" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Total Upah</label>
+                                <input type="text" class="form-control" id="total_upah_modal" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="metode_pembayaran" class="form-label">Metode Pembayaran</label>
+                                <select class="form-select" name="metode_pembayaran" required>
+                                    <option value="transfer">Transfer Bank</option>
+                                    <option value="tunai">Tunai</option>
+                                    <option value="e-wallet">E-Wallet</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="tanggal_pembayaran" class="form-label">Tanggal Pembayaran</label>
+                                <input type="date" class="form-control" name="tanggal_pembayaran" required value="<?= date('Y-m-d') ?>">
+                            </div>
+                            <div class="mb-3">
+                                <label for="keterangan" class="form-label">Keterangan</label>
+                                <textarea class="form-control" name="keterangan" rows="3"></textarea>
+                            </div>
+                            <input type="hidden" name="id_pemotong" id="id_pemotong_modal">
+                            <input type="hidden" name="tgl_awal" value="<?= htmlspecialchars($tgl_awal) ?>">
+                            <input type="hidden" name="tgl_akhir" value="<?= htmlspecialchars($tgl_akhir) ?>">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-primary">Simpan Pembayaran</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Konfirmasi Batal Pembayaran -->
+        <div class="modal fade" id="modalBatalPembayaran" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Konfirmasi Pembatalan Pembayaran</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form action="batal_pembayaran_upah.php" method="post">
+                        <div class="modal-body">
+                            <p>Anda yakin ingin membatalkan pembayaran untuk:</p>
+                            <p><strong id="nama_pemotong_batal"></strong></p>
+                            <input type="hidden" name="id_pembayaran" id="id_pembayaran_batal">
+                            <div class="mb-3">
+                                <label for="alasan" class="form-label">Alasan Pembatalan</label>
+                                <textarea class="form-control" name="alasan" rows="3" required></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                            <button type="submit" class="btn btn-danger">Konfirmasi Pembatalan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Tangani klik tombol bayar
+            document.querySelectorAll('.btn-bayar').forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const nama = this.getAttribute('data-nama');
+                    const total = this.getAttribute('data-total');
+
+                    document.getElementById('nama_pemotong_modal').value = nama;
+                    document.getElementById('total_upah_modal').value = 'Rp ' + parseInt(total).toLocaleString('id-ID');
+                    document.getElementById('id_pemotong_modal').value = id;
+
+                    var modal = new bootstrap.Modal(document.getElementById('modalPembayaran'));
+                    modal.show();
+                });
+            });
+
+            // Tangani klik tombol batal bayar
+            document.querySelectorAll('.btn-batal-bayar').forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    const nama = this.getAttribute('data-nama');
+
+                    document.getElementById('id_pembayaran_batal').value = id;
+                    document.getElementById('nama_pemotong_batal').textContent = nama;
+
+                    var modal = new bootstrap.Modal(document.getElementById('modalBatalPembayaran'));
+                    modal.show();
+                });
+            });
+        </script>
 
         <!-- Overlay -->
         <div class="layout-overlay layout-menu-toggle"></div>

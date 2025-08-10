@@ -62,7 +62,6 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, b.satuan, pm.nama_pemotong
                     LIMIT 5");
 ?>
 
-
 <style>
     /* Paksa SweetAlert berada di atas segalanya */
     .swal2-container {
@@ -93,11 +92,9 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, b.satuan, pm.nama_pemotong
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h2>1. Tambah Data Pengiriman Pemotong</h2>
                             <div class="btn-group ms-auto" role="group" aria-label="Navigasi Form">
-                                <!-- <a href="#" class="btn btn-outline-warning">Kembali</a> -->
                                 <a href="hasil_pemotongan.php" class="btn btn-outline-primary">Next</a>
                             </div>
                         </div>
-
 
                         <div class="card p-4 shadow-sm">
                             <?php if (isset($error)): ?>
@@ -119,7 +116,6 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, b.satuan, pm.nama_pemotong
                                 </div>
                                 <?php unset($_SESSION['success']); ?>
                             <?php endif; ?>
-
 
                             <form method="post" class="mb-4">
                                 <div class="row">
@@ -164,21 +160,12 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, b.satuan, pm.nama_pemotong
                                     <button type="submit" class="btn btn-primary">Simpan Pengiriman</button>
                                     <a href="riwayat_pengiriman_pemotong.php" class="btn btn-secondary">Riwayat Pengiriman</a>
                                 </div>
-                                <!-- <div class="d-flex justify-content-between">
-                                    <button type="submit" class="btn btn-primary">Simpan Pengiriman</button>
-                                    <div class="btn-group">
-                                        <a href="riwayat_pengiriman_pemotong.php" class="btn btn-secondary">Riwayat Pengiriman</a>
-                                        <a href="batal_pengiriman_pemotong.php" class="btn btn-danger"
-                                            onclick="return confirm('Yakin ingin membatalkan pengiriman terakhir?')">
-                                            Batal Simpan Pengiriman
-                                        </a>
-                                    </div>
-                                </div> -->
                             </form>
 
                             <hr>
 
                             <h4>Riwayat Pengiriman</h4>
+                            <small class="text-end text-danger">Pembatalan tidak dapat dilakukan karena data sudah masuk ke tahap pemotongan berikutnya.</small>
                             <div class="table-responsive">
                                 <table class="table table-bordered table-striped align-middle">
                                     <thead class="table-light">
@@ -201,7 +188,6 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, b.satuan, pm.nama_pemotong
                                                 <td><?= $p['nama_bahan'] ?></td>
                                                 <td><?= $p['nama_pemotong'] ?></td>
                                                 <td class="text-center"><?= number_format($p['jumlah_bahan'], 0, "", "") . " " . htmlspecialchars($p['satuan']) ?></td>
-                                                <!-- <td><?= ucfirst($p['status']) ?></td> -->
                                                 <td class="text-center">
                                                     <span class="badge <?= $p['status'] == 'dikirim' ? 'bg-warning text-dark' : 'bg-success' ?>">
                                                         <?= $p['status'] == 'dikirim' ? 'Dalam Proses' : 'Selesai' ?>
@@ -210,7 +196,6 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, b.satuan, pm.nama_pemotong
                                                 <td class="text-center">
                                                     <div class="btn-group btn-group-sm">
                                                         <?php if ($p['status'] == 'dikirim'): ?>
-
                                                             <a href="batal_pengiriman_pemotong.php?id=<?= $p['id_pengiriman_potong'] ?>"
                                                                 class="btn btn-danger btn-batal">
                                                                 <i class="bx bx-x"></i>
@@ -252,11 +237,40 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, b.satuan, pm.nama_pemotong
                                     cancelButtonText: 'Tidak'
                                 }).then((result) => {
                                     if (result.isConfirmed) {
-                                        window.location.href = url;
+                                        // Lakukan AJAX request untuk cek apakah bisa dibatalkan
+                                        fetch(url + '&check=1')
+                                            .then(response => response.json())
+                                            .then(data => {
+                                                if (data.can_cancel) {
+                                                    window.location.href = url;
+                                                } else {
+                                                    Swal.fire({
+                                                        title: 'Tidak Dapat Dibatalkan',
+                                                        text: data.message || 'Pengiriman tidak dapat dibatalkan karena sudah diproses lebih lanjut.',
+                                                        icon: 'error',
+                                                        confirmButtonText: 'OK'
+                                                    });
+                                                }
+                                            })
+                                            .catch(error => {
+                                                console.error('Error:', error);
+                                                window.location.href = url;
+                                            });
                                     }
                                 });
                             });
                         });
+
+                        // Tampilkan pesan error dari session jika ada
+                        <?php if (isset($_SESSION['cancel_error'])): ?>
+                            Swal.fire({
+                                title: 'Gagal Membatalkan',
+                                text: '<?= addslashes($_SESSION['cancel_error']) ?>',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                            <?php unset($_SESSION['cancel_error']); ?>
+                        <?php endif; ?>
                     </script>
 
                     <!-- / Content -->
@@ -276,8 +290,6 @@ $pengiriman = query("SELECT p.*, b.nama_bahan, b.satuan, pm.nama_pemotong
     <!-- Core JS footer -->
     <?php include '../includes/footer.php'; ?>
     <!-- /Core JS footer -->
-
-
 </body>
 
 </html>

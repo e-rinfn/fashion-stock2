@@ -2,57 +2,70 @@
 require_once '../../config/database.php';
 require_once '../../config/functions.php';
 
-if (isset($_GET['id'])) {
-    $id = intval($_GET['id']);
+if (!isset($_GET['id'])) {
+    $_SESSION['error'] = "ID penjualan tidak ditemukan.";
+    header("Location: list.php");
+    exit;
+}
 
-    // Ambil data penjualan
-    $penjualan = query("SELECT * FROM penjualan WHERE id_penjualan = $id");
-    if (!$penjualan || count($penjualan) == 0) {
-        $_SESSION['error'] = "Data penjualan tidak ditemukan.";
-        header("Location: list.php");
-        exit;
-    }
-    $penjualan = $penjualan[0];
+$id = intval($_GET['id']);
 
-    // (Opsional) Cegah pembatalan jika status pembayaran sudah lunas
-    if ($penjualan['status_pembayaran'] === '') { // Saya menghapus '=== "lunas"' karena supaya yang lunas juga dapat dihapus
-        $_SESSION['error'] = "Penjualan yang sudah lunas tidak dapat dibatalkan.";
-        header("Location: list.php");
-        exit;
-    }
+// Ambil data penjualan_bahan
+$penjualan_bahan = query("SELECT * FROM penjualan_bahan WHERE id_penjualan_bahan = $id");
+if (!$penjualan_bahan || count($penjualan_bahan) === 0) {
+    $_SESSION['error'] = "Data penjualan tidak ditemukan.";
+    header("Location: list.php");
+    exit;
+}
 
-    // Ambil detail penjualan
-    $details = query("SELECT * FROM detail_penjualan WHERE id_penjualan = $id");
+// Ambil data pertama
+$penjualan = $penjualan_bahan[0];
 
-    // Mulai transaksi
-    $conn->begin_transaction();
-    try {
-        foreach ($details as $d) {
-            $id_produk = $d['id_produk'];
-            $jumlah = $d['jumlah'];
+// Jika tidak ingin membatasi lunas/belum lunas, hapus pengecekan ini
+// Kalau mau membatasi, aktifkan:
+// if ($penjualan['status_pembayaran'] === 'lunas') {
+//     $_SESSION['error'] = "Penjualan yang sudah lunas tidak dapat dibatalkan.";
+//     header("Location: list.php");
+//     exit;
+// }
 
-            // Kembalikan stok produk
-            $sql_update = "UPDATE produk SET stok = stok + $jumlah WHERE id_produk = $id_produk";
-            if (!$conn->query($sql_update)) {
-                throw new Exception("Gagal mengembalikan stok produk ID $id_produk");
-            }
+// Ambil detail penjualan bahan
+$details = query("SELECT * FROM detail_penjualan_bahan WHERE id_penjualan_bahan = $id");
+
+$conn->begin_transaction();
+
+try {
+    // Kembalikan stok produk
+    foreach ($details as $d) {
+        $id_produk = intval($d['id_produk']);
+        $jumlah = intval($d['jumlah']);
+
+        $sql_update = "UPDATE produk SET stok = stok + $jumlah WHERE id_produk = $id_produk";
+        if (!$conn->query($sql_update)) {
+            throw new Exception("Gagal mengembalikan stok produk ID $id_produk");
         }
-
-        // Hapus data cicilan terkait penjualan ini
-        $conn->query("DELETE FROM cicilan WHERE id_penjualan = $id");
-
-        // Hapus detail penjualan
-        $conn->query("DELETE FROM detail_penjualan WHERE id_penjualan = $id");
-
-        // Hapus data penjualan
-        $conn->query("DELETE FROM penjualan WHERE id_penjualan = $id");
-
-        $conn->commit();
-        $_SESSION['success'] = "Penjualan berhasil dibatalkan.";
-    } catch (Exception $e) {
-        $conn->rollback();
-        $_SESSION['error'] = "Gagal membatalkan penjualan: " . $e->getMessage();
     }
+
+    // Hapus data cicilan terkait
+    if (!$conn->query("DELETE FROM cicilan_penjualan_bahan WHERE id_penjualan_bahan = $id")) {
+        throw new Exception("Gagal menghapus cicilan");
+    }
+
+    // Hapus detail penjualan
+    if (!$conn->query("DELETE FROM detail_penjualan_bahan WHERE id_penjualan_bahan = $id")) {
+        throw new Exception("Gagal menghapus detail penjualan");
+    }
+
+    // Hapus data penjualan
+    if (!$conn->query("DELETE FROM penjualan_bahan WHERE id_penjualan_bahan = $id")) {
+        throw new Exception("Gagal menghapus data penjualan");
+    }
+
+    $conn->commit();
+    $_SESSION['success'] = "Penjualan berhasil dibatalkan.";
+} catch (Exception $e) {
+    $conn->rollback();
+    $_SESSION['error'] = "Gagal membatalkan penjualan: " . $e->getMessage();
 }
 
 header("Location: list.php");

@@ -96,37 +96,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             throw new Exception("Gagal mencatat hasil pemotongan: " . $stmt->error);
         }
 
-        $id_hasil_pemotongan = $stmt->insert_id;
-
-        // 3. Catat ke tabel pembayaran_upah (status masih 'terhitung')
-        $periode_awal = $tanggal;
-        $periode_akhir = $tanggal;
-
-        $sql_pembayaran = "INSERT INTO pembayaran_upah 
-                          (id_penerima, jenis_penerima, periode_awal, periode_akhir, total_upah, status)
-                          VALUES (?, 'pemotong', ?, ?, ?, 'terhitung')";
-
-        $stmt_pembayaran = $conn->prepare($sql_pembayaran);
-        $stmt_pembayaran->bind_param("issd", $id_pemotong, $periode_awal, $periode_akhir, $total_upah);
-
-        if (!$stmt_pembayaran->execute()) {
-            throw new Exception("Gagal mencatat pembayaran upah: " . $stmt_pembayaran->error);
-        }
-
-        $id_pembayaran = $stmt_pembayaran->insert_id;
-
-        // 4. Catat detail pembayaran
-        $sql_detail = "INSERT INTO detail_pembayaran_upah
-                      (id_pembayaran, id_hasil, jenis_hasil, jumlah_unit, tarif_per_unit, subtotal)
-                      VALUES (?, ?, 'potong', ?, ?, ?)";
-
-        $stmt_detail = $conn->prepare($sql_detail);
-        $stmt_detail->bind_param("iiidd", $id_pembayaran, $id_hasil_pemotongan, $jumlah_hasil, $tarif, $total_upah);
-
-        if (!$stmt_detail->execute()) {
-            throw new Exception("Gagal mencatat detail pembayaran: " . $stmt_detail->error);
-        }
-
         $conn->commit();
         $_SESSION['success'] = "Hasil pemotongan berhasil dicatat. Total upah: Rp " . number_format($total_upah, 0, ',', '.');
     } catch (Exception $e) {

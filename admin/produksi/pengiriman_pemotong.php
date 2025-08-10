@@ -22,30 +22,37 @@ function dateIndo($tanggal)
     return $pecah[2] . ' ' . $bulanIndo[(int)$pecah[1]] . ' ' . $pecah[0];
 }
 
-// Proses form
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $id_bahan = $conn->real_escape_string($_POST['id_bahan']);
-    $id_pemotong = $conn->real_escape_string($_POST['id_pemotong']);
-    $jumlah = $conn->real_escape_string($_POST['jumlah']);
-    $tanggal = $conn->real_escape_string($_POST['tanggal']);
+    $id_bahan   = (int) $_POST['id_bahan'];
+    $id_pemotong = (int) $_POST['id_pemotong'];
+    $jumlah     = (int) $_POST['jumlah'];
+    $tanggal    = $conn->real_escape_string($_POST['tanggal']);
 
     // Cek stok cukup
     $cek_stok = $conn->query("SELECT jumlah_stok FROM bahan_baku WHERE id_bahan = $id_bahan");
     $stok = $cek_stok->fetch_assoc();
 
-    if ($stok['jumlah_stok'] >= $jumlah) {
+    if (!$stok) {
+        $error = "Bahan tidak ditemukan.";
+    } elseif ($stok['jumlah_stok'] < $jumlah) {
+        $error = "Stok bahan tidak mencukupi! Stok tersedia: " . $stok['jumlah_stok'];
+    } else {
+        // Insert pengiriman
         $sql = "INSERT INTO pengiriman_pemotong (id_bahan, id_pemotong, jumlah_bahan, tanggal_kirim)
                 VALUES ($id_bahan, $id_pemotong, $jumlah, '$tanggal')";
 
         if ($conn->query($sql)) {
+            // Kurangi stok bahan
+            $conn->query("UPDATE bahan_baku 
+                          SET jumlah_stok = jumlah_stok - $jumlah 
+                          WHERE id_bahan = $id_bahan");
+
             $_SESSION['success'] = "Pengiriman ke pemotong berhasil dicatat";
             header("Location: pengiriman_pemotong.php");
             exit();
         } else {
             $error = "Gagal mencatat pengiriman: " . $conn->error;
         }
-    } else {
-        $error = "Stok bahan tidak mencukupi! Stok tersedia: " . $stok['jumlah_stok'];
     }
 }
 
