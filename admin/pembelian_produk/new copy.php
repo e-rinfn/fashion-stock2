@@ -23,7 +23,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_pembelian'])) {
         foreach ($items as $item) {
             $id_produk = intval($item['id_produk']);
             $qty = intval($item['qty']);
-            $unit = $conn->real_escape_string($item['unit']);
             $harga = floatval($item['harga']);
 
             if ($qty <= 0) {
@@ -34,11 +33,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_pembelian'])) {
             if ($harga <= 0) {
                 $error = "Harga produk tidak boleh nol atau negatif.";
                 break;
-            }
-
-            // Convert kodi to pcs if needed
-            if ($unit == 'kodi') {
-                $qty = $qty * 20;
             }
 
             $total_harga += $harga * $qty;
@@ -56,19 +50,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_pembelian'])) {
                 foreach ($items as $item) {
                     $id_produk = intval($item['id_produk']);
                     $qty = intval($item['qty']);
-                    $unit = $conn->real_escape_string($item['unit']);
                     $harga = floatval($item['harga']);
                     $produk = query("SELECT stok FROM produk WHERE id_produk = $id_produk")[0];
 
-                    // Convert kodi to pcs for storage
-                    $actual_qty = ($unit == 'kodi') ? $qty * 20 : $qty;
-                    $subtotal = $harga * $actual_qty;
+                    $subtotal = $harga * $qty;
 
                     $sql_detail = "INSERT INTO detail_pembelian (id_pembelian, id_produk, jumlah, harga_satuan, subtotal) 
-                                   VALUES ($id_pembelian, $id_produk, $actual_qty, $harga, $subtotal)";
+                                   VALUES ($id_pembelian, $id_produk, $qty, $harga, $subtotal)";
                     if (!$conn->query($sql_detail)) throw new Exception("Gagal menyimpan detail pembelian");
 
-                    $new_stok = $produk['stok'] + $actual_qty;
+                    $new_stok = $produk['stok'] + $qty;
                     $sql_update = "UPDATE produk SET stok = $new_stok WHERE id_produk = $id_produk";
                     if (!$conn->query($sql_update)) throw new Exception("Gagal update stok produk");
                 }
@@ -108,10 +99,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_pembelian'])) {
     .harga-input {
         min-width: 120px;
     }
-
-    .unit-select {
-        min-width: 80px;
-    }
 </style>
 
 <?php include '../includes/header.php'; ?>
@@ -127,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_pembelian'])) {
                 <div class="content-wrapper">
                     <div class="container-xxl flex-grow-1 container-p-y">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h2 class="fw-bold text-primary">PESANAN PEMBELIAN BARANG PRODUK</h2>
+                            <h2>Tambah Pembelian Produk</h2>
                         </div>
 
                         <?php if (isset($_SESSION['error'])): ?>
@@ -183,7 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_pembelian'])) {
                                                 <thead>
                                                     <tr class="text-center">
                                                         <th>Produk</th>
-                                                        <th>Harga Per Pcs</th>
+                                                        <th>Harga/Pcs</th>
                                                         <th>Stok</th>
                                                         <th>Qty</th>
                                                         <th>Subtotal</th>
@@ -269,13 +256,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_pembelian'])) {
                 <td>
                     <div class="input-group">
                         <input type="number" name="items[${rowId}][qty]" class="form-control qty" min="1" value="1" required>
-                        <select name="items[${rowId}][unit]" class="form-select unit-select">
-                            <option value="pcs">Pcs</option>
-                            <option value="kodi">Kodi</option>
-                        </select>
+                        <span class="input-group-text">Pcs</span>
                     </div>
-                    <small class="text-muted unit-info">1 kodi = 20 pcs</small>
-                    
                 </td>
                 <td class="currency-format subtotal">0</td>
                 <td>
@@ -293,7 +275,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_pembelian'])) {
             const select = row.querySelector('.select-produk');
             const hargaInput = row.querySelector('.harga-input');
             const qtyInput = row.querySelector('.qty');
-            const unitSelect = row.querySelector('.unit-select');
             const stokDisplay = row.querySelector('.stok');
 
             select.addEventListener('change', function() {
@@ -317,7 +298,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_pembelian'])) {
                     hargaInput.value = defaultHarga;
                     stokDisplay.textContent = stok;
                     qtyInput.value = 1;
-                    unitSelect.value = 'pcs';
 
                     hitungSubtotal(rowId);
                 } else {
@@ -325,7 +305,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_pembelian'])) {
                     hargaInput.value = '';
                     stokDisplay.textContent = '0';
                     qtyInput.value = 1;
-                    unitSelect.value = 'pcs';
                 }
 
                 updateProductDropdowns();
@@ -338,10 +317,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_pembelian'])) {
 
             qtyInput.addEventListener('input', function() {
                 if (this.value < 1) this.value = 1;
-                hitungSubtotal(rowId);
-            });
-
-            unitSelect.addEventListener('change', function() {
                 hitungSubtotal(rowId);
             });
 
@@ -392,12 +367,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_pembelian'])) {
             const row = document.getElementById(`row-${rowId}`);
             const harga = parseFloat(row.querySelector('.harga-input').value) || 0;
             const qty = parseInt(row.querySelector('.qty').value) || 0;
-            const unit = row.querySelector('.unit-select').value;
-
-            // Calculate based on unit
-            const multiplier = (unit === 'kodi') ? 20 : 1;
-            const subtotal = harga * qty * multiplier;
-
+            const subtotal = harga * qty;
             row.querySelector('.subtotal').textContent = formatCurrency(subtotal);
             hitungTotal();
         }

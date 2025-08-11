@@ -136,7 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_pembelian_bahan
                     <!-- Content -->
                     <div class="container-xxl flex-grow-1 container-p-y">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h2>Tambah Pesanan Pembelian Bahan</h2>
+                            <h2 class="fw-bold text-success">PESANAN PEMBELIAN BAHAN BAKU</h2>
                         </div>
 
                         <?php if (isset($_SESSION['error'])): ?>
@@ -293,7 +293,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_pembelian_bahan
                     <div class="input-group">
                         <input type="number" name="items[${rowId}][qty]" class="form-control qty" min="1" value="1" required>
                         <small class="text-danger stok-error" style="display:none">Melebihi stok tersedia</small>
-                        <span class="input-group-text">Pcs</span>
+                        <span class="input-group-text">Roll</span>
                     </div>
                 </td>
                 <td class="currency-format subtotal">0</td>

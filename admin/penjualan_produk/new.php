@@ -22,9 +22,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_penjualan'])) {
         foreach ($items as $item) {
             $id_produk = intval($item['id_produk']);
             $qty = intval($item['qty']);
+            $unit = $conn->real_escape_string($item['unit']);
+
+            // Convert kodi to pcs for stock check
+            $actual_qty = ($unit == 'kodi') ? $qty * 20 : $qty;
+
             $produk = query("SELECT stok FROM produk WHERE id_produk = $id_produk")[0];
 
-            if ($qty > $produk['stok']) {
+            if ($actual_qty > $produk['stok']) {
                 $error = "Jumlah melebihi stok tersedia untuk produk ID $id_produk";
                 break;
             }
@@ -36,6 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_penjualan'])) {
             foreach ($items as $item) {
                 $id_produk = intval($item['id_produk']);
                 $qty = intval($item['qty']);
+                $unit = $conn->real_escape_string($item['unit']);
                 $harga = floatval($item['harga']);
 
                 if ($qty <= 0) {
@@ -48,7 +54,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_penjualan'])) {
                     break;
                 }
 
-                $total_harga += $harga * $qty;
+                // Calculate based on unit
+                $multiplier = ($unit == 'kodi') ? 20 : 1;
+                $total_harga += $harga * $qty * $multiplier;
             }
 
             if (!isset($error)) {
@@ -63,18 +71,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_penjualan'])) {
                     foreach ($items as $item) {
                         $id_produk = intval($item['id_produk']);
                         $qty = intval($item['qty']);
+                        $unit = $conn->real_escape_string($item['unit']);
                         $harga = floatval($item['harga']);
                         $produk = query("SELECT stok FROM produk WHERE id_produk = $id_produk")[0];
 
-                        if ($produk['stok'] < $qty) throw new Exception("Stok produk tidak mencukupi untuk produk ID $id_produk");
+                        // Convert kodi to pcs for storage
+                        $actual_qty = ($unit == 'kodi') ? $qty * 20 : $qty;
 
-                        $subtotal = $harga * $qty;
+                        if ($produk['stok'] < $actual_qty) throw new Exception("Stok produk tidak mencukupi untuk produk ID $id_produk");
+
+                        $subtotal = $harga * $actual_qty;
 
                         $sql_detail = "INSERT INTO detail_penjualan (id_penjualan, id_produk, jumlah, harga_satuan, subtotal) 
-                                       VALUES ($id_penjualan, $id_produk, $qty, $harga, $subtotal)";
+                                       VALUES ($id_penjualan, $id_produk, $actual_qty, $harga, $subtotal)";
                         if (!$conn->query($sql_detail)) throw new Exception("Gagal menyimpan detail penjualan");
 
-                        $new_stok = $produk['stok'] - $qty;
+                        $new_stok = $produk['stok'] - $actual_qty;
                         $sql_update = "UPDATE produk SET stok = $new_stok WHERE id_produk = $id_produk";
                         if (!$conn->query($sql_update)) throw new Exception("Gagal update stok produk");
                     }
@@ -95,7 +107,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_penjualan'])) {
 ?>
 
 <style>
-    /* Paksa SweetAlert berada di atas segalanya */
     .swal2-container {
         z-index: 99999 !important;
     }
@@ -116,6 +127,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_penjualan'])) {
     .stok-info {
         font-size: 0.8rem;
         color: #6c757d;
+    }
+
+    .unit-select {
+        min-width: 80px;
     }
 </style>
 
@@ -140,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_penjualan'])) {
                     <!-- Content -->
                     <div class="container-xxl flex-grow-1 container-p-y">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h2>Tambah Pesanan Penjualan Barang</h2>
+                            <h2 class="fw-bold text-danger">PESANAN PENJUALAN BARANG PRODUK</h2>
                         </div>
 
                         <?php if (isset($_SESSION['error'])): ?>
@@ -197,8 +212,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_penjualan'])) {
                                                 <table class="table" id="tabelProduk">
                                                     <thead>
                                                         <tr class="text-center">
-                                                            <th>Bahan</th>
-                                                            <th>Harga</th>
+                                                            <th>Produk</th>
+                                                            <th>Harga Per Pcs</th>
                                                             <th>Stok</th>
                                                             <th>Qty</th>
                                                             <th>Subtotal</th>
@@ -294,9 +309,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_penjualan'])) {
                 <td>
                     <div class="input-group">
                         <input type="number" name="items[${rowId}][qty]" class="form-control qty" min="1" value="1" required>
-                        <small class="text-danger stok-error" style="display:none">Melebihi stok tersedia</small>
-                        <span class="input-group-text">Pcs</span>
+                        <select name="items[${rowId}][unit]" class="form-select unit-select">
+                            <option value="pcs">Pcs</option>
+                            <option value="kodi">Kodi</option>
+                        </select>
                     </div>
+                    <small class="text-muted unit-info">1 kodi = 20 pcs</small>
+                    <small class="text-danger stok-error" style="display:none">Melebihi stok tersedia</small>
                 </td>
                 <td class="currency-format subtotal">0</td>
                 <td><button type="button" class="btn btn-sm btn-danger hapus-produk" data-row="${rowId}">Hapus</button>
@@ -329,6 +348,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_penjualan'])) {
             const select = row.querySelector('.select-produk');
             const hargaInput = row.querySelector('.harga-input');
             const qtyInput = row.querySelector('.qty');
+            const unitSelect = row.querySelector('.unit-select');
             const stokError = row.querySelector('.stok-error');
             const stokDisplay = row.querySelector('.stok');
 
@@ -355,6 +375,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_penjualan'])) {
                     stokDisplay.textContent = stok;
                     qtyInput.max = stok;
                     qtyInput.value = 1;
+                    unitSelect.value = 'pcs';
 
                     hitungSubtotal(rowId);
                 } else {
@@ -363,6 +384,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_penjualan'])) {
                     stokDisplay.textContent = '0';
                     qtyInput.max = 0;
                     qtyInput.value = 1;
+                    unitSelect.value = 'pcs';
                     hitungSubtotal(rowId);
                 }
 
@@ -380,10 +402,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_penjualan'])) {
             qtyInput.addEventListener('input', function() {
                 const maxStok = parseInt(qtyInput.max) || 0;
                 const enteredQty = parseInt(this.value) || 0;
+                const unit = unitSelect.value;
 
-                if (enteredQty > maxStok) {
+                // Convert to pcs for validation
+                const actualQty = (unit === 'kodi') ? enteredQty * 20 : enteredQty;
+
+                if (actualQty > maxStok) {
                     stokError.style.display = 'block';
-                    this.value = maxStok;
+                    this.value = (unit === 'kodi') ? Math.floor(maxStok / 20) : maxStok;
+                } else {
+                    stokError.style.display = 'none';
+                }
+
+                hitungSubtotal(rowId);
+            });
+
+            unitSelect.addEventListener('change', function() {
+                const maxStok = parseInt(qtyInput.max) || 0;
+                const enteredQty = parseInt(qtyInput.value) || 0;
+
+                // Convert to pcs for validation
+                const actualQty = (this.value === 'kodi') ? enteredQty * 20 : enteredQty;
+
+                if (actualQty > maxStok) {
+                    stokError.style.display = 'block';
+                    qtyInput.value = (this.value === 'kodi') ? Math.floor(maxStok / 20) : maxStok;
                 } else {
                     stokError.style.display = 'none';
                 }
@@ -427,7 +470,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_penjualan'])) {
             const row = document.getElementById(`row-${rowId}`);
             const harga = parseFloat(row.querySelector('.harga-input').value) || 0;
             const qty = parseInt(row.querySelector('.qty').value) || 0;
-            const subtotal = harga * qty;
+            const unit = row.querySelector('.unit-select').value;
+
+            // Calculate based on unit
+            const multiplier = (unit === 'kodi') ? 20 : 1;
+            const subtotal = harga * qty * multiplier;
+
             row.querySelector('.subtotal').textContent = formatCurrency(subtotal);
             hitungTotal();
         }
