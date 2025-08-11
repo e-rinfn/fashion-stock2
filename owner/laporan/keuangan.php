@@ -2,10 +2,32 @@
 $pageTitle = "Laporan Keuangan";
 require_once '../includes/header.php';
 
+function dateIndo($tanggal)
+{
+    $bulanIndo = [
+        1 => 'Januari',
+        'Februari',
+        'Maret',
+        'April',
+        'Mei',
+        'Juni',
+        'Juli',
+        'Agustus',
+        'September',
+        'Oktober',
+        'November',
+        'Desember'
+    ];
+    $tanggal = date('Y-m-d', strtotime($tanggal));
+    $pecah = explode('-', $tanggal);
+    return $pecah[2] . ' ' . $bulanIndo[(int)$pecah[1]] . ' ' . $pecah[0];
+}
+
 // Filter bulan
 $bulan = $_GET['bulan'] ?? date('Y-m');
 $startDate = date('Y-m-01', strtotime($bulan));
 $endDate = date('Y-m-t', strtotime($bulan));
+$namaBulan = date('F Y', strtotime($bulan));
 
 // Query data keuangan
 $pemasukan_lunas = query("SELECT SUM(total_harga) as total FROM penjualan 
@@ -16,242 +38,469 @@ $pemasukan_belum_lunas = query("SELECT SUM(total_harga) as total FROM penjualan
                                WHERE status_pembayaran = 'cicilan'
                                AND tanggal_penjualan BETWEEN '$startDate' AND '$endDate'")[0]['total'] ?? 0;
 
+$pemasukan_lunas_bahan = query("SELECT SUM(total_harga) as total FROM penjualan_bahan 
+                         WHERE status_pembayaran = 'lunas'
+                         AND tanggal_penjualan_bahan BETWEEN '$startDate' AND '$endDate'")[0]['total'] ?? 0;
+
+$pemasukan_belum_lunas_bahan = query("SELECT SUM(total_harga) as total FROM penjualan_bahan 
+                               WHERE status_pembayaran = 'cicilan'
+                               AND tanggal_penjualan_bahan BETWEEN '$startDate' AND '$endDate'")[0]['total'] ?? 0;
+
 $pengeluaran = query("SELECT SUM(total_harga) as total FROM pembelian_bahan
                      WHERE tanggal_pembelian BETWEEN '$startDate' AND '$endDate'")[0]['total'] ?? 0;
 
-$laba = $pemasukan_lunas - $pengeluaran;
+$total_pemasukan = $pemasukan_lunas + $pemasukan_belum_lunas + $pemasukan_lunas_bahan + $pemasukan_belum_lunas_bahan;
+$laba_bersih = $total_pemasukan - $pengeluaran;
 
 // Detail transaksi
 $transaksi = query("
-    (SELECT 'Penjualan' as jenis, tanggal_penjualan as tanggal, 
-            CONCAT('Invoice #', id_penjualan) as keterangan, 
-            total_harga as jumlah, 
+    SELECT * FROM (
+        -- Data Penjualan Produk
+        SELECT 
+            'Penjualan Produk' AS jenis, 
+            tanggal_penjualan AS tanggal, 
+            CONCAT('No. #', id_penjualan) AS keterangan, 
+            total_harga AS jumlah, 
             CASE 
                 WHEN status_pembayaran = 'lunas' THEN 'pemasukan-lunas'
                 ELSE 'pemasukan-belum-lunas'
-            END as tipe,
+            END AS tipe,
             status_pembayaran
-     FROM penjualan
-     WHERE tanggal_penjualan BETWEEN '$startDate' AND '$endDate')
-    
-    UNION ALL
-    
-    (SELECT 'Pembelian Bahan' as jenis, tanggal_pembelian as tanggal, 
-            CONCAT('Pembelian ', nama_bahan) as keterangan, 
-            total_harga as jumlah, 'pengeluaran' as tipe,
+        FROM penjualan
+        WHERE tanggal_penjualan BETWEEN '$startDate' AND '$endDate'
+        
+        UNION ALL
+        
+        -- Data Penjualan Bahan
+        SELECT 
+            'Penjualan Bahan' AS jenis, 
+            tanggal_penjualan_bahan AS tanggal, 
+            CONCAT('No. #', id_penjualan_bahan) AS keterangan, 
+            total_harga AS jumlah, 
+            CASE 
+                WHEN status_pembayaran = 'lunas' THEN 'pemasukan-lunas'
+                ELSE 'pemasukan-belum-lunas'
+            END AS tipe,
+            status_pembayaran
+        FROM penjualan_bahan
+        WHERE tanggal_penjualan_bahan BETWEEN '$startDate' AND '$endDate'
+        
+        UNION ALL
+        
+        -- Data Pengeluaran
+        SELECT 
+            'Pengeluaran' AS jenis, 
+            tanggal_pembelian AS tanggal, 
+            CONCAT('Pembelian Bahan #', id_pembelian_bahan) AS keterangan, 
+            total_harga AS jumlah, 
+            'pengeluaran' AS tipe,
             NULL as status_pembayaran
-     FROM pembelian_bahan pb
-     JOIN bahan_baku bb ON pb.id_bahan = bb.id_bahan
-     WHERE tanggal_pembelian BETWEEN '$startDate' AND '$endDate')
-    
-    ORDER BY tanggal DESC
+        FROM pembelian_bahan
+        WHERE tanggal_pembelian BETWEEN '$startDate' AND '$endDate'
+    ) AS transaksi
+    ORDER BY tanggal DESC;
 ");
 ?>
 
-
 <style>
-    /* Paksa SweetAlert berada di atas segalanya */
-    .swal2-container {
-        z-index: 99999 !important;
+    .card-summary {
+        transition: transform 0.2s;
+    }
+
+    .card-summary:hover {
+        transform: translateY(-5px);
+    }
+
+    .badge-status {
+        font-size: 0.85rem;
+        padding: 0.35em 0.65em;
+    }
+
+    .table-transaksi {
+        font-size: 0.9rem;
+    }
+
+    .table-transaksi th {
+        white-space: nowrap;
+    }
+
+    .chart-container {
+        position: relative;
+        height: 300px;
+    }
+
+    .info-box {
+        border-left: 4px solid;
+        padding: 0.5rem 1rem;
+        margin-bottom: 1rem;
+        background-color: #f8f9fa;
+    }
+
+    .info-box-primary {
+        border-left-color: #0d6efd;
+    }
+
+    .info-box-success {
+        border-left-color: #198754;
+    }
+
+    .info-box-warning {
+        border-left-color: #ffc107;
+    }
+
+    .info-box-danger {
+        border-left-color: #dc3545;
     }
 </style>
 
 <body>
-    <!-- Layout wrapper -->
     <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
-
-            <!-- Sidebar -->
             <?php include '../includes/sidebar.php'; ?>
-            <!-- / Sidebar -->
 
-            <!-- Layout container -->
             <div class="layout-page">
-                <!-- Navbar -->
                 <?php include '../includes/navbar.php'; ?>
-                <!-- / Navbar -->
 
-                <!-- Content wrapper -->
-                <!-- Content wrapper -->
                 <div class="content-wrapper">
-                    <!-- Content -->
-
                     <div class="container-xxl flex-grow-1 container-p-y">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h2>Data Produk</h2>
-                        </div>
-
-                        <div class="row">
-                            <!-- Card Pemasukan Lunas -->
-                            <div class="col-md-4">
-                                <div class="card border-start-success mb-3">
-                                    <div class="card-body">
-                                        <h5 class="card-title text-success">Pemasukan Lunas</h5>
-                                        <h2 class="card-text"><?= formatRupiah($pemasukan_lunas) ?></h2>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Card Pemasukan Belum Lunas -->
-                            <div class="col-md-4">
-                                <div class="card border-start-warning mb-3">
-                                    <div class="card-body">
-                                        <h5 class="card-title text-warning">Pemasukan Belum Lunas</h5>
-                                        <h2 class="card-text"><?= formatRupiah($pemasukan_belum_lunas) ?></h2>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Card Pengeluaran -->
-                            <div class="col-md-4">
-                                <div class="card border-start-primary mb-3">
-                                    <div class="card-body">
-                                        <h5 class="card-title text-primary">Total Setelah Lunas</h5>
-                                        <h2 class="card-text"><?= formatRupiah($pemasukan_lunas + $pemasukan_belum_lunas) ?></h2>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="mb-0">Detail Transaksi</h5>
-                            </div>
-                            <div class="card-body">
-                                <form method="get" class="row g-2">
-                                    <div class="col-auto">
-                                        <input type="month" name="bulan" value="<?= $bulan ?>" class="form-control form-control-sm">
-                                    </div>
-                                    <div class="col-auto">
-                                        <button type="submit" class="btn btn-sm btn-primary">Filter</button>
-                                        <a href="keuangan.php" class="btn btn-sm btn-outline-secondary">Reset</a>
-                                    </div>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2>Laporan Keuangan <?= $namaBulan ?></h2>
+                            <div>
+                                <form method="get" class="d-flex">
+                                    <input type="month" name="bulan" value="<?= $bulan ?>" class="form-control me-2">
+                                    <button type="submit" class="btn btn-primary">Filter</button>
+                                    <a href="keuangan.php" class="btn btn-outline-secondary ms-2">Reset</a>
                                 </form>
+                            </div>
+                        </div>
+
+                        <!-- Ringkasan Keuangan -->
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <div class="info-box info-box-primary">
+                                    <h5 class="mb-1">Ringkasan Keuangan Bulan Ini</h5>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <small class="text-muted">Total Pemasukan</small>
+                                            <h4 class="text-success"><?= formatRupiah($total_pemasukan) ?></h4>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <small class="text-muted">Total Pengeluaran</small>
+                                            <h4 class="text-danger"><?= formatRupiah($pengeluaran) ?></h4>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <small class="text-muted">Laba Bersih</small>
+                                            <h4 class="<?= $laba_bersih >= 0 ? 'text-success' : 'text-danger' ?>">
+                                                <?= formatRupiah($laba_bersih) ?>
+                                            </h4>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <small class="text-muted">Piutang</small>
+                                            <h4 class="text-warning"><?= formatRupiah($pemasukan_belum_lunas + $pemasukan_belum_lunas_bahan) ?></h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Ringkasan -->
+                        <div class="row mb-4">
+                            <!-- Penjualan Produk -->
+                            <div class="col-md-6">
+                                <div class="card card-summary mb-3">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0">Penjualan Produk</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <span>Lunas:</span>
+                                                    <strong class="text-success"><?= formatRupiah($pemasukan_lunas) ?></strong>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <span>Belum Lunas:</span>
+                                                    <strong class="text-warning"><?= formatRupiah($pemasukan_belum_lunas) ?></strong>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="chart-container">
+                                                    <canvas id="chartPenjualanProduk"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Penjualan Bahan -->
+                            <div class="col-md-6">
+                                <div class="card card-summary mb-3">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0">Penjualan Bahan</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <span>Lunas:</span>
+                                                    <strong class="text-success"><?= formatRupiah($pemasukan_lunas_bahan) ?></strong>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <span>Belum Lunas:</span>
+                                                    <strong class="text-warning"><?= formatRupiah($pemasukan_belum_lunas_bahan) ?></strong>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="chart-container">
+                                                    <canvas id="chartPenjualanBahan"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Detail Transaksi -->
+                        <div class="card mb-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">Detail Transaksi</h5>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="printReport()">
+                                        <i class="bx bx-printer"></i> Cetak Laporan
+                                    </button>
+                                </div>
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
-                                    <table class="table table-bordered table-hover">
+                                    <table class="table table-transaksi table-hover">
                                         <thead class="table-light">
                                             <tr>
-                                                <th>Tanggal</th>
-                                                <th>Jenis</th>
-                                                <th>Keterangan</th>
-                                                <th>Jumlah</th>
-                                                <th>Status</th>
+                                                <th width="5%">No</th>
+                                                <th width="15%">Tanggal</th>
+                                                <th width="20%">Jenis</th>
+                                                <th width="30%">Keterangan</th>
+                                                <th width="15%" class="text-end">Jumlah</th>
+                                                <th width="15%">Status</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <?php if (empty($transaksi)) : ?>
                                                 <tr>
-                                                    <td colspan="5" class="text-center">Tidak ada transaksi</td>
+                                                    <td colspan="6" class="text-center py-4">Tidak ada transaksi pada periode ini</td>
                                                 </tr>
                                             <?php else : ?>
+                                                <?php $no = 1; ?>
                                                 <?php foreach ($transaksi as $trx) : ?>
                                                     <tr>
-                                                        <td><?= date('d/m/Y', strtotime($trx['tanggal'])) ?></td>
+                                                        <td class="text-center"><?= $no++ ?></td>
+                                                        <td><?= dateIndo($trx['tanggal']) ?></td>
                                                         <td><?= htmlspecialchars($trx['jenis']) ?></td>
                                                         <td><?= htmlspecialchars($trx['keterangan']) ?></td>
                                                         <td class="text-end <?= str_contains($trx['tipe'], 'pemasukan') ? 'text-success' : 'text-danger' ?>">
                                                             <?= str_contains($trx['tipe'], 'pemasukan') ? '+' : '-' ?>
                                                             <?= formatRupiah($trx['jumlah']) ?>
                                                         </td>
-                                                        <td class="text-center">
-                                                            <?php if ($trx['jenis'] === 'Penjualan') : ?>
-                                                                <span class="badge bg-<?= $trx['status_pembayaran'] === 'lunas' ? 'success' : 'warning' ?>">
+                                                        <td>
+                                                            <?php if ($trx['jenis'] !== 'Pengeluaran') : ?>
+                                                                <span class="badge badge-status bg-<?= $trx['status_pembayaran'] === 'lunas' ? 'success' : 'warning' ?>">
                                                                     <?= $trx['status_pembayaran'] === 'lunas' ? 'Lunas' : 'Belum Lunas' ?>
                                                                 </span>
                                                             <?php else : ?>
-                                                                <span class="badge bg-secondary">Pengeluaran</span>
+                                                                <span class="badge badge-status bg-secondary">Pengeluaran</span>
                                                             <?php endif; ?>
                                                         </td>
                                                     </tr>
                                                 <?php endforeach; ?>
-                                                <tr class="table-active">
-                                                    <th colspan="3" class="text-end">TOTAL LABA/RUGI</th>
-                                                    <th class="text-center fs-6 <?= $laba >= 0 ? 'text-success' : 'text-danger' ?>">
-                                                        <?= formatRupiah($laba) ?>
-                                                    </th>
-                                                    <th></th>
-                                                </tr>
                                             <?php endif; ?>
                                         </tbody>
+                                        <tfoot class="table-active">
+                                            <tr>
+                                                <th colspan="4" class="text-end">TOTAL</th>
+                                                <th class="text-end <?= $laba_bersih >= 0 ? 'text-success' : 'text-danger' ?>">
+                                                    <?= formatRupiah($laba_bersih) ?>
+                                                </th>
+                                                <th></th>
+                                            </tr>
+                                        </tfoot>
                                     </table>
                                 </div>
                             </div>
                         </div>
-                        <div class="row mt-4">
-                            <div class="col-md-12">
+
+                        <!-- Grafik -->
+                        <div class="row">
+                            <div class="col-md-6" hidden>
                                 <div class="card">
                                     <div class="card-header">
                                         <h5 class="mb-0">Pemasukan per Reseller</h5>
                                     </div>
-                                    <hr>
-                                    <div class="card-body text-center">
-                                        <canvas id="pemasukanChart" style="max-width: 100%; max-height: 400px; width: 100%;" height="200"></canvas>
+                                    <div class="card-body">
+                                        <div class="chart-container">
+                                            <canvas id="pemasukanChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">Perbandingan Pemasukan & Pengeluaran</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="chart-container">
+                                            <canvas id="perbandinganChart"></canvas>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
-                <!-- Content wrapper -->
             </div>
-            <!-- / Layout page -->
         </div>
-
-        <!-- Overlay -->
-        <div class="layout-overlay layout-menu-toggle"></div>
     </div>
-    <!-- / Layout wrapper -->
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Chart Penjualan Produk
+            const ctxProduk = document.getElementById('chartPenjualanProduk').getContext('2d');
+            new Chart(ctxProduk, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Lunas', 'Belum Lunas'],
+                    datasets: [{
+                        data: [<?= $pemasukan_lunas ?>, <?= $pemasukan_belum_lunas ?>],
+                        backgroundColor: ['#28a745', '#ffc107'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Chart Penjualan Bahan
+            const ctxBahan = document.getElementById('chartPenjualanBahan').getContext('2d');
+            new Chart(ctxBahan, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Lunas', 'Belum Lunas'],
+                    datasets: [{
+                        data: [<?= $pemasukan_lunas_bahan ?>, <?= $pemasukan_belum_lunas_bahan ?>],
+                        backgroundColor: ['#28a745', '#ffc107'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
             // Chart Pemasukan per Reseller
             const pemasukanCtx = document.getElementById('pemasukanChart').getContext('2d');
             new Chart(pemasukanCtx, {
                 type: 'pie',
                 data: {
-                    labels: <?= json_encode(array_column(query("SELECT nama_reseller, SUM(total_harga) as total FROM penjualan p JOIN reseller r ON p.id_reseller = r.id_reseller WHERE p.tanggal_penjualan BETWEEN '$startDate' AND '$endDate' AND p.status_pembayaran = 'lunas' GROUP BY p.id_reseller"), 'nama_reseller')) ?>,
+                    labels: <?= json_encode(array_column(query("SELECT nama_reseller FROM penjualan p JOIN reseller r ON p.id_reseller = r.id_reseller WHERE p.tanggal_penjualan BETWEEN '$startDate' AND '$endDate' AND p.status_pembayaran = 'lunas' GROUP BY p.id_reseller"), 'nama_reseller')) ?>,
                     datasets: [{
                         data: <?= json_encode(array_column(query("SELECT SUM(total_harga) as total FROM penjualan p JOIN reseller r ON p.id_reseller = r.id_reseller WHERE p.tanggal_penjualan BETWEEN '$startDate' AND '$endDate' AND p.status_pembayaran = 'lunas' GROUP BY p.id_reseller"), 'total')) ?>,
                         backgroundColor: [
-                            'rgba(54, 162, 235, 0.7)',
-                            'rgba(255, 99, 132, 0.7)',
-                            'rgba(75, 192, 192, 0.7)',
-                            'rgba(255, 206, 86, 0.7)'
+                            '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b',
+                            '#858796', '#5a5c69', '#3a3b45', '#2e2f38', '#1a1c23'
                         ]
                     }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    let value = context.raw || 0;
+                                    let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    let percentage = Math.round((value / total) * 100);
+                                    return `${label}: ${formatRupiahJS(value)} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Chart Perbandingan Pemasukan & Pengeluaran
+            const perbandinganCtx = document.getElementById('perbandinganChart').getContext('2d');
+            new Chart(perbandinganCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Pemasukan', 'Pengeluaran', 'Laba Bersih'],
+                    datasets: [{
+                        label: 'Jumlah',
+                        data: [<?= $total_pemasukan ?>, <?= $pengeluaran ?>, <?= $laba_bersih ?>],
+                        backgroundColor: [
+                            'rgba(40, 167, 69, 0.7)',
+                            'rgba(220, 53, 69, 0.7)',
+                            'rgba(23, 162, 184, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(40, 167, 69, 1)',
+                            'rgba(220, 53, 69, 1)',
+                            'rgba(23, 162, 184, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatRupiahJS(value);
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + formatRupiahJS(context.raw);
+                                }
+                            }
+                        }
+                    }
                 }
             });
         });
+
+        function formatRupiahJS(number) {
+            return 'Rp ' + number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        function printReport() {
+            window.print();
+        }
     </script>
 
-    <!-- Core JS footer -->
-    <!-- build:js assets/vendor/js/core.js -->
-    <script src="<?= $base_url ?>/assets/vendor/libs/jquery/jquery.js"></script>
-    <script src="<?= $base_url ?>/assets/vendor/libs/popper/popper.js"></script>
-    <script src="<?= $base_url ?>/assets/vendor/js/bootstrap.js"></script>
-    <script src="<?= $base_url ?>/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
-
-    <script src="<?= $base_url ?>/assets/vendor/js/menu.js"></script>
-    <!-- endbuild -->
-
-    <!-- Vendors JS -->
-    <script src="<?= $base_url ?>/assets/vendor/libs/apex-charts/apexcharts.js"></script>
-
-    <!-- Main JS -->
-    <script src="<?= $base_url ?>/assets/js/main.js"></script>
-
-    <!-- Page JS -->
-    <script src="<?= $base_url ?>/assets/js/dashboards-analytics.js"></script>
-
-    <!-- Place this tag in your head or just before your close body tag. -->
-    <script async defer src="https://buttons.github.io/buttons.js"></script>
-    <!-- /Core JS footer -->
-
-
+    <?php include '../includes/footer.php'; ?>
 </body>
 
 </html>
