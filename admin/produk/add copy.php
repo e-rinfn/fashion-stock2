@@ -5,13 +5,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nama = $conn->real_escape_string($_POST['nama']);
     $harga = $conn->real_escape_string($_POST['harga']);
     $stok = $conn->real_escape_string($_POST['stok']);
-    $stok_unit = $conn->real_escape_string($_POST['stok_unit']);
     $deskripsi = $conn->real_escape_string($_POST['deskripsi']);
-
-    // Convert kodi to pcs if needed
-    if ($stok_unit == 'kodi') {
-        $stok = $stok * 20;
-    }
 
     $sql = "INSERT INTO produk (nama_produk, harga_jual, stok, deskripsi) 
             VALUES ('$nama', '$harga', '$stok', '$deskripsi')";
@@ -71,12 +65,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <label for="stok" class="form-label">Stok Awal</label>
                                         <div class="input-group">
                                             <input type="number" name="stok" id="stok" class="form-control" min="0" required>
-                                            <select name="stok_unit" class="form-select" style="max-width: 100px;">
-                                                <option value="pcs">Pcs</option>
-                                                <option value="kodi">Kodi</option>
-                                            </select>
+                                            <span class="input-group-text">Pcs</span>
                                         </div>
-                                        <small class="text-muted">1 kodi = 20 pcs</small>
                                     </div>
 
                                 </div>

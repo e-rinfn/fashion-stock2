@@ -24,7 +24,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nama = $conn->real_escape_string($_POST['nama']);
     $harga = $conn->real_escape_string($_POST['harga']);
     $stok = $conn->real_escape_string($_POST['stok']);
+    $stok_unit = $conn->real_escape_string($_POST['stok_unit']);
     $deskripsi = $conn->real_escape_string($_POST['deskripsi']);
+
+    // Convert kodi to pcs if needed
+    if ($stok_unit == 'kodi') {
+        $stok = $stok * 20;
+    }
 
     $sql = "UPDATE produk SET 
             nama_produk = '$nama',
@@ -41,6 +47,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $error = "Gagal memperbarui produk: " . $conn->error;
     }
 }
+
+// Calculate kodi value for display if stock is divisible by 20
+$stok_pcs = $produk['stok'];
+$stok_kodi = floor($stok_pcs / 20);
+$show_kodi = ($stok_pcs % 20 == 0) && ($stok_pcs > 0);
 ?>
 
 <body>
@@ -90,9 +101,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <label for="stok" class="form-label">Stok Awal</label>
                                         <div class="input-group">
                                             <input type="number" id="stok" name="stok" class="form-control"
-                                                value="<?= htmlspecialchars($produk['stok']) ?>" min="0" required>
-                                            <span class="input-group-text">Pcs</span>
+                                                value="<?= $show_kodi ? $stok_kodi : $produk['stok'] ?>" min="0" required>
+                                            <select name="stok_unit" class="form-select" style="max-width: 100px;">
+                                                <option value="pcs" <?= !$show_kodi ? 'selected' : '' ?>>Pcs</option>
+                                                <option value="kodi" <?= $show_kodi ? 'selected' : '' ?>>Kodi</option>
+                                            </select>
                                         </div>
+                                        <small class="text-muted">1 kodi = 20 pcs</small>
                                     </div>
 
                                 </div>
