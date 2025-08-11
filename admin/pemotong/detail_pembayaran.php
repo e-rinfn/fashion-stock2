@@ -158,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['tambah_cicilan'])) {
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h2>Detail Pembayaran Upah</h2>
                             <div class="btn-group ms-auto" role="group" aria-label="Navigasi Form">
-                                <a href="riwayat_hasil_pemotongan.php" class="btn btn-secondary">Kembali</a>
+                                <a href="biaya_upah_pemotong.php" class="btn btn-secondary">Kembali</a>
                             </div>
                         </div>
 

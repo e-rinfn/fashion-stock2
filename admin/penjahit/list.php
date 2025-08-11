@@ -32,6 +32,9 @@ $penjahit = query($sql);
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h2>Data Penjahit</h2>
                             <div>
+                                <a href="biaya_upah_penjahit.php" class="btn btn-warning">
+                                    <i class="bx bx-money"></i> Upah Penjahit
+                                </a>
                                 <a href="add.php" class="btn btn-success">
                                     <i class="bx bx-plus-circle"></i> Tambah Penjahit
                                 </a>
@@ -40,13 +43,19 @@ $penjahit = query($sql);
 
                         <div class="card p-3">
                             <?php if (isset($_SESSION['error'])): ?>
-                                <div class="alert alert-danger"><?= $_SESSION['error'];
-                                                                unset($_SESSION['error']); ?></div>
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <?= htmlspecialchars($_SESSION['error']) ?>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                                <?php unset($_SESSION['error']); ?>
                             <?php endif; ?>
 
                             <?php if (isset($_SESSION['success'])): ?>
-                                <div class="alert alert-success"><?= $_SESSION['success'];
-                                                                    unset($_SESSION['success']); ?></div>
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    <?= htmlspecialchars($_SESSION['success']) ?>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                                <?php unset($_SESSION['success']); ?>
                             <?php endif; ?>
 
                             <div class="table-responsive">

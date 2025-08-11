@@ -158,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['tambah_cicilan'])) {
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h2>Detail Pembayaran Upah</h2>
                             <div class="btn-group ms-auto" role="group" aria-label="Navigasi Form">
-                                <a href="riwayat_hasil_pemotongan.php" class="btn btn-secondary">Kembali</a>
+                                <a href="biaya_upah_penjahit.php" class="btn btn-secondary">Kembali</a>
                             </div>
                         </div>
 
@@ -335,9 +335,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['tambah_cicilan'])) {
                                                     <tr>
                                                         <td><?= $no++ ?></td>
                                                         <td><?= date('d F Y', strtotime($dh['tanggal_selesai'])) ?></td>
-                                                        <td><?= htmlspecialchars($dh['nama_bahan']) ?></td>
-                                                        <td><?= htmlspecialchars($dh['nama_pemotong']) ?></td>
-                                                        <td class="text-end"><?= number_format($dh['jumlah_hasil'], 0, ',', '.') ?> pcs</td>
+                                                        <td><?= htmlspecialchars($dh['nama_produk']) ?></td>
+                                                        <td><?= htmlspecialchars($dh['nama_penjahit']) ?></td>
+                                                        <td class="text-end"><?= number_format($dh['hasil_produ_jadi'], 0, ',', '.') ?> pcs</td>
                                                         <td class="text-end">Rp <?= number_format($dh['total_upah'], 0, ',', '.') ?></td>
                                                     </tr>
                                                 <?php endforeach; ?>

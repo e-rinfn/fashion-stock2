@@ -3,12 +3,6 @@ require_once __DIR__ . '../../includes/header.php';
 require_once '../../config/database.php';
 require_once '../../config/functions.php';
 
-// Check if user is logged in
-if (!isLoggedIn()) {
-    header("Location: {$base_url}auth/login.php");
-    exit;
-}
-
 function dateIndo($tanggal)
 {
     $bulanIndo = [
@@ -30,35 +24,33 @@ function dateIndo($tanggal)
     return $pecah[2] . ' ' . $bulanIndo[(int)$pecah[1]] . ' ' . $pecah[0];
 }
 
+// Fungsi untuk mendapatkan tarif upah terbaru
 function getTarifUpah($jenis)
 {
     global $conn;
-    $stmt = $conn->prepare("SELECT id_tarif, tarif_per_unit FROM tarif_upah 
-                          WHERE jenis_tarif = ? 
+    $result = $conn->query("SELECT id_tarif, tarif_per_unit FROM tarif_upah 
+                          WHERE jenis_tarif = '$jenis' 
                           ORDER BY berlaku_sejak DESC LIMIT 1");
-    $stmt->bind_param("s", $jenis);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
     if ($result && $result->num_rows > 0) {
         return $result->fetch_assoc();
     }
-    return ['id_tarif' => null, 'tarif_per_unit' => 0];
+    return ['id_tarif' => null, 'tarif_per_unit' => 0]; // Default jika tidak ada tarif
 }
 
-// Get unfinished shipments
+// Ambil data pengiriman yang belum selesai
 $sql_pengiriman = "SELECT pj.id_pengiriman_jahit, pj.jumlah_bahan_mentah, 
-                   p.nama_penjahit, p.id_penjahit, pj.id_penjahit as penjahit_id,
-                   DATE_FORMAT(pj.tanggal_kirim, '%Y-%m-%d') as tanggal_kirim
+                   p.nama_penjahit, hp.jumlah_hasil,
+                   DATE_FORMAT(pj.tanggal_kirim, '%d-%m-%Y') as tgl_kirim
                    FROM pengiriman_penjahit pj
                    JOIN penjahit p ON pj.id_penjahit = p.id_penjahit
+                   JOIN hasil_pemotongan hp ON pj.id_hasil_potong = hp.id_hasil_potong
                    WHERE pj.status = 'dikirim'";
 $pengiriman = query($sql_pengiriman);
 
-// Get products
+// Ambil data produk
 $produk = query("SELECT * FROM produk ORDER BY nama_produk");
 
-// Get current sewing wage rate
+// Dapatkan tarif upah penjahitan
 $tarif_penjahitan = getTarifUpah('penjahitan');
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -66,122 +58,49 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $id_produk = intval($_POST['id_produk']);
     $jumlah = intval($_POST['jumlah']);
     $tanggal = $conn->real_escape_string($_POST['tanggal']);
-    $keterangan = $conn->real_escape_string($_POST['keterangan'] ?? '');
+    $keterangan = $conn->real_escape_string($_POST['keterangan']);
 
-    // Get penjahit ID from shipment
-    $id_penjahit = null;
-    foreach ($pengiriman as $p) {
-        if ($p['id_pengiriman_jahit'] == $id_pengiriman) {
-            $id_penjahit = $p['id_penjahit'];
-            break;
-        }
-    }
-
-    if (!$id_penjahit) {
-        $_SESSION['error'] = "Data penjahit tidak valid";
-        header("Location: hasil_penjahitan.php");
-        exit;
-    }
-
-    // Calculate total wage
+    // Hitung total upah
     $total_upah = $jumlah * $tarif_penjahitan['tarif_per_unit'];
 
-    // Start transaction
-    $conn->begin_transaction();
+    // Mulai transaksi
+    $conn->autocommit(FALSE);
 
     try {
-        // 1. Record sewing results with wage
+        // 1. Catat hasil penjahitan dengan upah
         $sql1 = "INSERT INTO hasil_penjahitan 
                 (id_pengiriman_jahit, jumlah_produk_jadi, id_produk, tanggal_selesai, keterangan, id_tarif, total_upah)
-                VALUES (?, ?, ?, ?, ?, ?, ?)";
+                VALUES ($id_pengiriman, $jumlah, $id_produk, '$tanggal', '$keterangan', {$tarif_penjahitan['id_tarif']}, $total_upah)";
 
-        $stmt1 = $conn->prepare($sql1);
-        $stmt1->bind_param(
-            "iiissid",
-            $id_pengiriman,
-            $jumlah,
-            $id_produk,
-            $tanggal,
-            $keterangan,
-            $tarif_penjahitan['id_tarif'],
-            $total_upah
-        );
-
-        if (!$stmt1->execute()) {
-            throw new Exception("Gagal mencatat hasil: " . $stmt1->error);
+        if (!$conn->query($sql1)) {
+            throw new Exception("Gagal mencatat hasil: " . $conn->error);
         }
 
-        $id_hasil_penjahitan = $stmt1->insert_id;
-
-        // 2. Update shipment status to completed
+        // 2. Update status pengiriman jadi selesai
         $sql2 = "UPDATE pengiriman_penjahit SET 
                 status = 'selesai', 
-                tanggal_diterima = ?
-                WHERE id_pengiriman_jahit = ?";
+                tanggal_diterima = '$tanggal'
+                WHERE id_pengiriman_jahit = $id_pengiriman";
 
-        $stmt2 = $conn->prepare($sql2);
-        $stmt2->bind_param("si", $tanggal, $id_pengiriman);
-
-        if (!$stmt2->execute()) {
-            throw new Exception("Gagal update status: " . $stmt2->error);
+        if (!$conn->query($sql2)) {
+            throw new Exception("Gagal update status: " . $conn->error);
         }
 
-        // 3. Update product stock
-        $sql3 = "UPDATE produk SET stok = stok + ? WHERE id_produk = ?";
+        // 3. Update stok produk
+        $sql3 = "UPDATE produk SET stok = stok + $jumlah WHERE id_produk = $id_produk";
 
-        $stmt3 = $conn->prepare($sql3);
-        $stmt3->bind_param("ii", $jumlah, $id_produk);
-
-        if (!$stmt3->execute()) {
-            throw new Exception("Gagal update stok: " . $stmt3->error);
+        if (!$conn->query($sql3)) {
+            throw new Exception("Gagal update stok: " . $conn->error);
         }
 
-        // 4. Record to pembayaran_upah table (status 'terhitung')
-        $periode_awal = $tanggal;
-        $periode_akhir = $tanggal;
-
-        $sql_pembayaran = "INSERT INTO pembayaran_upah 
-                          (id_penerima, jenis_penerima, periode_awal, periode_akhir, total_upah, status)
-                          VALUES (?, 'penjahit', ?, ?, ?, 'terhitung')";
-
-        $stmt_pembayaran = $conn->prepare($sql_pembayaran);
-        $stmt_pembayaran->bind_param("issd", $id_penjahit, $periode_awal, $periode_akhir, $total_upah);
-
-        if (!$stmt_pembayaran->execute()) {
-            throw new Exception("Gagal mencatat pembayaran upah: " . $stmt_pembayaran->error);
-        }
-
-        $id_pembayaran = $stmt_pembayaran->insert_id;
-
-        // 5. Record payment details
-        $sql_detail = "INSERT INTO detail_pembayaran_upah
-                      (id_pembayaran, id_hasil, jenis_hasil, jumlah_unit, tarif_per_unit, subtotal)
-                      VALUES (?, ?, 'jahit', ?, ?, ?)";
-
-        $stmt_detail = $conn->prepare($sql_detail);
-        $stmt_detail->bind_param(
-            "iiidd",
-            $id_pembayaran,
-            $id_hasil_penjahitan,
-            $jumlah,
-            $tarif_penjahitan['tarif_per_unit'],
-            $total_upah
-        );
-
-        if (!$stmt_detail->execute()) {
-            throw new Exception("Gagal mencatat detail pembayaran: " . $stmt_detail->error);
-        }
-
-        // Commit transaction
+        // Commit transaksi
         $conn->commit();
         $_SESSION['success'] = "Hasil penjahitan berhasil dicatat. Total upah: Rp " . number_format($total_upah, 0, ',', '.');
         header("Location: hasil_penjahitan.php");
         exit();
     } catch (Exception $e) {
         $conn->rollback();
-        $_SESSION['error'] = $e->getMessage();
-        header("Location: hasil_penjahitan.php");
-        exit();
+        $error = $e->getMessage();
     }
 }
 ?>
@@ -252,7 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             <?php foreach ($pengiriman as $p): ?>
                                                 <option value="<?= $p['id_pengiriman_jahit'] ?>"
                                                     data-jumlah="<?= $p['jumlah_bahan_mentah'] ?>"> Tanggal
-                                                    <?= dateIndo($p['tanggal_kirim']) ?> |
+                                                    <?= dateIndo($p['tgl_kirim']) ?> |
                                                     <?= "{$p['nama_penjahit']} : {$p['jumlah_bahan_mentah']} pcs " ?>
                                                 </option>
                                             <?php endforeach; ?>

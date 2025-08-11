@@ -50,12 +50,18 @@ function dateIndo($tanggal)
 
                         <div class="card p-3">
                             <?php if (isset($_SESSION['error'])): ?>
-                                <div class="alert alert-danger"><?= $_SESSION['error'] ?></div>
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <?= htmlspecialchars($_SESSION['error']) ?>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
                                 <?php unset($_SESSION['error']); ?>
                             <?php endif; ?>
 
                             <?php if (isset($_SESSION['success'])): ?>
-                                <div class="alert alert-success"><?= $_SESSION['success'] ?></div>
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    <?= htmlspecialchars($_SESSION['success']) ?>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
                                 <?php unset($_SESSION['success']); ?>
                             <?php endif; ?>
 

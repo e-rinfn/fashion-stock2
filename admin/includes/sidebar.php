@@ -73,6 +73,11 @@ function isActive($path)
                         <div data-i18n="Connections">Supplier</div>
                     </a>
                 </li>
+                <li class="menu-item <?= isActive('/upah') ?>">
+                    <a href="<?= $base_url ?>/admin/upah/index.php" class="menu-link">
+                        <div data-i18n="Connections">Tarif Upah</div>
+                    </a>
+                </li>
             </ul>
         </li>
 

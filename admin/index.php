@@ -164,28 +164,51 @@ require_once './includes/header.php';
                                                         <?php
                                                         // Gabungkan beberapa tabel untuk menampilkan aktivitas terakhir
                                                         $sql = "
-                                                        
-                                                                (SELECT 'pembelian' as type, tanggal_pembelian as waktu, CONCAT('Pembelian ke: ', nama_supplier) as aktivitas, 
-                                                                CONCAT('Total: ', FORMAT(total_harga, 0)) as detail
-                                                                FROM pembelian p JOIN supplier r ON p.id_supplier = r.id_supplier 
-                                                                ORDER BY waktu DESC LIMIT 3)
 
-                                                                
-                                                                UNION
-                                                                
-                                                                (SELECT 'penjualan' as type, tanggal_penjualan as waktu, CONCAT('Penjualan ke: ', nama_reseller) as aktivitas, 
-                                                                CONCAT('Total: ', FORMAT(total_harga, 0)) as detail
-                                                                FROM penjualan p JOIN reseller r ON p.id_reseller = r.id_reseller 
-                                                                ORDER BY waktu DESC LIMIT 3)
-                                                                
-                                                                UNION
-                                                                
-                                                                (SELECT 'produksi' as type, tanggal_selesai as waktu, 'Hasil Penjahitan' as aktivitas, 
+                                                            (SELECT 'pembelian' as type, tanggal_pembelian as waktu, 
+                                                                CONCAT('Pembelian ke: ', nama_supplier) as aktivitas, 
+                                                                CONCAT('Total Rp.', FORMAT(total_harga, 0)) as detail
+                                                            FROM pembelian p 
+                                                            JOIN supplier r ON p.id_supplier = r.id_supplier 
+                                                            ORDER BY waktu DESC LIMIT 3)
+
+                                                            UNION
+
+                                                            (SELECT 'penjualan' as type, tanggal_penjualan as waktu, 
+                                                                CONCAT('Penjualan Barang ke: ', nama_reseller) as aktivitas, 
+                                                                CONCAT('Total Rp.', FORMAT(total_harga, 0)) as detail
+                                                            FROM penjualan p 
+                                                            JOIN reseller r ON p.id_reseller = r.id_reseller 
+                                                            ORDER BY waktu DESC LIMIT 3)
+
+                                                            UNION
+
+                                                            (SELECT 'produksi' as type, created_at as waktu, 
+                                                                'Hasil Penjahitan' as aktivitas, 
                                                                 CONCAT(jumlah_produk_jadi, ' pcs produk jadi') as detail
-                                                                FROM hasil_penjahitan 
-                                                                ORDER BY waktu DESC LIMIT 3)
-                                                                
-                                                                ORDER BY waktu DESC LIMIT 5";
+                                                            FROM hasil_penjahitan 
+                                                            ORDER BY waktu DESC LIMIT 3)
+
+                                                            UNION
+
+                                                            (SELECT 'pembelian_bahan' as type, tanggal_pembelian as waktu, 
+                                                                CONCAT('Pembelian Bahan dari: ', nama_supplier) as aktivitas, 
+                                                                CONCAT('Total Rp.', FORMAT(total_harga, 0)) as detail
+                                                            FROM pembelian_bahan pb 
+                                                            JOIN supplier s ON pb.id_supplier = s.id_supplier 
+                                                            ORDER BY waktu DESC LIMIT 3)
+
+                                                            UNION
+
+                                                            (SELECT 'penjualan_bahan' as type, tanggal_penjualan_bahan as waktu, 
+                                                                CONCAT('Penjualan Bahan ke: ', nama_reseller) as aktivitas, 
+                                                                CONCAT('Total Rp.', FORMAT(total_harga, 0)) as detail
+                                                            FROM penjualan_bahan pb 
+                                                            JOIN reseller r ON pb.id_reseller = r.id_reseller 
+                                                            ORDER BY waktu DESC LIMIT 3)
+
+                                                            ORDER BY waktu DESC LIMIT 5
+                                                        ";
 
                                                         $activities = query($sql);
 

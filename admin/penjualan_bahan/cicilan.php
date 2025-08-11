@@ -138,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_cicilan'])) {
             $bukti_update = ", bukti_pembayaran = '$bukti_pembayaran'";
 
             // Hapus file lama jika ada
-            $old_file = query("SELECT bukti_pembayaran FROM cicilan WHERE id_cicilan_penjualan_bahan = $id_cicilan_penjualan_bahan")[0]['bukti_pembayaran'];
+            $old_file = query("SELECT bukti_pembayaran FROM cicilan_penjualan_bahan WHERE id_cicilan_penjualan_bahan = $id_cicilan_penjualan_bahan")[0]['bukti_pembayaran'];
             if ($old_file && file_exists("bukti/$old_file")) {
                 unlink("bukti/$old_file");
             }
