@@ -249,6 +249,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['simpan_pembelian_bahan
         const bahanData = <?= json_encode($bahan) ?>;
         let selectedBahans = [];
 
+        function formatRupiah(angka) {
+            return angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
         document.getElementById('tambahBahan').addEventListener('click', function() {
             const container = document.getElementById('bahanContainer');
             const rowId = Date.now();

@@ -284,7 +284,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             <span class="input-group-text">Rp</span>
                                             <input type="text" class="form-control" readonly
                                                 value="<?= number_format($tarif_penjahitan['tarif_per_unit'], 0, ',', '.') ?>">
-                                            <span class="input-group-text">/pcs</span>
+                                            <span class="input-group-text">/Pcs</span>
 
                                         </div>
                                     </div>

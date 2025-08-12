@@ -30,6 +30,7 @@ $endDate = date('Y-m-t', strtotime($bulan));
 $namaBulan = date('F Y', strtotime($bulan));
 
 // Query data keuangan
+// Pemasukan dari penjualan produk
 $pemasukan_lunas = query("SELECT SUM(total_harga) as total FROM penjualan 
                          WHERE status_pembayaran = 'lunas'
                          AND tanggal_penjualan BETWEEN '$startDate' AND '$endDate'")[0]['total'] ?? 0;
@@ -38,6 +39,7 @@ $pemasukan_belum_lunas = query("SELECT SUM(total_harga) as total FROM penjualan
                                WHERE status_pembayaran = 'cicilan'
                                AND tanggal_penjualan BETWEEN '$startDate' AND '$endDate'")[0]['total'] ?? 0;
 
+// Pemasukan dari penjualan bahan
 $pemasukan_lunas_bahan = query("SELECT SUM(total_harga) as total FROM penjualan_bahan 
                          WHERE status_pembayaran = 'lunas'
                          AND tanggal_penjualan_bahan BETWEEN '$startDate' AND '$endDate'")[0]['total'] ?? 0;
@@ -46,11 +48,17 @@ $pemasukan_belum_lunas_bahan = query("SELECT SUM(total_harga) as total FROM penj
                                WHERE status_pembayaran = 'cicilan'
                                AND tanggal_penjualan_bahan BETWEEN '$startDate' AND '$endDate'")[0]['total'] ?? 0;
 
-$pengeluaran = query("SELECT SUM(total_harga) as total FROM pembelian_bahan
+// Pengeluaran untuk pembelian bahan dan barang
+$pengeluaran_bahan = query("SELECT SUM(total_harga) as total FROM pembelian_bahan
                      WHERE tanggal_pembelian BETWEEN '$startDate' AND '$endDate'")[0]['total'] ?? 0;
 
+$pengeluaran_barang = query("SELECT SUM(total_harga) as total FROM pembelian
+                     WHERE tanggal_pembelian BETWEEN '$startDate' AND '$endDate'")[0]['total'] ?? 0;
+
+// Hitung total
+$total_pengeluaran = $pengeluaran_bahan + $pengeluaran_barang;
 $total_pemasukan = $pemasukan_lunas + $pemasukan_belum_lunas + $pemasukan_lunas_bahan + $pemasukan_belum_lunas_bahan;
-$laba_bersih = $total_pemasukan - $pengeluaran;
+$laba_bersih = $total_pemasukan - $total_pengeluaran;
 
 // Detail transaksi
 $transaksi = query("
@@ -65,7 +73,9 @@ $transaksi = query("
                 WHEN status_pembayaran = 'lunas' THEN 'pemasukan-lunas'
                 ELSE 'pemasukan-belum-lunas'
             END AS tipe,
-            status_pembayaran
+            status_pembayaran,
+            'penjualan' AS kategori,
+            id_penjualan AS id_transaksi
         FROM penjualan
         WHERE tanggal_penjualan BETWEEN '$startDate' AND '$endDate'
         
@@ -81,21 +91,40 @@ $transaksi = query("
                 WHEN status_pembayaran = 'lunas' THEN 'pemasukan-lunas'
                 ELSE 'pemasukan-belum-lunas'
             END AS tipe,
-            status_pembayaran
+            status_pembayaran,
+            'penjualan_bahan' AS kategori,
+            id_penjualan_bahan AS id_transaksi
         FROM penjualan_bahan
         WHERE tanggal_penjualan_bahan BETWEEN '$startDate' AND '$endDate'
         
         UNION ALL
         
-        -- Data Pengeluaran
+        -- Data Pembelian Bahan
         SELECT 
-            'Pengeluaran' AS jenis, 
+            'Pembelian Bahan' AS jenis, 
             tanggal_pembelian AS tanggal, 
             CONCAT('Pembelian Bahan #', id_pembelian_bahan) AS keterangan, 
             total_harga AS jumlah, 
             'pengeluaran' AS tipe,
-            NULL as status_pembayaran
+            status_pembayaran,
+            'pembelian_bahan' AS kategori,
+            id_pembelian_bahan AS id_transaksi
         FROM pembelian_bahan
+        WHERE tanggal_pembelian BETWEEN '$startDate' AND '$endDate'
+
+        UNION ALL
+        
+        -- Data Pembelian Barang
+        SELECT 
+            'Pembelian Barang' AS jenis, 
+            tanggal_pembelian AS tanggal, 
+            CONCAT('Pembelian Barang #', id_pembelian) AS keterangan, 
+            total_harga AS jumlah, 
+            'pengeluaran' AS tipe,
+            status_pembayaran,
+            'pembelian' AS kategori,
+            id_pembelian AS id_transaksi
+        FROM pembelian
         WHERE tanggal_pembelian BETWEEN '$startDate' AND '$endDate'
     ) AS transaksi
     ORDER BY tanggal DESC;
@@ -163,6 +192,7 @@ $transaksi = query("
 
                 <div class="content-wrapper">
                     <div class="container-xxl flex-grow-1 container-p-y">
+                        <!-- Header dan Filter -->
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <h2>Laporan Keuangan <?= $namaBulan ?></h2>
                             <div>
@@ -186,7 +216,11 @@ $transaksi = query("
                                         </div>
                                         <div class="col-md-3">
                                             <small class="text-muted">Total Pengeluaran</small>
-                                            <h4 class="text-danger"><?= formatRupiah($pengeluaran) ?></h4>
+                                            <h4 class="text-danger"><?= formatRupiah($total_pengeluaran) ?></h4>
+                                            <small class="text-muted d-block">
+                                                (Bahan: <?= formatRupiah($pengeluaran_bahan) ?>,
+                                                Barang: <?= formatRupiah($pengeluaran_barang) ?>)
+                                            </small>
                                         </div>
                                         <div class="col-md-3">
                                             <small class="text-muted">Laba Bersih</small>
@@ -206,7 +240,7 @@ $transaksi = query("
                         <!-- Card Ringkasan -->
                         <div class="row mb-4">
                             <!-- Penjualan Produk -->
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="card card-summary mb-3">
                                     <div class="card-header bg-light">
                                         <h5 class="mb-0">Penjualan Produk</h5>
@@ -222,6 +256,11 @@ $transaksi = query("
                                                     <span>Belum Lunas:</span>
                                                     <strong class="text-warning"><?= formatRupiah($pemasukan_belum_lunas) ?></strong>
                                                 </div>
+                                                <hr>
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <span>Total:</span>
+                                                    <strong><?= formatRupiah($pemasukan_lunas + $pemasukan_belum_lunas) ?></strong>
+                                                </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="chart-container">
@@ -234,7 +273,7 @@ $transaksi = query("
                             </div>
 
                             <!-- Penjualan Bahan -->
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="card card-summary mb-3">
                                     <div class="card-header bg-light">
                                         <h5 class="mb-0">Penjualan Bahan</h5>
@@ -250,10 +289,48 @@ $transaksi = query("
                                                     <span>Belum Lunas:</span>
                                                     <strong class="text-warning"><?= formatRupiah($pemasukan_belum_lunas_bahan) ?></strong>
                                                 </div>
+                                                <hr>
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <span>Total:</span>
+                                                    <strong><?= formatRupiah($pemasukan_lunas_bahan + $pemasukan_belum_lunas_bahan) ?></strong>
+                                                </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="chart-container">
                                                     <canvas id="chartPenjualanBahan"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pembelian -->
+                            <div class="col-md-4">
+                                <div class="card card-summary mb-3">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0">Pembelian</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <span>Bahan:</span>
+                                                    <strong class="text-danger"><?= formatRupiah($pengeluaran_bahan) ?></strong>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <span>Barang:</span>
+                                                    <strong class="text-danger"><?= formatRupiah($pengeluaran_barang) ?></strong>
+                                                </div>
+                                                <hr>
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <span>Total:</span>
+                                                    <strong class="text-danger"><?= formatRupiah($pengeluaran_bahan + $pengeluaran_barang) ?></strong>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="chart-container">
+                                                    <canvas id="chartPembelian"></canvas>
                                                 </div>
                                             </div>
                                         </div>
@@ -303,12 +380,14 @@ $transaksi = query("
                                                             <?= formatRupiah($trx['jumlah']) ?>
                                                         </td>
                                                         <td>
-                                                            <?php if ($trx['jenis'] !== 'Pengeluaran') : ?>
+                                                            <?php if (str_contains($trx['tipe'], 'pemasukan')) : ?>
                                                                 <span class="badge badge-status bg-<?= $trx['status_pembayaran'] === 'lunas' ? 'success' : 'warning' ?>">
                                                                     <?= $trx['status_pembayaran'] === 'lunas' ? 'Lunas' : 'Belum Lunas' ?>
                                                                 </span>
                                                             <?php else : ?>
-                                                                <span class="badge badge-status bg-secondary">Pengeluaran</span>
+                                                                <span class="badge badge-status bg-secondary">
+                                                                    <?= $trx['jenis'] === 'Pembelian Bahan' ? 'Pembelian Bahan' : 'Pembelian Barang' ?>
+                                                                </span>
                                                             <?php endif; ?>
                                                         </td>
                                                     </tr>
@@ -329,20 +408,8 @@ $transaksi = query("
                             </div>
                         </div>
 
-                        <!-- Grafik -->
+                        <!-- Grafik Perbandingan -->
                         <div class="row">
-                            <div class="col-md-6" hidden>
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5 class="mb-0">Pemasukan per Reseller</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="chart-container">
-                                            <canvas id="pemasukanChart"></canvas>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                             <div class="col-md-12">
                                 <div class="card">
                                     <div class="card-header">
@@ -382,6 +449,15 @@ $transaksi = query("
                     plugins: {
                         legend: {
                             position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    let value = context.raw || 0;
+                                    return `${label}: ${formatRupiahJS(value)}`;
+                                }
+                            }
                         }
                     }
                 }
@@ -404,23 +480,30 @@ $transaksi = query("
                     plugins: {
                         legend: {
                             position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    let value = context.raw || 0;
+                                    return `${label}: ${formatRupiahJS(value)}`;
+                                }
+                            }
                         }
                     }
                 }
             });
 
-            // Chart Pemasukan per Reseller
-            const pemasukanCtx = document.getElementById('pemasukanChart').getContext('2d');
-            new Chart(pemasukanCtx, {
-                type: 'pie',
+            // Chart Pembelian
+            const ctxPembelian = document.getElementById('chartPembelian').getContext('2d');
+            new Chart(ctxPembelian, {
+                type: 'doughnut',
                 data: {
-                    labels: <?= json_encode(array_column(query("SELECT nama_reseller FROM penjualan p JOIN reseller r ON p.id_reseller = r.id_reseller WHERE p.tanggal_penjualan BETWEEN '$startDate' AND '$endDate' AND p.status_pembayaran = 'lunas' GROUP BY p.id_reseller"), 'nama_reseller')) ?>,
+                    labels: ['Bahan', 'Barang'],
                     datasets: [{
-                        data: <?= json_encode(array_column(query("SELECT SUM(total_harga) as total FROM penjualan p JOIN reseller r ON p.id_reseller = r.id_reseller WHERE p.tanggal_penjualan BETWEEN '$startDate' AND '$endDate' AND p.status_pembayaran = 'lunas' GROUP BY p.id_reseller"), 'total')) ?>,
-                        backgroundColor: [
-                            '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b',
-                            '#858796', '#5a5c69', '#3a3b45', '#2e2f38', '#1a1c23'
-                        ]
+                        data: [<?= $pengeluaran_bahan ?>, <?= $pengeluaran_barang ?>],
+                        backgroundColor: ['#dc3545', '#fd7e14'],
+                        borderWidth: 1
                     }]
                 },
                 options: {
@@ -434,9 +517,7 @@ $transaksi = query("
                                 label: function(context) {
                                     let label = context.label || '';
                                     let value = context.raw || 0;
-                                    let total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    let percentage = Math.round((value / total) * 100);
-                                    return `${label}: ${formatRupiahJS(value)} (${percentage}%)`;
+                                    return `${label}: ${formatRupiahJS(value)}`;
                                 }
                             }
                         }
@@ -452,7 +533,7 @@ $transaksi = query("
                     labels: ['Pemasukan', 'Pengeluaran', 'Laba Bersih'],
                     datasets: [{
                         label: 'Jumlah',
-                        data: [<?= $total_pemasukan ?>, <?= $pengeluaran ?>, <?= $laba_bersih ?>],
+                        data: [<?= $total_pemasukan ?>, <?= $total_pengeluaran ?>, <?= $laba_bersih ?>],
                         backgroundColor: [
                             'rgba(40, 167, 69, 0.7)',
                             'rgba(220, 53, 69, 0.7)',

@@ -297,7 +297,7 @@ $result = $conn->query("SELECT * FROM tarif_upah ORDER BY berlaku_sejak DESC");
             }
 
             rupiah = split[1] != undefined ? rupiah + ',' + split[1] : rupiah;
-            return rupiah === '' ? '0' : rupiah;
+            return rupiah === '' ? '' : rupiah;
         }
 
         // Edit data function
@@ -305,7 +305,7 @@ $result = $conn->query("SELECT * FROM tarif_upah ORDER BY berlaku_sejak DESC");
             document.getElementById('modalTitle').textContent = 'Edit Tarif Upah';
             document.getElementById('id_tarif').value = data.id_tarif;
             document.getElementById('jenis_tarif').value = data.jenis_tarif;
-            document.getElementById('tarif_per_unit').value = formatRupiah(data.tarif_per_unit.toString());
+            document.getElementById('tarif_per_unit').value = data.tarif_per_unit;
             document.getElementById('berlaku_sejak').value = data.berlaku_sejak;
             document.getElementById('keterangan').value = data.keterangan;
 

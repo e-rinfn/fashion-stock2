@@ -88,12 +88,20 @@ $show_kodi = ($stok_pcs % 20 == 0) && ($stok_pcs > 0);
                                 </div>
 
                                 <div class="row">
-                                    <div class="col-md-4 mb-3">
+                                    <!-- <div class="col-md-4 mb-3">
                                         <label for="harga" class="form-label">Harga Jual</label>
                                         <div class="input-group">
                                             <span class="input-group-text">Rp</span>
                                             <input type="number" id="harga" name="harga" class="form-control"
                                                 value="<?= rtrim(rtrim($produk['harga_jual'], '0'), '.') ?>" min="0" required>
+                                        </div>
+                                    </div> -->
+                                    <div class="col-md-4 mb-3">
+                                        <label for="harga" class="form-label">Harga Jual</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">Rp</span>
+                                            <input type="number" id="harga" name="harga" class="form-control"
+                                                value="<?= rtrim($produk['harga_jual']) ?>" min="0" required>
                                         </div>
                                     </div>
 
